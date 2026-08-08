@@ -1,0 +1,54 @@
+/* All --color-*, --text-*, --space-*, --radius-* etc. custom properties are
+   owned by styles/tokens.css, imported first per CSS's @import ordering rule. */
+@import "../styles/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-signal-amber);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal-teal);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Eyebrows, status labels, timestamps. One class so the utility face is
+     defined in a single place rather than re-specified on every element. */
+  .utility-label {
+    font-family: var(--font-fragment-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* Every animation in the app is decorative. Reduced motion gets the resolved
+   state immediately instead of the transition into it. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
