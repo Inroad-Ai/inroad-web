@@ -75,6 +75,24 @@ export interface Company {
   updated_at: string;
 }
 
+/** One research_runs row without its raw_response, for the profile history list. */
+export interface ResearchRunSummary {
+  id: string;
+  created_at: string;
+  partial: boolean;
+  from_cache: boolean;
+  elapsed_ms: number;
+}
+
+/** GET /api/companies/{id}. The saved row plus its research trail. */
+export interface CompanyDetail extends Company {
+  /** The raw_response of the newest run, or null if the company has none. */
+  latest_research: CompanyDossier | null;
+  research_run_count: number;
+  /** Newest first, capped by the backend, so this can be shorter than the count. */
+  recent_research_runs: ResearchRunSummary[];
+}
+
 export const COMPANY_SORTS = [
   "updated_desc",
   "updated_asc",

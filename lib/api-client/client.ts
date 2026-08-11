@@ -4,6 +4,7 @@ import createClient from "openapi-fetch";
 
 import type {
   Company,
+  CompanyDetail,
   CompanyDossier,
   CompanyListResponse,
   CompanySort,
@@ -68,6 +69,9 @@ export async function fetchHistory(signal?: AbortSignal): Promise<CompanyDossier
   return data as CompanyDossier[];
 }
 
+const COMPANIES_UNREACHABLE =
+  "Could not reach the companies service. Check that it is running and that this origin is allowed.";
+
 export interface FetchCompaniesParams {
   search?: string;
   stage?: PipelineStage;
@@ -100,10 +104,105 @@ export async function fetchCompanies(
     throw new ApiError(describeFailure(response.status, error), response.status);
   }
   if (data === undefined) {
-    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
   }
 
   return data as CompanyListResponse;
+}
+
+/** The saved row plus its latest dossier and research trail, for the profile page. */
+export async function fetchCompany(
+  companyId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDetail> {
+  const { data, error, response } = await client.GET("/api/companies/{company_id}", {
+    params: { path: { company_id: companyId } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as CompanyDetail;
+}
+
+/** Notes only. Stage goes through updateCompanyStage, which the backend
+ * treats differently: it also stamps contacted_at. */
+export async function updateCompanyNotes(
+  companyId: string,
+  notes: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.PATCH("/api/companies/{company_id}", {
+    params: { path: { company_id: companyId } },
+    body: { notes },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as Company;
+}
+
+/**
+ * Runs the three checks again for a domain the user already has. Nothing is
+ * written yet: saveCompanyResearch persists what comes back.
+ */
+export async function researchCompanyDomain(
+  domain: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDossier> {
+  const { data, error, response } = await client.POST("/api/companies/research", {
+    params: { query: { domain: domain.trim() } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as CompanyDossier;
+}
+
+/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
+ * state on the existing company row is left alone. */
+export async function saveCompanyResearch(
+  dossier: CompanyDossier,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.POST("/api/companies", {
+    body: { dossier },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as Company;
 }
 
 /** Render the row this returns: a first move into "contacted" also stamps
@@ -125,7 +224,7 @@ export async function updateCompanyStage(
     throw new ApiError(describeFailure(response.status, error), response.status);
   }
   if (data === undefined) {
-    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
   }
 
   return data as Company;
@@ -151,7 +250,7 @@ export async function fetchOverviewStats(
     throw new ApiError(describeFailure(response.status, error), response.status);
   }
   if (data === undefined) {
-    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
   }
 
   return data as OverviewStats;
