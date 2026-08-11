@@ -7,7 +7,13 @@
 
 import createClient from "openapi-fetch";
 
-import type { CompanyDossier, CompanyListResponse, CompanySort, OverviewStats } from "@/lib/types";
+import type {
+  Company,
+  CompanyDossier,
+  CompanyListResponse,
+  CompanySort,
+  OverviewStats,
+} from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
 import type { paths } from "./schema";
 
@@ -114,6 +120,35 @@ export async function fetchCompanies(
   }
 
   return data as CompanyListResponse;
+}
+
+/**
+ * Move one company to a different pipeline stage. Returns the updated row,
+ * which is what callers should render afterwards - the backend also sets
+ * `contacted_at` on the first move into "contacted", so the response can
+ * differ from the request in more than just `stage`.
+ */
+export async function updateCompanyStage(
+  companyId: string,
+  stage: PipelineStage,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.PATCH("/api/companies/{company_id}/stage", {
+    params: { path: { company_id: companyId } },
+    body: { stage },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+  }
+
+  return data as Company;
 }
 
 /**

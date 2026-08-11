@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { fetchCompanies } from "@/lib/api-client/client";
+import { describeHiring } from "@/lib/companies";
 import { createClient } from "@/lib/supabase/browser";
 import type { Company, CompanySort } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -26,18 +27,6 @@ const SORT_OPTIONS: { value: CompanySort; label: string }[] = [
 ];
 
 type LoadState = "loading" | "error" | "ready";
-
-/** "Unknown" (fetcher couldn't determine) must never collapse into "0 open roles". */
-function describeHiring(company: Company): { label: string; muted: boolean } {
-  if (company.open_roles === null) {
-    return { label: "Hiring status unknown", muted: true };
-  }
-  if (company.open_roles === 0) {
-    return { label: "Not currently hiring", muted: true };
-  }
-  const noun = company.open_roles === 1 ? "role" : "roles";
-  return { label: `${company.open_roles} open ${noun}`, muted: false };
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
