@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Logo } from "@/components/ui/Logo";
+
 interface NavLink {
   href: string;
   label: string;
@@ -184,8 +186,8 @@ export function Sidebar({
       }`}
     >
       <div className="flex h-16 items-center border-b border-line px-4">
-        <Link href="/overview" className="font-display text-sm font-semibold text-ink">
-          {collapsed ? "IR" : "Inroad"}
+        <Link href="/overview" aria-label="Inroad">
+          <Logo variant={collapsed ? "mark" : "full"} />
         </Link>
       </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 
 const LINK_COLUMNS = [
   {
@@ -73,8 +74,8 @@ export function Footer() {
     <footer className="relative overflow-hidden border-t border-line bg-paper">
       <div className="mx-auto max-w-6xl px-6 pt-16">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" className="font-display text-xl font-semibold text-ink">
-            Inroad
+          <Link href="/" aria-label="Inroad home">
+            <Logo />
           </Link>
 
           <div className="flex items-center gap-3">

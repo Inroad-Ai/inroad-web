@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { createClient } from "@/lib/supabase/browser";
 
 export function Nav() {
@@ -21,19 +22,8 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-20 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-signal-amber">
-            <svg
-              viewBox="0 0 16 16"
-              className="h-3.5 w-3.5 text-ink"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.75}
-            >
-              <path d="M4 12 12 4M12 4H6M12 4v6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-          <span className="font-display text-sm font-semibold text-ink">Inroad</span>
+        <Link href="/" aria-label="Inroad home">
+          <Logo />
         </Link>
 
         <div className="hidden items-center gap-8 sm:flex">
