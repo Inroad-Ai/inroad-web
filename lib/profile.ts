@@ -1,9 +1,5 @@
-/**
- * Types and Supabase calls for the settings page. Same table, same RLS
- * policies as onboarding (lib/onboarding.ts) - reads and writes go straight
- * to Supabase, not through the FastAPI client, because there is no backend
- * route for profile data.
- */
+/** Settings-page reads and writes. Straight to Supabase: no backend route
+ * exists for profile data, and RLS scopes every call. */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -45,14 +41,13 @@ export async function updateProfile(
   if (error) throw new Error(error.message);
 }
 
-/** A stored path looks like `{userId}/{timestamp}-{original name}`. Show just the name. */
+/** `{userId}/{timestamp}-{name}` -> `{name}`. */
 export function fileNameFromPath(path: string | null): string | null {
   if (!path) return null;
   const segment = path.split("/").pop() ?? path;
   return segment.replace(/^\d+-/, "");
 }
 
-/** Short-lived URL to view/download a private storage object. */
 export async function getSignedFileUrl(
   supabase: SupabaseClient,
   bucket: "resumes" | "career-arc-documents",

@@ -67,12 +67,8 @@ export interface paths {
         put?: never;
         /**
          * Save Company
-         * @description Explicit save-to-pipeline: persists a dossier the caller already has
-         *     (from POST /companies/research) rather than re-fetching it. Re-fetching
-         *     here would double the outbound calls to news/greenhouse/lever for every
-         *     save and could persist different data than what the user actually saw
-         *     and clicked "save" on - the dossier the user reviewed is the one that
-         *     gets saved.
+         * @description Persists the dossier the caller already has rather than re-fetching:
+         *     what the user reviewed is what gets saved.
          */
         post: operations["save_company_api_companies_post"];
         delete?: never;
@@ -109,12 +105,7 @@ export interface paths {
         put?: never;
         /**
          * Research Domain
-         * @description Runs the Research Fetcher and returns the dossier for preview. Does
-         *     NOT save anything - saving to the pipeline is a separate, deliberate
-         *     action the frontend takes by calling POST /companies with the dossier
-         *     this returns. Auth is required (this sits behind the dashboard), but the
-         *     token is only used to authenticate the caller here, not to touch the
-         *     database.
+         * @description Preview only. Saving is a separate POST /companies with this dossier.
          */
         post: operations["research_domain_api_companies_research_post"];
         delete?: never;
@@ -162,11 +153,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /**
-         * CompanyDetail
-         * @description Full company profile: the row itself, plus its most recent research
-         *     result and a short history of prior runs.
-         */
+        /** CompanyDetail */
         CompanyDetail: {
             /**
              * Id
@@ -311,25 +298,13 @@ export interface components {
         CompanyStage: "researched" | "contacted" | "responded" | "interviewing" | "closed" | "rejected";
         /**
          * CompanyUpdate
-         * @description Body for PATCH /companies/{id}: general field edits. Notes only for
-         *     now - stage changes go through PATCH /companies/{id}/stage instead,
-         *     since that's where contacted_at logic lives and it deserves its own
-         *     explicit path.
+         * @description Stage changes go through PATCH /companies/{id}/stage, not here.
          */
         CompanyUpdate: {
             /** Notes */
             notes?: string | null;
         };
-        /**
-         * CreateOrUpdateCompany
-         * @description Body for POST /companies: saves a research result the caller already
-         *     has (typically from a prior POST /companies/research call) into the
-         *     pipeline. Not used for general edits - see CompanyUpdate - because saving
-         *     always requires a full dossier and general edits never do; folding both
-         *     into one model would make every field optional and lose that
-         *     distinction, the same reasoning that keeps stage transitions out of the
-         *     general update endpoint.
-         */
+        /** CreateOrUpdateCompany */
         CreateOrUpdateCompany: {
             dossier: components["schemas"]["CompanyDossier"];
         };
@@ -434,10 +409,7 @@ export interface components {
         };
         /**
          * ResearchRunSummary
-         * @description One research_runs row without its raw_response - for the profile
-         *     page's run history list, where showing the full dossier per row would be
-         *     wasteful. The most recent run's full dossier is exposed separately as
-         *     CompanyDetail.latest_research.
+         * @description One research_runs row without its raw_response, for the history list.
          */
         ResearchRunSummary: {
             /**
@@ -474,11 +446,7 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
-        /**
-         * WeeklyCompanyCount
-         * @description One point on the "companies added over time" chart: the Monday that
-         *     starts the week, and how many companies were created in it.
-         */
+        /** WeeklyCompanyCount */
         WeeklyCompanyCount: {
             /**
              * Week Start

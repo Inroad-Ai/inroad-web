@@ -1,9 +1,4 @@
-/**
- * The stage vocabulary for a company moving through outreach. Mirrors the
- * `companies.stage` CHECK constraint in
- * supabase/migrations/20260811150000_create_companies_and_research_runs.sql
- * exactly - update both together if the stage list ever changes.
- */
+/** Mirrors the `companies.stage` CHECK constraint; update both together. */
 export const PIPELINE_STAGES = [
   "researched",
   "contacted",
@@ -24,8 +19,7 @@ export const STAGE_LABEL: Record<PipelineStage, string> = {
   rejected: "Rejected",
 };
 
-// Amber is reserved for the page's one primary action, so it never appears
-// here even for "closed" — warning (ochre) is the closest distinct positive.
+// Amber is reserved for the page's one primary action, so "closed" uses ochre.
 const STAGE_TONE: Record<PipelineStage, string> = {
   researched: "border-line bg-surface-raised text-text-secondary",
   contacted: "border-signal-teal/40 bg-signal-teal-subtle text-signal-teal",
@@ -35,11 +29,6 @@ const STAGE_TONE: Record<PipelineStage, string> = {
   rejected: "border-muted-rose/40 bg-muted-rose-subtle text-muted-rose",
 };
 
-/**
- * The one stage-badge treatment, reused on the companies table, the
- * pipeline board, and the company profile header. Keep it here so all
- * three stay visually identical instead of drifting apart.
- */
 export function StatusBadge({ stage }: { stage: PipelineStage }) {
   return (
     <span

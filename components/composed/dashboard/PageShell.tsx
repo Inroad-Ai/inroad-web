@@ -3,16 +3,11 @@ import type { ReactNode } from "react";
 interface PageShellProps {
   title: string;
   description?: string;
-  /** Top-right slot. One primary action per page, amber stays reserved for it. */
   action?: ReactNode;
   children: ReactNode;
 }
 
-/**
- * Every dashboard page renders through this: same max width and horizontal
- * padding, same heading/description/action layout. Extracted from the
- * Research page so new pages don't reinvent the header by hand.
- */
+/** Same width, padding and header layout for every dashboard page. */
 export function PageShell({ title, description, action, children }: PageShellProps) {
   return (
     <main className="mx-auto max-w-7xl px-8 py-8">

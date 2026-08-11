@@ -1,16 +1,8 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Every colour in the app is declared here and nowhere else. Components
- * reference token names (`bg-surface`, `text-signal-amber`); no component
- * carries a hardcoded hex value.
- *
- * Every value below is a CSS custom property (`var(--color-*)`, `var(--font-*)`),
- * never a hardcoded hex/px value - that's the wiring the design tokens prompt
- * needs already in place. Those custom properties are declared in
- * app/globals.css today; styles/tokens.css (imported by globals.css) is where
- * that declaration moves once the design tokens prompt populates it. Nothing
- * here has to change when that happens.
+ * Maps token names components use (`bg-surface`) onto the custom properties
+ * in styles/tokens.css. Every value here is a `var(--*)`, never a literal.
  */
 const config: Config = {
   content: [

@@ -1,9 +1,5 @@
-/**
- * Types and Supabase calls for the onboarding flow. Writes go straight to
- * Supabase (profiles table + storage), not through the FastAPI client in
- * lib/api.ts - there is no backend route for this yet, and RLS is what
- * scopes every read/write to the signed-in user.
- */
+/** Onboarding reads and writes. Straight to Supabase for the same reason as
+ * lib/profile.ts: no backend route, RLS does the scoping. */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 

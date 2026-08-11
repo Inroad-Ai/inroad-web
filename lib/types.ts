@@ -1,9 +1,7 @@
 /**
- * Mirrors app/models/dossier.py in the backend, field for field.
- *
- * Pydantic `Optional[X] = None` becomes `X | null` here rather than `X?`,
- * because the backend always serialises the key — it is present and null, not
- * absent. Keeping that distinction means a missing key is a bug, not a shrug.
+ * Mirrors app/schemas/ in the backend, field for field. Pydantic
+ * `Optional[X] = None` maps to `X | null`, never `X?`: the backend always
+ * serialises the key, so a missing one is a bug.
  */
 
 import type { PipelineStage } from "@/components/ui/StatusBadge";
@@ -33,7 +31,7 @@ export interface NewsResult {
 
 export interface HiringResult {
   is_hiring: boolean;
-  /** null means "could not count", which is not the same as 0 ("counted, none open"). */
+  /** null means "could not count", not 0 ("counted, none open"). */
   open_roles: number | null;
   /** "greenhouse" | "lever" | "careers-page" */
   source: string | null;
@@ -53,15 +51,11 @@ export interface CompanyDossier {
   elapsed_ms: number;
 }
 
-/** The three sources, in the order they are shown everywhere in the UI. */
+/** In the order they are shown everywhere in the UI. */
 export const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
 export type SourceKey = (typeof SOURCE_KEYS)[number];
 
-/**
- * Mirrors app/schemas/company.py in the backend. A saved company row, as
- * returned by GET /api/companies - not to be confused with CompanyDossier
- * above, which is a live research result that hasn't necessarily been saved.
- */
+/** A saved company row. CompanyDossier above is a live, not necessarily saved, result. */
 export interface Company {
   id: string;
   domain: string;
@@ -69,7 +63,7 @@ export interface Company {
   homepage_title: string | null;
   homepage_description: string | null;
   is_hiring: boolean | null;
-  /** null means "could not determine", which is not the same as 0 ("counted, none open"). Never coerce. */
+  /** null means "could not determine", not 0. Never coerce. */
   open_roles: number | null;
   hiring_source: string | null;
   careers_url: string | null;

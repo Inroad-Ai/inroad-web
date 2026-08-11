@@ -1,9 +1,4 @@
-/**
- * Typed wrapper around the FastAPI backend, built on `schema.d.ts`
- * (generated) and openapi-fetch. This replaces hand-written `fetch()` calls
- * for anything the backend serves - see README.md in this folder to
- * regenerate the schema after a backend change.
- */
+/** Typed wrapper around the FastAPI backend. See README.md to regenerate. */
 
 import createClient from "openapi-fetch";
 
@@ -23,7 +18,7 @@ const BASE_URL = (
 
 const client = createClient<paths>({ baseUrl: BASE_URL });
 
-/** Thrown for transport failures and 4xx/5xx. A partial dossier is a 200 and never lands here. */
+/** Transport failures and 4xx/5xx. A partial dossier is a 200 and never lands here. */
 export class ApiError extends Error {
   readonly status: number;
 
@@ -34,7 +29,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Pull FastAPI's `detail` out of an error body, falling back to the status. */
 function describeFailure(status: number, body: unknown): string {
   if (body && typeof body === "object" && typeof (body as { detail?: unknown }).detail === "string") {
     return (body as { detail: string }).detail;
@@ -43,13 +37,7 @@ function describeFailure(status: number, body: unknown): string {
   return `The research service returned ${status}.`;
 }
 
-/**
- * Run research on one domain.
- *
- * Always resolves to a dossier when the service answers, including a partial
- * one - `partial` and `errors` describe what is missing. Only malformed input
- * and transport problems reject.
- */
+/** Resolves even for a partial dossier; only bad input and transport problems reject. */
 export async function fetchResearch(
   domain: string,
   signal?: AbortSignal,
@@ -69,7 +57,7 @@ export async function fetchResearch(
   return data as CompanyDossier;
 }
 
-/** Recent runs, newest first. Server-side memory, so it empties on backend restart. */
+/** Newest first. Server-side memory, so it empties on backend restart. */
 export async function fetchHistory(signal?: AbortSignal): Promise<CompanyDossier[]> {
   const { data, response } = await client.GET("/api/research/history", { signal });
 
@@ -88,11 +76,7 @@ export interface FetchCompaniesParams {
   pageSize?: number;
 }
 
-/**
- * One page of the caller's saved companies. Requires a Supabase access
- * token: the backend forwards it to Postgres as-is, so RLS is what actually
- * scopes the rows returned, not anything this function does.
- */
+/** The token is forwarded to Postgres as-is: RLS scopes the rows, not this. */
 export async function fetchCompanies(
   params: FetchCompaniesParams,
   accessToken: string,
@@ -122,12 +106,8 @@ export async function fetchCompanies(
   return data as CompanyListResponse;
 }
 
-/**
- * Move one company to a different pipeline stage. Returns the updated row,
- * which is what callers should render afterwards - the backend also sets
- * `contacted_at` on the first move into "contacted", so the response can
- * differ from the request in more than just `stage`.
- */
+/** Render the row this returns: a first move into "contacted" also stamps
+ * `contacted_at`, so the response differs from the request by more than stage. */
 export async function updateCompanyStage(
   companyId: string,
   stage: PipelineStage,
@@ -151,11 +131,7 @@ export async function updateCompanyStage(
   return data as Company;
 }
 
-/**
- * Aggregate stage counts, contacted-window counts, and the weekly
- * companies-added trend for the Overview page. Same auth shape as
- * fetchCompanies: RLS via the caller's own access token, not this function.
- */
+/** Aggregates for the Overview page. Same auth shape as fetchCompanies. */
 export async function fetchOverviewStats(
   accessToken: string,
   signal?: AbortSignal,

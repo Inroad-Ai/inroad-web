@@ -1,14 +1,7 @@
 /**
- * The Inroad mark: a route that starts at a single origin, turns, and arrows
- * into an opening. That's the product in one shape — you start from where you
- * are, and the path in is the point, not the destination logo.
- *
- * Drawn on a 32-unit grid with a 3-unit stroke so it survives being rendered
- * at 16px in a browser tab. The glyph is nudged right so its optical centre,
- * not its bounding box, sits in the middle of the tile.
- *
- * app/icon.svg is the same artwork with literal colour values, since a static
- * favicon file can't reach the CSS custom properties.
+ * 32-unit grid, 3-unit stroke, so it survives rendering at 16px in a tab.
+ * app/icon.svg is the same artwork with literal colours, since a static
+ * favicon can't reach the CSS custom properties.
  */
 export function Logo({
   variant = "full",

@@ -1,13 +1,4 @@
-/**
- * Server-side Supabase client, for Server Components, Route Handlers and
- * Server Actions. Reads/writes auth cookies via next/headers, per the SSR
- * helpers' recommended pattern.
- *
- * Stub: no auth calls are wired to this yet. The initialization itself is
- * real - swap in real Supabase project credentials and it works. Call
- * `createClient()` fresh per request; the client is not meant to be reused
- * across requests.
- */
+/** Call this fresh per request; it is not meant to be reused across them. */
 
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -29,8 +20,8 @@ export function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Called from a Server Component, which can't set cookies.
-            // Fine as long as middleware refreshes the session instead.
+            // Server Components can't set cookies; middleware refreshes
+            // the session instead.
           }
         },
       },

@@ -1,11 +1,7 @@
 /*
- * Source of truth for all design tokens. Tailwind config and any component
- * CSS reference these variables — never hardcode a hex value, arbitrary
- * pixel value, or inline font declaration anywhere else in the codebase.
- *
- * Palette direction: warm SaaS. Cream page, white cards, gold-orange accent,
- * soft rounded corners, layered shadows for elevation. See
- * docs/design-tokens.md for the rationale behind every value below.
+ * Source of truth for every design token. Nothing else in the codebase
+ * hardcodes a hex, a pixel value, or a font declaration.
+ * Rationale for each value: docs/design-tokens.md.
  */
 
 :root {
@@ -47,8 +43,8 @@
   --color-warning: #7e5710;
   --color-warning-subtle: #f4ead6;
 
-  /* ---- Color: semantic aliases ---- */
-  /* Reach for these when the choice is about role, not palette family. */
+  /* ---- Color: semantic aliases — reach for these when the choice is about
+     role, not palette family. ---- */
 
   --color-bg: var(--color-paper);
   --color-text-primary: var(--color-ink);
@@ -60,7 +56,6 @@
   --color-accent-secondary-hover: var(--color-signal-teal-hover);
   --color-error: var(--color-muted-rose);
   --color-error-subtle: var(--color-muted-rose-subtle);
-  /* --color-success / --color-warning are already semantic names at the raw layer above. */
 
   /* ---- Type ---- */
 
@@ -94,9 +89,8 @@
   --text-5xl-size: 3.5rem;
   --text-5xl-line-height: 1.05;
 
-  /* Footer watermark — the oversized wordmark sitting behind the footer.
-     Way past the end of the reading scale, so it gets its own token rather
-     than stretching --text-5xl. Fluid so it always spans the footer width. */
+  /* Footer watermark. Past the end of the reading scale, so it gets its own
+     token rather than stretching --text-5xl. */
   --text-wordmark-size: clamp(4.5rem, 21vw, 19rem);
   --text-wordmark-line-height: 0.76;
 
@@ -106,10 +100,8 @@
   --font-weight-sans-bold: 700;
 
   /* ---- Spacing ---- */
-  /* 4px base unit, matches Tailwind's default spacing scale exactly.
-     Defined here only for raw-CSS contexts (SVG/canvas math) that can't
-     reach a Tailwind class; tailwind.config.ts intentionally does not
-     override `spacing`, since Tailwind's default already lines up. */
+  /* Matches Tailwind's default scale. Here only for raw-CSS contexts
+     (SVG/canvas math) that can't reach a Tailwind class. */
 
   --space-1: 0.25rem; /* 4px */
   --space-2: 0.5rem; /* 8px */
@@ -122,8 +114,7 @@
   --space-24: 6rem; /* 96px */
 
   /* ---- Border radius ---- */
-  /* Soft, rounded direction. Buttons, badges, and pills use --radius-full;
-     cards and panels use the sm/md/lg scale. */
+  /* Buttons, badges and pills use --radius-full; cards and panels sm/md/lg. */
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -131,10 +122,8 @@
   --radius-full: 999px;
 
   /* ---- Elevation ---- */
-  /* Everyday cards get --shadow-card, a soft ambient lift. Content that
-     floats above the page (modals, dropdowns, the hero preview panel)
-     gets --shadow-overlay, a heavier layered shadow. Both are tinted with
-     warm ink at low opacity, not pure black. */
+  /* Cards get --shadow-card; anything floating above the page (modals,
+     dropdowns) gets --shadow-overlay. Both tinted warm ink, never black. */
 
   --shadow-card: 0 1px 2px rgba(43, 33, 29, 0.04), 0 8px 24px -8px rgba(43, 33, 29, 0.1);
   --shadow-overlay: 0 1px 2px rgba(43, 33, 29, 0.12), 0 8px 20px -6px rgba(43, 33, 29, 0.16),

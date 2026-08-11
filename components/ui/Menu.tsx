@@ -6,32 +6,21 @@ import type { ReactNode } from "react";
 export interface MenuItem {
   key: string;
   label: ReactNode;
-  /** Rendered flat and unclickable — use for the option that's already current. */
   disabled?: boolean;
   onSelect: () => void;
 }
 
 interface MenuProps {
-  /** Trigger content. Keep it short; the trigger is a small quiet control. */
   trigger: ReactNode;
-  /** Accessible name for the trigger, since `trigger` is often just an icon. */
   label: string;
   items: MenuItem[];
   disabled?: boolean;
-  /** Which edge of the trigger the panel lines up with. */
   align?: "left" | "right";
 }
 
 /**
- * A small click-to-open menu: trigger button plus a floating panel of
- * options. Closes on outside pointerdown, on Escape, and after a selection.
- *
- * Deliberately not a `<select>`: the options carry their own visuals (stage
- * badges) and a native select can't render those. Deliberately not a
- * headless-UI dependency either — this is the only menu in the app so far.
- *
- * Every event is stopped from propagating, so a Menu can sit inside a
- * clickable card without opening it turning into a click on the card.
+ * Not a `<select>`: options render their own visuals (stage badges). Events
+ * stop propagating so this can sit inside a clickable card.
  */
 export function Menu({ trigger, label, items, disabled = false, align = "right" }: MenuProps) {
   const [open, setOpen] = useState(false);
@@ -55,7 +44,6 @@ export function Menu({ trigger, label, items, disabled = false, align = "right" 
     };
   }, [open]);
 
-  // A disabled trigger can't close the panel, so don't leave one hanging.
   useEffect(() => {
     if (disabled) setOpen(false);
   }, [disabled]);

@@ -1,12 +1,6 @@
-/**
- * Display helpers for dossier values returned by lib/api-client.
- *
- * These live apart from the client itself because they exist to paper over
- * what the API does not send: it has no timestamps on a dossier, and it
- * reports milliseconds where the UI shows seconds.
- */
+/** Display helpers for dossier values, covering what the API does not send. */
 
-/** elapsed_ms -> seconds, the unit the UI shows. 1615 -> "1.62". */
+/** 1615 -> "1.62" seconds. */
 export function totalTimeSeconds(elapsedMs: number): string {
   return (elapsedMs / 1000).toFixed(2);
 }
@@ -25,11 +19,8 @@ function readSeen(): SeenMap {
 }
 
 /**
- * Remember when this browser last saw a domain fetched live.
- *
- * The dossier carries no timestamp, so "cached 12m ago" cannot come from the
- * response. This is the only source of that number, and it only knows about
- * runs made in this browser.
+ * The dossier carries no timestamp, so "cached 12m ago" can only come from
+ * here - and only for runs made in this browser.
  */
 export function recordLiveFetch(domain: string, at: number = Date.now()): void {
   if (typeof window === "undefined") return;
@@ -38,8 +29,7 @@ export function recordLiveFetch(domain: string, at: number = Date.now()): void {
   try {
     window.localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
   } catch {
-    // Storage full or blocked. The badge drops the relative time and says
-    // nothing false.
+    // Storage full or blocked; the badge just drops the relative time.
   }
 }
 
@@ -48,7 +38,7 @@ export function lastLiveFetchAt(domain: string): number | null {
   return readSeen()[domain] ?? null;
 }
 
-/** 720000 -> "12m ago". Coarse on purpose; nothing here needs second precision. */
+/** 720000 -> "12m ago". Coarse on purpose. */
 export function relativeTime(since: number, now: number = Date.now()): string {
   const seconds = Math.max(0, Math.round((now - since) / 1000));
   if (seconds < 45) return "just now";

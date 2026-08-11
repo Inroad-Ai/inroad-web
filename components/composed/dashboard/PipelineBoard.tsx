@@ -13,18 +13,12 @@ import { Menu } from "@/components/ui/Menu";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PIPELINE_STAGES, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
 
-/**
- * How many cards a column renders before it stops. Columns are never
- * unbounded: after the historical import some stages will hold hundreds of
- * companies, and rendering all of them in six columns at once would be a
- * few thousand DOM nodes for cards nobody scrolled to. Each column pages
- * through the same endpoint the table uses, one page at a time, on demand.
- */
+// Columns are never unbounded: some stages will hold hundreds of companies
+// after the historical import, so each pages on demand.
 const COLUMN_PAGE_SIZE = 20;
 
 interface ColumnState {
   items: Company[];
-  /** Exact count for this stage, straight off the list response. */
   total: number;
   pagesLoaded: number;
   status: "loading" | "error" | "ready";
@@ -66,9 +60,8 @@ export function PipelineBoard() {
     [],
   );
 
-  // Initial load: one request per column, in parallel. Each response's
-  // `total` is that column's header count, so the board never runs a second
-  // aggregation for a number the list endpoint already reports exactly.
+  // One request per column. Each response's `total` is that column's header
+  // count, so no second aggregation is needed for a number we already have.
   useEffect(() => {
     const controller = new AbortController();
 
@@ -118,12 +111,8 @@ export function PipelineBoard() {
     return () => controller.abort();
   }, [supabase, patchColumn]);
 
-  /**
-   * Appends the next page to one column. Cards moving between stages shift
-   * the underlying offsets, so a page fetched after a move can repeat or
-   * skip a row; de-duplicating by id here keeps the visible list honest
-   * without a full board refetch.
-   */
+  // Cards moving between stages shift the underlying offsets, so a page
+  // fetched after a move can repeat a row. De-duplicate rather than refetch.
   async function loadMore(stage: PipelineStage) {
     const column = board[stage];
     if (column.loadingMore) return;
@@ -170,12 +159,8 @@ export function PipelineBoard() {
     }
   }
 
-  /**
-   * Waits for the backend, then moves the card locally - no optimistic hop
-   * and no full refetch. The updated row the endpoint returns is what lands
-   * in the target column, so a side effect like `contacted_at` being stamped
-   * on the first move into "contacted" shows up without a second request.
-   */
+  // Waits for the backend, then moves the card locally. The row the endpoint
+  // returns is what lands, so a stamped `contacted_at` shows up with it.
   async function moveCompany(company: Company, to: PipelineStage) {
     const from = company.stage;
     if (from === to) return;
@@ -206,8 +191,7 @@ export function PipelineBoard() {
           },
           [to]: {
             ...target,
-            // Columns are sorted by last-updated, and this row was just
-            // updated, so the top is where it actually belongs.
+            // Sorted by last-updated, and this row just was.
             items: [updated, ...target.items.filter((item) => item.id !== company.id)],
             total: target.total + 1,
           },
