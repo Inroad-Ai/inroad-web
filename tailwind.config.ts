@@ -51,8 +51,8 @@ const config: Config = {
       },
       fontFamily: {
         // Set by next/font in app/layout.tsx, consumed as CSS variables.
-        mono: ["var(--font-fragment-mono)", "ui-monospace", "monospace"],
-        sans: ["var(--font-public-sans)", "ui-sans-serif", "system-ui"],
+        display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
+        sans: ["var(--font-body)", "ui-sans-serif", "system-ui"],
       },
       fontSize: {
         xs: ["var(--text-xs-size)", { lineHeight: "var(--text-xs-line-height)" }],
@@ -65,7 +65,6 @@ const config: Config = {
         "4xl": ["var(--text-4xl-size)", { lineHeight: "var(--text-4xl-line-height)" }],
       },
       fontWeight: {
-        "mono-regular": "var(--font-weight-mono-regular)",
         "sans-regular": "var(--font-weight-sans-regular)",
         "sans-medium": "var(--font-weight-sans-medium)",
         "sans-semibold": "var(--font-weight-sans-semibold)",
@@ -75,9 +74,11 @@ const config: Config = {
         sm: "var(--radius-sm)",
         md: "var(--radius-md)",
         lg: "var(--radius-lg)",
+        full: "var(--radius-full)",
       },
       boxShadow: {
         overlay: "var(--shadow-overlay)",
+        card: "var(--shadow-card)",
       },
       letterSpacing: {
         utility: "0.08em",

@@ -9,12 +9,14 @@
 @layer base {
   html {
     color-scheme: light;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
   }
 
   body {
     background-color: var(--color-paper);
     color: var(--color-ink);
-    font-family: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -33,7 +35,8 @@
   /* Eyebrows, status labels, timestamps. One class so the utility face is
      defined in a single place rather than re-specified on every element. */
   .utility-label {
-    font-family: var(--font-fragment-mono), ui-monospace, monospace;
+    font-family: var(--font-display), ui-sans-serif, system-ui;
+    font-weight: var(--font-weight-sans-medium);
     font-size: 0.6875rem;
     line-height: 1.2;
     text-transform: uppercase;
@@ -50,5 +53,9 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
   }
 }

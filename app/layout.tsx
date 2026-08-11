@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { Fragment_Mono, Public_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 
 import "./globals.css";
 
 // Loaded here via next/font, self-hosted at build time. No CDN link tag.
-const fragmentMono = Fragment_Mono({
-  weight: "400",
+// Plus Jakarta Sans, not Geist: Geist isn't in this Next.js version's
+// bundled Google Fonts data yet. Same rounded-geometric feel.
+const displayFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-fragment-mono",
+  variable: "--font-display",
 });
 
-const publicSans = Public_Sans({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-public-sans",
+  variable: "--font-body",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fragmentMono.variable} ${publicSans.variable}`}
+      className={`${displayFont.variable} ${inter.variable}`}
     >
       <body className="min-h-screen bg-paper text-ink antialiased">
         {children}
