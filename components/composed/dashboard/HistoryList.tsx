@@ -13,28 +13,35 @@ interface HistoryListProps {
 
 export function HistoryList({ runs, onSelect, activeDomain }: HistoryListProps) {
   return (
-    <section>
-      <h2 className="utility-label text-paper/45">Earlier runs</h2>
+    <section className="rounded-md border border-line bg-surface shadow-card">
+      <header className="flex items-baseline justify-between gap-3 border-b border-line px-6 py-4">
+        <span className="utility-label text-text-secondary">Earlier runs</span>
+        {runs.length > 0 ? (
+          <span className="utility-label text-text-secondary/60">
+            {runs.length}
+          </span>
+        ) : null}
+      </header>
 
       {runs.length === 0 ? (
-        <p className="mt-4 text-sm text-paper/45">
+        <p className="px-6 py-6 text-sm text-text-secondary">
           Nothing yet. Runs show up here as you make them.
         </p>
       ) : (
-        <ul className="mt-4 divide-y divide-line border-y border-line">
+        <ul className="divide-y divide-line">
           {runs.map((run, index) => (
             <li key={`${run.domain}-${index}`}>
               <button
                 type="button"
                 onClick={() => onSelect(run)}
-                className={`flex w-full items-baseline justify-between gap-4 px-1 py-3 text-left transition-colors hover:bg-surface ${
-                  run.domain === activeDomain ? "bg-surface" : ""
+                className={`flex w-full items-baseline justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-surface-raised ${
+                  run.domain === activeDomain ? "bg-surface-raised" : ""
                 }`}
               >
-                <span className="font-mono text-sm text-paper">{run.domain}</span>
+                <span className="font-sans text-sm text-ink">{run.domain}</span>
                 <span className="flex items-baseline gap-5">
                   <When domain={run.domain} />
-                  <span className="font-mono text-sm text-paper/70">
+                  <span className="font-sans text-sm text-text-secondary">
                     {totalTimeSeconds(run.elapsed_ms)}s
                   </span>
                 </span>
@@ -45,7 +52,7 @@ export function HistoryList({ runs, onSelect, activeDomain }: HistoryListProps) 
       )}
 
       {runs.length > 0 ? (
-        <p className="mt-3 text-xs text-paper/40">
+        <p className="border-t border-line px-6 py-3 text-xs text-text-secondary/70">
           Opening a row shows what that run returned. It does not check again.
         </p>
       ) : null}
@@ -66,7 +73,7 @@ function When({ domain }: { domain: string }) {
   }, [domain]);
 
   return (
-    <span className="utility-label text-paper/40">
+    <span className="utility-label text-text-secondary/70">
       {when ?? "earlier"}
     </span>
   );

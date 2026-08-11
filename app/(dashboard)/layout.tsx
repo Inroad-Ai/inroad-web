@@ -1,21 +1,27 @@
-/**
- * Structure only: a persistent sidebar slot next to the page content. `hidden`
- * keeps it out of the flow (and the visual output identical to before this
- * layout existed) until a real nav is built here.
- */
-export default function DashboardLayout({
+import { redirect } from "next/navigation";
+
+import { DashboardShell } from "@/components/composed/dashboard/DashboardShell";
+import { createClient } from "@/lib/supabase/server";
+
+// Every route under (dashboard) requires a signed-in user. This is the only
+// gate: no route below re-checks auth, they all rely on this layout running
+// first. getUser() (not getSession()) because it re-validates against
+// Supabase Auth rather than trusting whatever the cookie claims.
+export const dynamic = "force-dynamic";
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen">
-      <aside
-        aria-hidden="true"
-        data-slot="dashboard-sidebar"
-        className="hidden"
-      />
-      <div className="flex-1">{children}</div>
-    </div>
-  );
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/");
+  }
+
+  return <DashboardShell>{children}</DashboardShell>;
 }

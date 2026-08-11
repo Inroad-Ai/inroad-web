@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { DossierSummary } from "@/components/composed/dashboard/DossierSummary";
@@ -8,7 +7,8 @@ import { HistoryList } from "@/components/composed/dashboard/HistoryList";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
 import { SearchBar } from "@/components/composed/dashboard/SearchBar";
 import { StatusDot } from "@/components/ui/StatusDot";
-import { ApiError, fetchHistory, fetchResearch, recordLiveFetch } from "@/lib/api";
+import { ApiError, fetchHistory, fetchResearch } from "@/lib/api-client/client";
+import { recordLiveFetch } from "@/lib/api";
 import {
   SOURCE_KEYS,
   type CardState,
@@ -33,7 +33,7 @@ function settle(dossier: CompanyDossier): CardStates {
   }, {} as CardStates);
 }
 
-export default function DashboardPage() {
+export default function ResearchPage() {
   const [domain, setDomain] = useState("");
   const [busy, setBusy] = useState(false);
   const [dossier, setDossier] = useState<CompanyDossier | null>(null);
@@ -90,44 +90,39 @@ export default function DashboardPage() {
   const started = busy || dossier !== null;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="font-mono text-sm text-paper">
-          research<span className="text-signal-amber">/</span>fetcher
-        </Link>
-        <span className="utility-label text-paper/40">Dashboard</span>
-      </div>
-
-      <div className="mt-10">
-        <SearchBar onRun={run} busy={busy} value={domain} />
+    <main className="mx-auto max-w-7xl px-8 py-8">
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <h1 className="text-2xl text-ink">Research</h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Enter a company domain to see its homepage, its recent news and
+            its open roles.
+          </p>
+        </div>
+        <div className="w-full sm:w-auto sm:min-w-[26rem]">
+          <SearchBar onRun={run} busy={busy} value={domain} />
+        </div>
       </div>
 
       {problem ? (
-        <div className="mt-6 rounded-sm border border-muted-rose/40 bg-muted-rose/5 p-5">
+        <div className="mt-6 rounded-sm border border-muted-rose/40 bg-muted-rose-subtle p-5">
           <div className="flex items-center gap-2">
             <StatusDot state="failed" />
             <span className="utility-label text-muted-rose">Could not run</span>
           </div>
-          <p className="mt-2 text-sm text-paper/70">{problem}</p>
+          <p className="mt-2 text-sm text-text-secondary">{problem}</p>
         </div>
       ) : null}
 
-      {!started && !problem ? (
-        <p className="mt-6 text-sm text-paper/60">
-          Enter a company domain to see its homepage, its recent news and its
-          open roles.
-        </p>
-      ) : null}
-
       {dossier ? (
-        <div className="mt-8">
+        <div className="mt-6">
           <DossierSummary dossier={dossier} />
         </div>
       ) : null}
 
       {started ? (
         <>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="mt-6 grid gap-5 lg:grid-cols-3">
             {SOURCE_KEYS.map((key) => (
               <ResultCard
                 key={key}
@@ -141,7 +136,7 @@ export default function DashboardPage() {
             // Worth saying plainly: the three checks do run at the same time,
             // but the service answers once, when the last of them is done, so
             // all three cards land together.
-            <p className="mt-4 text-xs text-paper/40">
+            <p className="mt-4 text-xs text-text-secondary/70">
               All three ran together. They fill in at the same moment because
               the service replies once, after the slowest one finishes.
             </p>
@@ -149,7 +144,7 @@ export default function DashboardPage() {
         </>
       ) : null}
 
-      <div className="mt-16">
+      <div className="mt-10">
         <HistoryList
           runs={runs}
           onSelect={show}

@@ -28,7 +28,7 @@ export function EmailScreen({
         if (valid) onNext();
       }}
     >
-      <h1 className="font-mono text-2xl text-text-primary">What&apos;s your email?</h1>
+      <h1 className="font-display text-2xl text-text-primary">What&apos;s your email?</h1>
       {prefilled ? (
         <p className="mt-2 text-sm text-text-secondary">
           Pulled from your Google sign-in. Change it if you&apos;d rather use another.

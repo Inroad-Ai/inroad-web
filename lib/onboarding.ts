@@ -26,7 +26,7 @@ export interface OnboardingSubmission {
   resumeStoragePath: string;
   careerArcStoragePath: string | null;
   workPreference: WorkPreferenceOption[];
-  targetRole: string;
+  targetRoles: string[];
 }
 
 export function isValidEmail(value: string): boolean {
@@ -136,7 +136,7 @@ export async function submitOnboardingProfile(
       resume_storage_path: data.resumeStoragePath,
       career_arc_storage_path: data.careerArcStoragePath,
       work_preference: data.workPreference,
-      target_role: data.targetRole,
+      target_roles: data.targetRoles,
     },
     { onConflict: "user_id" },
   );

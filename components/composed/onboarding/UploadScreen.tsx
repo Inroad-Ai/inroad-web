@@ -35,7 +35,7 @@ export function UploadScreen({
   return (
     <div>
       <div className="flex items-center gap-2">
-        <h1 className="font-mono text-2xl text-text-primary">{heading}</h1>
+        <h1 className="font-display text-2xl text-text-primary">{heading}</h1>
         {optional ? (
           <span className="utility-label text-text-secondary">(optional)</span>
         ) : null}

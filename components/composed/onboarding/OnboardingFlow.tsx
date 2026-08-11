@@ -53,7 +53,7 @@ interface FormState {
   careerArcUploadProgress: number;
   careerArcError: string | null;
   workPreference: WorkPreferenceOption[];
-  targetRole: string;
+  targetRoles: string[];
 }
 
 const INITIAL_STATE: FormState = {
@@ -73,7 +73,7 @@ const INITIAL_STATE: FormState = {
   careerArcUploadProgress: 0,
   careerArcError: null,
   workPreference: [],
-  targetRole: "",
+  targetRoles: [],
 };
 
 export function OnboardingFlow() {
@@ -221,9 +221,9 @@ export function OnboardingFlow() {
         resumeStoragePath: form.resumeStoragePath,
         careerArcStoragePath: form.careerArcStoragePath,
         workPreference: form.workPreference,
-        targetRole: form.targetRole.trim(),
+        targetRoles: form.targetRoles,
       });
-      router.push("/app");
+      router.push("/research");
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Something went wrong saving your profile.",
@@ -309,8 +309,8 @@ export function OnboardingFlow() {
 
       {step === "targetRole" ? (
         <TargetRoleScreen
-          targetRole={form.targetRole}
-          onChange={(targetRole) => setForm((prev) => ({ ...prev, targetRole }))}
+          targetRoles={form.targetRoles}
+          onChange={(targetRoles) => setForm((prev) => ({ ...prev, targetRoles }))}
           onNext={next}
         />
       ) : null}
@@ -324,7 +324,7 @@ export function OnboardingFlow() {
           resumeFileName={form.resumeFileName}
           careerArcFileName={form.careerArcFileName}
           workPreference={form.workPreference}
-          targetRole={form.targetRole}
+          targetRoles={form.targetRoles}
           onEditName={() => goTo("name")}
           onEditEmail={() => goTo("email")}
           onEditPhone={() => goTo("phone")}

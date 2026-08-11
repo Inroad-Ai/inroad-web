@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div>
-      <h1 className="font-mono text-3xl text-text-primary">Let&apos;s set you up</h1>
+      <h1 className="font-display text-3xl text-text-primary">Let&apos;s set you up</h1>
       <p className="mt-5 text-lg text-text-secondary">
         Inroad finds companies that actually match what you&apos;re looking for,
         digs into the funding, team, and tech stack details that make a

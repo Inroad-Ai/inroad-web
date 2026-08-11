@@ -26,7 +26,7 @@ export function PhoneScreen({
         if (valid) onNext();
       }}
     >
-      <h1 className="font-mono text-2xl text-text-primary">What&apos;s your phone number?</h1>
+      <h1 className="font-display text-2xl text-text-primary">What&apos;s your phone number?</h1>
       <p className="mt-2 text-sm text-text-secondary">
         For account recovery only, nobody calls you unprompted.
       </p>

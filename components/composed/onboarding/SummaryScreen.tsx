@@ -16,7 +16,7 @@ export function SummaryScreen({
   resumeFileName,
   careerArcFileName,
   workPreference,
-  targetRole,
+  targetRoles,
   onEditName,
   onEditEmail,
   onEditPhone,
@@ -35,7 +35,7 @@ export function SummaryScreen({
   resumeFileName: string | null;
   careerArcFileName: string | null;
   workPreference: WorkPreferenceOption[];
-  targetRole: string;
+  targetRoles: string[];
   onEditName: () => void;
   onEditEmail: () => void;
   onEditPhone: () => void;
@@ -62,17 +62,17 @@ export function SummaryScreen({
       onEdit: onEditCareerArc,
     },
     { label: "Work preference", value: workPreferenceLabel, onEdit: onEditWorkPreference },
-    { label: "Target role", value: targetRole, onEdit: onEditTargetRole },
+    { label: "Target roles", value: targetRoles.join(", "), onEdit: onEditTargetRole },
   ];
 
   return (
     <div>
-      <h1 className="font-mono text-2xl text-text-primary">Take a look before you submit</h1>
+      <h1 className="font-display text-2xl text-text-primary">Take a look before you submit</h1>
       <p className="mt-2 text-sm text-text-secondary">
         Tap any row to jump back and change it.
       </p>
 
-      <div className="mt-6 divide-y divide-line rounded-sm border border-line bg-surface">
+      <div className="mt-6 divide-y divide-line rounded-md border border-line bg-surface shadow-card">
         {rows.map((row) => (
           <button
             key={row.label}
@@ -90,7 +90,7 @@ export function SummaryScreen({
       </div>
 
       {submitError ? (
-        <div className="mt-6 rounded-sm border border-error/40 bg-error-subtle p-4">
+        <div className="mt-6 rounded-md border border-error/40 bg-error-subtle p-4">
           <Badge tone="rose">Could not save</Badge>
           <p className="mt-2 text-sm text-text-primary">{submitError}</p>
           <p className="mt-1 text-xs text-text-secondary">

@@ -8,17 +8,17 @@ import type { CompanyDossier } from "@/lib/types";
 
 export function DossierSummary({ dossier }: { dossier: CompanyDossier }) {
   return (
-    <section className="flex flex-wrap items-end justify-between gap-6 rounded-sm border border-line bg-surface p-6">
+    <section className="flex flex-wrap items-end justify-between gap-6 rounded-md border border-line bg-surface p-7 shadow-overlay">
       <div>
-        <p className="utility-label text-paper/45">Domain</p>
-        <p className="mt-1 font-mono text-2xl text-paper">{dossier.domain}</p>
+        <p className="utility-label text-text-secondary">Domain</p>
+        <p className="mt-1 font-display text-2xl text-ink">{dossier.domain}</p>
       </div>
 
       <div className="text-right">
-        <p className="utility-label text-paper/45">Total time</p>
-        <p className="mt-1 font-mono text-5xl leading-none text-signal-amber">
+        <p className="utility-label text-text-secondary">Total time</p>
+        <p className="mt-1 font-display text-5xl leading-none text-signal-amber">
           {totalTimeSeconds(dossier.elapsed_ms)}
-          <span className="ml-2 text-xl text-paper/45">s</span>
+          <span className="ml-2 text-xl text-text-secondary">s</span>
         </p>
       </div>
 
