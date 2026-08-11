@@ -40,10 +40,11 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div>
-        <h1 className="font-display text-2xl text-text-primary">Check your email</h1>
-        <p className="mt-3 text-sm text-text-secondary">
-          If an account exists for {email.trim()}, we sent a link to reset the password.
+      <div className="text-center">
+        <h1 className="font-display text-2xl font-semibold text-text-primary">Check your email</h1>
+        <p className="mt-3 font-sans text-sm text-text-secondary">
+          If an account exists for <span className="text-text-primary">{email.trim()}</span>, we
+          sent a link to reset the password.
         </p>
       </div>
     );
@@ -51,12 +52,16 @@ export function ForgotPasswordForm() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-text-primary">Reset your password</h1>
-      <p className="mt-2 text-sm text-text-secondary">
-        Enter the email on your account and we&apos;ll send a link to reset your password.
-      </p>
+      <div className="text-center">
+        <h1 className="font-display text-2xl font-semibold text-text-primary">
+          Reset your password
+        </h1>
+        <p className="mt-2 font-sans text-sm text-text-secondary">
+          Enter the email on your account and we&apos;ll send a link to reset your password.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6">
+      <form onSubmit={handleSubmit} className="mt-8">
         <label htmlFor="email" className="utility-label text-text-secondary">
           Email
         </label>
@@ -81,7 +86,7 @@ export function ForgotPasswordForm() {
         </Button>
       </form>
 
-      <p className="mt-6 text-sm text-text-secondary">
+      <p className="mt-8 border-t border-line pt-6 text-center font-sans text-sm text-text-secondary">
         <Link href="/login" className="text-signal-teal hover:underline">
           Back to sign in
         </Link>

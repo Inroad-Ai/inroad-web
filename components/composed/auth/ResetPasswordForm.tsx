@@ -49,9 +49,9 @@ export function ResetPasswordForm() {
 
   if (hasSession === false) {
     return (
-      <div>
-        <h1 className="font-display text-2xl text-text-primary">Link expired</h1>
-        <p className="mt-3 text-sm text-text-secondary">
+      <div className="text-center">
+        <h1 className="font-display text-2xl font-semibold text-text-primary">Link expired</h1>
+        <p className="mt-3 font-sans text-sm text-text-secondary">
           This reset link is no longer valid. Request a new one from the{" "}
           <Link href="/forgot-password" className="text-signal-teal hover:underline">
             forgot password
@@ -64,9 +64,14 @@ export function ResetPasswordForm() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-text-primary">Set a new password</h1>
+      <div className="text-center">
+        <h1 className="font-display text-2xl font-semibold text-text-primary">Set a new password</h1>
+        <p className="mt-2 font-sans text-sm text-text-secondary">
+          Pick something at least 8 characters long. You&apos;ll be signed in straight after.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="mt-6">
+      <form onSubmit={handleSubmit} className="mt-8">
         <label htmlFor="password" className="utility-label text-text-secondary">
           New password
         </label>
