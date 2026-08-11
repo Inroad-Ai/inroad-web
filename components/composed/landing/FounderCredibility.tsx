@@ -4,7 +4,7 @@ export function FounderCredibility() {
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
         <p className="utility-label text-signal-teal">Who built this</p>
 
-        <h2 className="mt-4 max-w-2xl font-mono text-2xl text-ink sm:text-3xl">
+        <h2 className="mt-4 max-w-2xl font-display text-2xl text-ink sm:text-3xl">
           Built by someone who did this by hand first.
         </h2>
 

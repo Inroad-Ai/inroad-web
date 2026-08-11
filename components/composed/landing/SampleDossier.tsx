@@ -67,13 +67,13 @@ const SAMPLE: CompanyDossier = {
 
 export function SampleDossier() {
   return (
-    <section className="border-t border-line">
-      <div className="mx-auto max-w-6xl px-6 py-20">
+    <section id="sample" className="border-t border-line">
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <p className="utility-label text-paper/45">
+          <p className="utility-label text-text-secondary">
             One run, exactly as it comes back
           </p>
-          <p className="font-mono text-sm text-paper/60">
+          <p className="font-sans text-sm text-text-secondary">
             {SAMPLE.domain} · {totalTimeSeconds(SAMPLE.elapsed_ms)}s
           </p>
         </div>

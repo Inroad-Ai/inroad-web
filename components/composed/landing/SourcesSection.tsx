@@ -19,19 +19,22 @@ const SOURCES = [
 export function SourcesSection() {
   return (
     <section id="sources" className="border-t border-line">
-      <div className="mx-auto max-w-6xl px-6 py-20">
-        <p className="utility-label text-paper/45">What each run gives you</p>
+      <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+        <p className="utility-label text-text-secondary">What each run gives you</p>
 
-        <div className="mt-10 grid gap-10 md:grid-cols-3">
+        <div className="mt-10 grid gap-10 sm:mt-14 md:grid-cols-3 md:gap-8">
           {SOURCES.map((source) => (
-            <div key={source.code}>
+            <div
+              key={source.code}
+              className="rounded-md border border-line bg-surface p-6 shadow-card"
+            >
               <span className="utility-label text-signal-teal">
                 {source.code}
               </span>
-              <h3 className="mt-3 font-mono text-xl text-paper">
+              <h3 className="mt-3 font-display text-xl text-ink">
                 {source.name}
               </h3>
-              <p className="mt-3 text-sm leading-relaxed text-paper/70">
+              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
                 {source.line}
               </p>
             </div>

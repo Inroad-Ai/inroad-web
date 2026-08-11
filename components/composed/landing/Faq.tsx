@@ -23,20 +23,20 @@ const FAQS = [
 
 export function Faq() {
   return (
-    <section className="border-t border-line">
+    <section id="faq" className="border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <h2 className="font-mono text-2xl text-ink sm:text-3xl">
+        <h2 className="font-display text-2xl text-ink sm:text-3xl">
           Questions
         </h2>
 
         <div className="mt-10 divide-y divide-line border-y border-line sm:mt-14">
           {FAQS.map((item) => (
             <details key={item.question} className="group py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-mono text-base text-ink marker:content-none sm:text-lg">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base text-ink marker:content-none sm:text-lg">
                 <span>{item.question}</span>
                 <span
                   aria-hidden="true"
-                  className="shrink-0 font-mono text-signal-teal transition-transform group-open:rotate-45"
+                  className="shrink-0 font-display text-signal-teal transition-transform group-open:rotate-45"
                 >
                   +
                 </span>

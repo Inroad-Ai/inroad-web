@@ -2,7 +2,7 @@ export function ProblemSection() {
   return (
     <section className="border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <h2 className="font-mono text-2xl text-ink sm:text-3xl">
+        <h2 className="font-display text-2xl text-ink sm:text-3xl">
           The application black hole
         </h2>
 
