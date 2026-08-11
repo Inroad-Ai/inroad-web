@@ -94,6 +94,12 @@
   --text-5xl-size: 3.5rem;
   --text-5xl-line-height: 1.05;
 
+  /* Footer watermark — the oversized wordmark sitting behind the footer.
+     Way past the end of the reading scale, so it gets its own token rather
+     than stretching --text-5xl. Fluid so it always spans the footer width. */
+  --text-wordmark-size: clamp(4.5rem, 21vw, 19rem);
+  --text-wordmark-line-height: 0.76;
+
   --font-weight-sans-regular: 400;
   --font-weight-sans-medium: 500;
   --font-weight-sans-semibold: 600;
