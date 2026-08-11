@@ -1,41 +1,38 @@
 /**
- * The stage vocabulary for a company moving through outreach. No pipeline
- * schema exists yet (Companies/Pipeline aren't built), so this list is a
- * reasonable default, not something read from the backend. Update it in one
- * place, here, once the real pipeline model lands.
+ * The stage vocabulary for a company moving through outreach. Mirrors the
+ * `companies.stage` CHECK constraint in
+ * supabase/migrations/20260811150000_create_companies_and_research_runs.sql
+ * exactly - update both together if the stage list ever changes.
  */
 export const PIPELINE_STAGES = [
-  "researching",
-  "ready_to_reach_out",
-  "reached_out",
-  "replied",
+  "researched",
+  "contacted",
+  "responded",
   "interviewing",
-  "offer",
-  "passed",
+  "closed",
+  "rejected",
 ] as const;
 
 export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
 const STAGE_LABEL: Record<PipelineStage, string> = {
-  researching: "Researching",
-  ready_to_reach_out: "Ready to reach out",
-  reached_out: "Reached out",
-  replied: "Replied",
+  researched: "Researched",
+  contacted: "Contacted",
+  responded: "Responded",
   interviewing: "Interviewing",
-  offer: "Offer",
-  passed: "Passed",
+  closed: "Closed",
+  rejected: "Rejected",
 };
 
 // Amber is reserved for the page's one primary action, so it never appears
-// here even for "offer" — warning (ochre) is the closest distinct positive.
+// here even for "closed" — warning (ochre) is the closest distinct positive.
 const STAGE_TONE: Record<PipelineStage, string> = {
-  researching: "border-line bg-surface-raised text-text-secondary",
-  ready_to_reach_out: "border-signal-teal/40 bg-signal-teal-subtle text-signal-teal",
-  reached_out: "border-signal-teal/40 bg-signal-teal-subtle text-signal-teal",
-  replied: "border-success/40 bg-success-subtle text-success",
+  researched: "border-line bg-surface-raised text-text-secondary",
+  contacted: "border-signal-teal/40 bg-signal-teal-subtle text-signal-teal",
+  responded: "border-signal-teal/40 bg-signal-teal-subtle text-signal-teal",
   interviewing: "border-success/40 bg-success-subtle text-success",
-  offer: "border-warning/40 bg-warning-subtle text-warning",
-  passed: "border-muted-rose/40 bg-muted-rose-subtle text-muted-rose",
+  closed: "border-warning/40 bg-warning-subtle text-warning",
+  rejected: "border-muted-rose/40 bg-muted-rose-subtle text-muted-rose",
 };
 
 /**

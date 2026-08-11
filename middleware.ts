@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // can't write cookies), and bounce signed-out users out of gated routes
 // before a page even renders. Layouts still double-check with getUser() -
 // this is the fast path, not the only path.
-const GATED_PREFIXES = ["/onboarding", "/research", "/settings"];
+const GATED_PREFIXES = ["/onboarding", "/research", "/settings", "/companies", "/overview"];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });

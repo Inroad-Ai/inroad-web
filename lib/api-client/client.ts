@@ -7,7 +7,8 @@
 
 import createClient from "openapi-fetch";
 
-import type { CompanyDossier } from "@/lib/types";
+import type { CompanyDossier, CompanyListResponse, CompanySort } from "@/lib/types";
+import type { PipelineStage } from "@/components/ui/StatusBadge";
 import type { paths } from "./schema";
 
 const BASE_URL = (
@@ -71,4 +72,46 @@ export async function fetchHistory(signal?: AbortSignal): Promise<CompanyDossier
   }
 
   return data as CompanyDossier[];
+}
+
+export interface FetchCompaniesParams {
+  search?: string;
+  stage?: PipelineStage;
+  sort?: CompanySort;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * One page of the caller's saved companies. Requires a Supabase access
+ * token: the backend forwards it to Postgres as-is, so RLS is what actually
+ * scopes the rows returned, not anything this function does.
+ */
+export async function fetchCompanies(
+  params: FetchCompaniesParams,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyListResponse> {
+  const { data, error, response } = await client.GET("/api/companies", {
+    params: {
+      query: {
+        search: params.search || undefined,
+        stage: params.stage,
+        sort: params.sort,
+        page: params.page,
+        page_size: params.pageSize,
+      },
+    },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+  }
+
+  return data as CompanyListResponse;
 }
