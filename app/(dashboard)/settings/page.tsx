@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { Input } from "@/components/ui/Input";
@@ -183,32 +184,31 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-sm text-text-secondary">Loading your profile...</p>
-      </main>
+      <PageShell title="Settings">
+        <p className="max-w-3xl text-sm text-text-secondary">Loading your profile...</p>
+      </PageShell>
     );
   }
 
   if (loadError) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-sm text-error">{loadError}</p>
-      </main>
+      <PageShell title="Settings">
+        <p className="max-w-3xl text-sm text-error">{loadError}</p>
+      </PageShell>
     );
   }
 
   if (!form) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="text-2xl text-ink">Settings</h1>
-        <p className="mt-3 text-sm text-text-secondary">
+      <PageShell title="Settings">
+        <p className="max-w-3xl text-sm text-text-secondary">
           You haven&apos;t finished setup yet.{" "}
           <Link href="/onboarding" className="text-signal-teal underline underline-offset-4">
             Complete onboarding
           </Link>{" "}
           to see your profile here.
         </p>
-      </main>
+      </PageShell>
     );
   }
 
@@ -216,12 +216,8 @@ export default function SettingsPage() {
   const careerArcFileName = fileNameFromPath(careerArcPath);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-2xl text-ink">Settings</h1>
-      <p className="mt-1 text-sm text-text-secondary">
-        Everything from onboarding, editable here.
-      </p>
-
+    <PageShell title="Settings" description="Everything from onboarding, editable here.">
+      <div className="max-w-3xl">
       <section className="mt-8 space-y-4 rounded-sm border border-line bg-surface p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="First name">
@@ -298,7 +294,8 @@ export default function SettingsPage() {
           onSelect={(file) => handleFileReplace("career-arc-documents", "careerArc", file)}
         />
       </section>
-    </main>
+      </div>
+    </PageShell>
   );
 }
 

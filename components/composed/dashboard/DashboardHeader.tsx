@@ -6,13 +6,19 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 
 const TITLES: Record<string, string> = {
+  "/overview": "Overview",
   "/research": "Research",
+  "/companies/pipeline": "Pipeline",
+  "/companies": "Companies",
   "/settings": "Settings",
 };
 
 function pageTitle(pathname: string | null): string {
   if (!pathname) return "";
-  const match = Object.keys(TITLES).find((prefix) => pathname.startsWith(prefix));
+  // Longest prefix first, so "/companies/pipeline" wins over "/companies".
+  const match = Object.keys(TITLES)
+    .sort((a, b) => b.length - a.length)
+    .find((prefix) => pathname.startsWith(prefix));
   return match ? TITLES[match] : "";
 }
 

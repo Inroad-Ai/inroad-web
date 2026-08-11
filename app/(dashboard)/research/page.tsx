@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { DossierSummary } from "@/components/composed/dashboard/DossierSummary";
 import { HistoryList } from "@/components/composed/dashboard/HistoryList";
+import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
 import { SearchBar } from "@/components/composed/dashboard/SearchBar";
 import { StatusDot } from "@/components/ui/StatusDot";
@@ -90,20 +91,15 @@ export default function ResearchPage() {
   const started = busy || dossier !== null;
 
   return (
-    <main className="mx-auto max-w-7xl px-8 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <h1 className="text-2xl text-ink">Research</h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Enter a company domain to see its homepage, its recent news and
-            its open roles.
-          </p>
-        </div>
-        <div className="w-full sm:w-auto sm:min-w-[26rem]">
+    <PageShell
+      title="Research"
+      description="Enter a company domain to see its homepage, its recent news and its open roles."
+      action={
+        <div className="sm:min-w-[26rem]">
           <SearchBar onRun={run} busy={busy} value={domain} />
         </div>
-      </div>
-
+      }
+    >
       {problem ? (
         <div className="mt-6 rounded-sm border border-muted-rose/40 bg-muted-rose-subtle p-5">
           <div className="flex items-center gap-2">
@@ -151,6 +147,6 @@ export default function ResearchPage() {
           activeDomain={dossier?.domain ?? null}
         />
       </div>
-    </main>
+    </PageShell>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { EmptyState } from "@/components/ui/EmptyState";
 import { lastLiveFetchAt, relativeTime, totalTimeSeconds } from "@/lib/api";
 import type { CompanyDossier } from "@/lib/types";
 
@@ -24,9 +25,9 @@ export function HistoryList({ runs, onSelect, activeDomain }: HistoryListProps) 
       </header>
 
       {runs.length === 0 ? (
-        <p className="px-6 py-6 text-sm text-text-secondary">
+        <EmptyState className="px-6 py-6">
           Nothing yet. Runs show up here as you make them.
-        </p>
+        </EmptyState>
       ) : (
         <ul className="divide-y divide-line">
           {runs.map((run, index) => (

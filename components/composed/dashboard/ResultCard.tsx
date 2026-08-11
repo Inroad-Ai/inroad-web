@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusDot } from "@/components/ui/StatusDot";
 import type { CardState, CompanyDossier, SourceKey } from "@/lib/types";
 
@@ -67,9 +68,9 @@ function Waiting() {
 function Checking() {
   return (
     <div className="space-y-2.5" aria-hidden="true">
-      <div className="h-3 w-3/4 rounded-full bg-surface-raised" />
-      <div className="h-3 w-full rounded-full bg-surface-raised" />
-      <div className="h-3 w-1/2 rounded-full bg-surface-raised" />
+      <Skeleton className="h-3 w-3/4" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-1/2" />
     </div>
   );
 }
