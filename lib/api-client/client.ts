@@ -7,7 +7,7 @@
 
 import createClient from "openapi-fetch";
 
-import type { CompanyDossier, CompanyListResponse, CompanySort } from "@/lib/types";
+import type { CompanyDossier, CompanyListResponse, CompanySort, OverviewStats } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
 import type { paths } from "./schema";
 
@@ -114,4 +114,34 @@ export async function fetchCompanies(
   }
 
   return data as CompanyListResponse;
+}
+
+/**
+ * Aggregate stage counts, contacted-window counts, and the weekly
+ * companies-added trend for the Overview page. Same auth shape as
+ * fetchCompanies: RLS via the caller's own access token, not this function.
+ */
+export async function fetchOverviewStats(
+  accessToken: string,
+  signal?: AbortSignal,
+  contactedWindowDays?: number,
+): Promise<OverviewStats> {
+  const { data, error, response } = await client.GET("/api/companies/overview", {
+    params: {
+      query: {
+        contacted_window_days: contactedWindowDays,
+      },
+    },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the companies service. Check that it is running and that this origin is allowed.", 0);
+  }
+
+  return data as OverviewStats;
 }

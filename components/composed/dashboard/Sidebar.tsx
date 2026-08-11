@@ -184,7 +184,7 @@ export function Sidebar({
       }`}
     >
       <div className="flex h-16 items-center border-b border-line px-4">
-        <Link href="/research" className="font-display text-sm font-semibold text-ink">
+        <Link href="/overview" className="font-display text-sm font-semibold text-ink">
           {collapsed ? "IR" : "Inroad"}
         </Link>
       </div>

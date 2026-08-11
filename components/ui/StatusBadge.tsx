@@ -15,7 +15,7 @@ export const PIPELINE_STAGES = [
 
 export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
-const STAGE_LABEL: Record<PipelineStage, string> = {
+export const STAGE_LABEL: Record<PipelineStage, string> = {
   researched: "Researched",
   contacted: "Contacted",
   responded: "Responded",

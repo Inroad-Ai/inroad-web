@@ -427,6 +427,10 @@ export interface components {
             contacted_window_days: number;
             /** Contacted Within Window */
             contacted_within_window: number;
+            /** Contacted Within Prior Window */
+            contacted_within_prior_window: number;
+            /** Companies By Week */
+            companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
         };
         /**
          * ResearchRunSummary
@@ -469,6 +473,20 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * WeeklyCompanyCount
+         * @description One point on the "companies added over time" chart: the Monday that
+         *     starts the week, and how many companies were created in it.
+         */
+        WeeklyCompanyCount: {
+            /**
+             * Week Start
+             * Format: date
+             */
+            week_start: string;
+            /** Count */
+            count: number;
         };
     };
     responses: never;

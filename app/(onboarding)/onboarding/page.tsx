@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
 
   if (user) {
     const path = await resolvePostAuthPath(supabase, user.id);
-    if (path === "/research") redirect("/research");
+    if (path === "/overview") redirect("/overview");
   }
 
   return <OnboardingFlow />;

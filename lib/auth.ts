@@ -10,7 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function resolvePostAuthPath(
   supabase: SupabaseClient,
   userId: string,
-): Promise<"/onboarding" | "/research"> {
+): Promise<"/onboarding" | "/overview"> {
   const { data, error } = await supabase
     .from("profiles")
     .select("user_id")
@@ -18,5 +18,8 @@ export async function resolvePostAuthPath(
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  return data ? "/research" : "/onboarding";
+  // Overview, not Research: a returning user wants a snapshot of where
+  // their search stands before deciding what to do next, not a blank
+  // research form every time they sign in.
+  return data ? "/overview" : "/onboarding";
 }

@@ -98,6 +98,22 @@ export interface CompanyListResponse {
   total: number;
 }
 
+/** One point on the Overview "companies added over time" chart. */
+export interface WeeklyCompanyCount {
+  week_start: string;
+  count: number;
+}
+
+/** Mirrors app/schemas/company.py OverviewStats, from GET /api/companies/overview. */
+export interface OverviewStats {
+  total_companies: number;
+  by_stage: Record<PipelineStage, number>;
+  contacted_window_days: number;
+  contacted_within_window: number;
+  contacted_within_prior_window: number;
+  companies_by_week: WeeklyCompanyCount[];
+}
+
 /**
  * What a single source card is doing right now. These are internal state
  * names — none of them appear on screen as written.
