@@ -65,6 +65,32 @@ export interface paths {
         /** List Companies */
         get: operations["list_companies_api_companies_get"];
         put?: never;
+        /**
+         * Save Company
+         * @description Explicit save-to-pipeline: persists a dossier the caller already has
+         *     (from POST /companies/research) rather than re-fetching it. Re-fetching
+         *     here would double the outbound calls to news/greenhouse/lever for every
+         *     save and could persist different data than what the user actually saw
+         *     and clicked "save" on - the dossier the user reviewed is the one that
+         *     gets saved.
+         */
+        post: operations["save_company_api_companies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Overview */
+        get: operations["get_overview_api_companies_overview_get"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -72,10 +98,123 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Research Domain
+         * @description Runs the Research Fetcher and returns the dossier for preview. Does
+         *     NOT save anything - saving to the pipeline is a separate, deliberate
+         *     action the frontend takes by calling POST /companies with the dossier
+         *     this returns. Auth is required (this sits behind the dashboard), but the
+         *     token is only used to authenticate the caller here, not to touch the
+         *     database.
+         */
+        post: operations["research_domain_api_companies_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{company_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Company */
+        get: operations["get_company_api_companies__company_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Company */
+        patch: operations["update_company_api_companies__company_id__patch"];
+        trace?: never;
+    };
+    "/api/companies/{company_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Company Stage */
+        patch: operations["update_company_stage_api_companies__company_id__stage_patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * CompanyDetail
+         * @description Full company profile: the row itself, plus its most recent research
+         *     result and a short history of prior runs.
+         */
+        CompanyDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Domain */
+            domain: string;
+            /** Homepage Url */
+            homepage_url?: string | null;
+            /** Homepage Title */
+            homepage_title?: string | null;
+            /** Homepage Description */
+            homepage_description?: string | null;
+            /** Is Hiring */
+            is_hiring?: boolean | null;
+            /** Open Roles */
+            open_roles?: number | null;
+            /** Hiring Source */
+            hiring_source?: string | null;
+            /** Careers Url */
+            careers_url?: string | null;
+            /** Sample Roles */
+            sample_roles?: string[];
+            stage: components["schemas"]["CompanyStage"];
+            /** Contacted At */
+            contacted_at?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            latest_research?: components["schemas"]["CompanyDossier"] | null;
+            /**
+             * Research Run Count
+             * @default 0
+             */
+            research_run_count: number;
+            /** Recent Research Runs */
+            recent_research_runs?: components["schemas"]["ResearchRunSummary"][];
+        };
         /** CompanyDossier */
         CompanyDossier: {
             /** Domain */
@@ -170,6 +309,30 @@ export interface components {
          * @enum {string}
          */
         CompanyStage: "researched" | "contacted" | "responded" | "interviewing" | "closed" | "rejected";
+        /**
+         * CompanyUpdate
+         * @description Body for PATCH /companies/{id}: general field edits. Notes only for
+         *     now - stage changes go through PATCH /companies/{id}/stage instead,
+         *     since that's where contacted_at logic lives and it deserves its own
+         *     explicit path.
+         */
+        CompanyUpdate: {
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * CreateOrUpdateCompany
+         * @description Body for POST /companies: saves a research result the caller already
+         *     has (typically from a prior POST /companies/research call) into the
+         *     pipeline. Not used for general edits - see CompanyUpdate - because saving
+         *     always requires a full dossier and general edits never do; folding both
+         *     into one model would make every field optional and lose that
+         *     distinction, the same reasoning that keeps stage transitions out of the
+         *     general update endpoint.
+         */
+        CreateOrUpdateCompany: {
+            dossier: components["schemas"]["CompanyDossier"];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -251,6 +414,48 @@ export interface components {
             count: number;
             /** Items */
             items?: components["schemas"]["NewsItem"][];
+        };
+        /** OverviewStats */
+        OverviewStats: {
+            /** Total Companies */
+            total_companies: number;
+            /** By Stage */
+            by_stage: {
+                [key: string]: number;
+            };
+            /** Contacted Window Days */
+            contacted_window_days: number;
+            /** Contacted Within Window */
+            contacted_within_window: number;
+        };
+        /**
+         * ResearchRunSummary
+         * @description One research_runs row without its raw_response - for the profile
+         *     page's run history list, where showing the full dossier per row would be
+         *     wasteful. The most recent run's full dossier is exposed separately as
+         *     CompanyDetail.latest_research.
+         */
+        ResearchRunSummary: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Partial */
+            partial: boolean;
+            /** From Cache */
+            from_cache: boolean;
+            /** Elapsed Ms */
+            elapsed_ms: number;
+        };
+        /** StageUpdate */
+        StageUpdate: {
+            stage: components["schemas"]["CompanyStage"];
         };
         /** ValidationError */
         ValidationError: {
@@ -371,6 +576,215 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_company_api_companies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrUpdateCompany"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_overview_api_companies_overview_get: {
+        parameters: {
+            query?: {
+                contacted_window_days?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewStats"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_domain_api_companies_research_post: {
+        parameters: {
+            query: {
+                /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
+                domain: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyDossier"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_company_api_companies__company_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_company_api_companies__company_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_company_stage_api_companies__company_id__stage_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
                 };
             };
             /** @description Validation Error */
