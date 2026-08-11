@@ -15,9 +15,9 @@ export function SelectableCard({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className={`w-full rounded-sm border px-5 py-4 text-left font-sans text-sm transition-colors ${
+      className={`w-full rounded-md border px-5 py-4 text-left font-sans text-sm transition-colors ${
         selected
-          ? "border-signal-teal bg-signal-teal-subtle text-text-primary"
+          ? "border-signal-teal bg-signal-teal-subtle text-text-primary shadow-card"
           : "border-line bg-surface text-text-primary hover:border-signal-teal/60"
       }`}
     >

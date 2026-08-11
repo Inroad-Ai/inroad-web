@@ -27,7 +27,7 @@ export function FileUpload({
   const showPicker = !fileName || state === "error";
 
   return (
-    <div className="w-full rounded-sm border border-line bg-surface p-5">
+    <div className="w-full rounded-md border border-line bg-surface p-5">
       <input
         id={inputId}
         type="file"
@@ -51,9 +51,9 @@ export function FileUpload({
       ) : (
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-mono text-sm text-text-primary">{fileName}</p>
+            <p className="truncate font-sans text-sm text-text-primary">{fileName}</p>
             {state === "uploading" ? (
-              <div className="mt-2 h-1 w-full overflow-hidden rounded-sm bg-line">
+              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-line">
                 <div
                   className="h-full bg-signal-teal transition-[width] duration-150 ease-out"
                   style={{ width: `${progress}%` }}

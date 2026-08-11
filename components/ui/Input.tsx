@@ -6,7 +6,7 @@ export function Input({
 }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full rounded-sm border border-line bg-surface px-4 py-3 font-mono text-base text-paper placeholder:text-paper/35 focus:border-signal-teal focus:outline-none ${className}`}
+      className={`w-full rounded-sm border border-line bg-surface px-4 py-3.5 font-sans text-base text-ink placeholder:text-ink-muted/50 focus:border-signal-teal focus:outline-none ${className}`}
       {...props}
     />
   );

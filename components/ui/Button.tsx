@@ -5,13 +5,13 @@ type Variant = "primary" | "quiet";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-signal-amber text-ink hover:bg-signal-amber-hover disabled:bg-signal-amber/40",
+    "bg-signal-amber text-ink hover:bg-signal-amber-hover hover:shadow-card disabled:bg-signal-amber/40",
   quiet:
     "border border-line bg-surface text-text-primary hover:border-signal-teal hover:text-signal-teal disabled:text-text-secondary/40",
 };
 
 const BASE_CLASSES =
-  "inline-flex items-center justify-center rounded-sm px-5 py-3 font-sans text-sm font-medium transition-colors disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center rounded-full px-6 py-3.5 font-display text-sm font-medium transition-colors disabled:cursor-not-allowed";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
