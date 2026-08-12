@@ -11,7 +11,9 @@ import type {
   OverviewStats,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
-import type { paths } from "./schema";
+import type { components, paths } from "./schema";
+
+export type TokenPair = components["schemas"]["TokenPair"];
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
@@ -254,4 +256,68 @@ export async function fetchOverviewStats(
   }
 
   return data as OverviewStats;
+}
+
+/** Errors here are for the caller to render (bad credentials, taken email),
+ * not a "service unreachable" state, so signup/login describe the failure
+ * from the response body itself rather than a generic message. */
+function describeAuthFailure(status: number, body: unknown): string {
+  if (body && typeof body === "object" && "error" in body) {
+    const err = (body as { error?: { message?: string } }).error;
+    if (err?.message) return err.message;
+  }
+  return `The auth service returned ${status}.`;
+}
+
+export async function signupNative(email: string, password: string): Promise<TokenPair> {
+  const { data, error, response } = await client.POST("/api/v2/auth/signup", {
+    body: { email, password },
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the auth service.", 0);
+  }
+
+  return data;
+}
+
+export async function loginNative(email: string, password: string): Promise<TokenPair> {
+  const { data, error, response } = await client.POST("/api/v2/auth/login", {
+    body: { email, password },
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the auth service.", 0);
+  }
+
+  return data;
+}
+
+/** Throws on an invalid/expired/revoked refresh token; callers treat that
+ * as "sign the user out locally," not a retryable failure. */
+export async function refreshNative(refreshToken: string): Promise<string> {
+  const { data, error, response } = await client.POST("/api/v2/auth/refresh", {
+    body: { refresh_token: refreshToken },
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the auth service.", 0);
+  }
+
+  return data.access_token;
+}
+
+/** Best-effort: the caller clears local state regardless of whether this
+ * succeeds, so a network error here shouldn't stop sign-out. */
+export async function logoutNative(refreshToken: string): Promise<void> {
+  await client.POST("/api/v2/auth/logout", { body: { refresh_token: refreshToken } });
 }

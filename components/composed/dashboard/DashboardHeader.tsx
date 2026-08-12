@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { signOutNative } from "@/lib/auth-native/browser";
 import { createClient } from "@/lib/supabase/browser";
 
 const TITLES: Record<string, string> = {
@@ -35,8 +36,12 @@ export function DashboardHeader() {
 
   async function signOut() {
     setSigningOut(true);
+    // Clears whichever session actually got the user here: a native-auth
+    // token pair (phase 2 backend, revokes the refresh token server-side),
+    // a Supabase session (still how Google OAuth signs in), or - harmlessly
+    // - both, since either call is a no-op when there's nothing to clear.
     const supabase = createClient();
-    await supabase.auth.signOut();
+    await Promise.all([signOutNative(), supabase.auth.signOut()]);
     router.push("/");
     router.refresh();
   }

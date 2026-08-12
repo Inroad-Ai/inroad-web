@@ -1,12 +1,16 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { DashboardShell } from "@/components/composed/dashboard/DashboardShell";
-import { createClient } from "@/lib/supabase/server";
+import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-native/constants";
+import { verifyAccessToken } from "@/lib/auth-native/verify";
 
-// Every route under (dashboard) requires a signed-in user. This is the only
-// gate: no route below re-checks auth, they all rely on this layout running
-// first. getUser() (not getSession()) because it re-validates against
-// Supabase Auth rather than trusting whatever the cookie claims.
+// Every route under (dashboard) requires a signed-in user. Phase 3: checks
+// the native-auth access token (verified against JWT_SECRET, not just
+// trusted from the cookie) instead of the Supabase session. middleware.ts
+// already ran first and refreshed this cookie if it was expired, so this
+// is a plain verify, not a second refresh attempt - a Server Component
+// can't persist a refreshed cookie back to the browser anyway.
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
@@ -14,12 +18,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const accessToken = cookies().get(ACCESS_TOKEN_COOKIE)?.value;
+  const userId = accessToken ? await verifyAccessToken(accessToken) : null;
 
-  if (!user) {
+  if (!userId) {
     redirect("/");
   }
 

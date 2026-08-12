@@ -6,7 +6,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { resolvePostAuthPath } from "@/lib/auth";
+import { ApiError, loginNative, signupNative } from "@/lib/api-client/client";
+import { storeTokens } from "@/lib/auth-native/browser";
 import { isValidEmail } from "@/lib/onboarding";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -60,7 +61,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkEmail, setCheckEmail] = useState(false);
 
   const valid = isValidEmail(email) && password.length >= 8;
 
@@ -81,65 +81,28 @@ export function AuthForm({ mode }: { mode: Mode }) {
     setSubmitting(true);
     setError(null);
 
-    if (mode === "login") {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (signInError) {
-        setError(signInError.message);
-        setSubmitting(false);
-        return;
-      }
-      const path = await resolvePostAuthPath(supabase, data.user.id);
-      router.push(path);
+    // Native auth (phase 2 backend) instead of Supabase: signup/login both
+    // return a usable token pair straight away, no email confirmation step
+    // exists on this backend yet, so there's no "check your email" state
+    // to show here anymore, and no Supabase user id to run
+    // resolvePostAuthPath against. Every native account is routed to
+    // /onboarding - onboarding/dashboard data still lives behind Supabase
+    // auth until a later phase, this is a known gap, not an oversight.
+    try {
+      const tokens = mode === "login"
+        ? await loginNative(email.trim(), password)
+        : await signupNative(email.trim(), password);
+      storeTokens(tokens);
+      router.push("/onboarding");
       router.refresh();
-      return;
-    }
-
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
-    });
-    if (signUpError) {
-      // Don't echo "user already registered" back to the caller - that
-      // confirms an email is a real account to whoever's asking. Show the
-      // same "check your email" state a real signup gets; a real signup
-      // gets a confirmation link, a repeat one silently gets nothing.
-      if (/already registered/i.test(signUpError.message)) {
-        setCheckEmail(true);
-        setSubmitting(false);
-        return;
-      }
-      setError(signUpError.message);
+    } catch (submitError) {
+      const message =
+        submitError instanceof ApiError
+          ? submitError.message
+          : "Something went wrong. Try again.";
+      setError(message);
       setSubmitting(false);
-      return;
     }
-    // No session back yet means Supabase is holding the account for email
-    // confirmation. If confirmations are disabled on the project, a session
-    // comes back immediately and we can route straight in.
-    if (!data.session || !data.user) {
-      setCheckEmail(true);
-      setSubmitting(false);
-      return;
-    }
-    const path = await resolvePostAuthPath(supabase, data.user.id);
-    router.push(path);
-    router.refresh();
-  }
-
-  if (checkEmail) {
-    return (
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">Check your email</h1>
-        <p className="mt-3 font-sans text-sm text-text-secondary">
-          We sent a confirmation link to{" "}
-          <span className="text-text-primary">{email.trim()}</span>. Follow it to finish creating
-          your account.
-        </p>
-      </div>
-    );
   }
 
   return (
