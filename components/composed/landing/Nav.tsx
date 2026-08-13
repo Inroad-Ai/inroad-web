@@ -5,18 +5,27 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
-import { createClient } from "@/lib/supabase/browser";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 
 export function Nav() {
   const [signedIn, setSignedIn] = useState(false);
 
+  // A native token is what middleware.ts actually admits to /research, so
+  // that's the same thing this link should be asking about.
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session)));
-    return () => subscription.unsubscribe();
+    let cancelled = false;
+
+    ensureValidAccessToken()
+      .then((token) => {
+        if (!cancelled) setSignedIn(token !== null);
+      })
+      .catch(() => {
+        // Nav falls back to "Get started"; the route guards own session state.
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
