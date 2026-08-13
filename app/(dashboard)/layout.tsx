@@ -5,12 +5,11 @@ import { DashboardShell } from "@/components/composed/dashboard/DashboardShell";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-native/constants";
 import { verifyAccessToken } from "@/lib/auth-native/verify";
 
-// Every route under (dashboard) requires a signed-in user. Phase 3: checks
-// the native-auth access token (verified against JWT_SECRET, not just
-// trusted from the cookie) instead of the Supabase session. middleware.ts
-// already ran first and refreshed this cookie if it was expired, so this
-// is a plain verify, not a second refresh attempt - a Server Component
-// can't persist a refreshed cookie back to the browser anyway.
+// Every route under (dashboard) requires a signed-in user: the access token
+// is verified against JWT_SECRET, not just trusted from the cookie.
+// middleware.ts already ran and refreshed it if it was expired, so this is a
+// plain verify, not a second refresh attempt - a Server Component can't
+// persist a refreshed cookie back to the browser anyway.
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({

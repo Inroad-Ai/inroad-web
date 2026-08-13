@@ -1,53 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ApiError, resetPassword } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/browser";
+import { storeTokens } from "@/lib/auth-native/browser";
+
+const MIN_PASSWORD_LENGTH = 8;
 
 export function ResetPasswordForm() {
   const router = useRouter();
-  const supabase = createClient();
+  // The token comes straight from the emailed link. It isn't a session and
+  // isn't stored: it goes to the backend once, with the new password.
+  const token = useSearchParams().get("token");
 
-  // /auth/confirm already exchanged the recovery link for a session before
-  // redirecting here - this page's only job is collecting the new password.
-  const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setHasSession(Boolean(data.session)));
-  }, [supabase]);
-
-  const valid = password.length >= 8;
+  const passwordsMatch = password === confirmPassword;
+  const valid = password.length >= MIN_PASSWORD_LENGTH && passwordsMatch;
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setTouched(true);
-    if (!valid) return;
+    if (!valid || !token) return;
 
     setSubmitting(true);
     setError(null);
 
-    const { data, error: updateError } = await supabase.auth.updateUser({ password });
-    if (updateError || !data.user) {
-      setError(updateError?.message ?? "Could not update your password.");
+    // The reset hands back a fresh session: reaching the emailed link
+    // already proved the account is theirs, so there is nothing left to
+    // sign in with.
+    try {
+      const tokens = await resetPassword(token, password);
+      storeTokens(tokens);
+      router.push(await resolvePostAuthPath(tokens.access_token));
+      router.refresh();
+    } catch (resetError) {
+      setError(
+        resetError instanceof ApiError
+          ? resetError.message
+          : "Could not update your password. Try again.",
+      );
       setSubmitting(false);
-      return;
     }
-
-    const path = await resolvePostAuthPath(supabase, data.user.id);
-    router.push(path);
-    router.refresh();
   }
 
-  if (hasSession === false) {
+  if (!token) {
     return (
       <div className="text-center">
         <h1 className="font-display text-2xl font-semibold text-text-primary">Link expired</h1>
@@ -65,32 +71,55 @@ export function ResetPasswordForm() {
   return (
     <div>
       <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">Set a new password</h1>
+        <h1 className="font-display text-2xl font-semibold text-text-primary">
+          Set a new password
+        </h1>
         <p className="mt-2 font-sans text-sm text-text-secondary">
-          Pick something at least 8 characters long. You&apos;ll be signed in straight after.
+          Pick something at least {MIN_PASSWORD_LENGTH} characters long.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8">
-        <label htmlFor="password" className="utility-label text-text-secondary">
-          New password
-        </label>
-        <Input
-          id="password"
-          type="password"
-          autoFocus
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          className="mt-2"
-        />
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="password" className="utility-label text-text-secondary">
+              New password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              autoFocus
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="confirm-password" className="utility-label text-text-secondary">
+              Confirm new password
+            </label>
+            <Input
+              id="confirm-password"
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              className="mt-2"
+            />
+          </div>
+        </div>
 
         {touched && !valid ? (
-          <p className="mt-3 text-sm text-error">Password needs to be at least 8 characters.</p>
+          <p className="mt-3 text-sm text-error">
+            {password.length < MIN_PASSWORD_LENGTH
+              ? `Password needs to be at least ${MIN_PASSWORD_LENGTH} characters.`
+              : "Those passwords don't match."}
+          </p>
         ) : null}
         {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
 
-        <Button type="submit" disabled={submitting || hasSession === null} className="mt-8 w-full">
+        <Button type="submit" disabled={submitting} className="mt-8 w-full">
           {submitting ? "Saving..." : "Save password"}
         </Button>
       </form>

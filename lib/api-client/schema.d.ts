@@ -109,7 +109,7 @@ export interface paths {
         put?: never;
         /**
          * Research Domain
-         * @description Preview only. Saving is a separate POST /companies with this dossier.
+         * @description Preview only. Saving is a separate POST with the dossier this returns.
          */
         post: operations["research_domain_api_companies_research_post"];
         delete?: never;
@@ -153,7 +153,7 @@ export interface paths {
         patch: operations["update_company_stage_api_companies__company_id__stage_patch"];
         trace?: never;
     };
-    "/api/v2/auth/signup": {
+    "/api/auth/signup": {
         parameters: {
             query?: never;
             header?: never;
@@ -162,15 +162,53 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Signup */
-        post: operations["signup_api_v2_auth_signup_post"];
+        /**
+         * Signup
+         * @description No session comes back: the account isn't usable until the emailed
+         *     link is clicked.
+         */
+        post: operations["signup_api_auth_signup_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v2/auth/login": {
+    "/api/auth/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Email */
+        post: operations["verify_email_api_auth_verify_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend Verification */
+        post: operations["resend_verification_api_auth_resend_verification_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -180,22 +218,56 @@ export interface paths {
         get?: never;
         put?: never;
         /** Login */
-        post: operations["login_api_v2_auth_login_post"];
+        post: operations["login_api_auth_login_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v2/auth/me": {
+    "/api/auth/forgot-password": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Me */
-        get: operations["me_api_v2_auth_me_get"];
+        get?: never;
+        put?: never;
+        /** Forgot Password */
+        post: operations["forgot_password_api_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Password */
+        post: operations["reset_password_api_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/google/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Start */
+        get: operations["google_start_api_auth_google_start_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -204,7 +276,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v2/auth/refresh": {
+    "/api/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Google Callback
+         * @description Hands the session to the frontend in the URL fragment, not the query
+         *     string: a fragment is never sent to a server, so the tokens stay out of
+         *     access logs and Referer headers on the way through.
+         */
+        get: operations["google_callback_api_auth_google_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -214,14 +325,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Refresh */
-        post: operations["refresh_api_v2_auth_refresh_post"];
+        post: operations["refresh_api_auth_refresh_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v2/auth/logout": {
+    "/api/auth/logout": {
         parameters: {
             query?: never;
             header?: never;
@@ -231,14 +342,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Logout */
-        post: operations["logout_api_v2_auth_logout_post"];
+        post: operations["logout_api_auth_logout_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v2/profile": {
+    "/api/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -246,108 +357,14 @@ export interface paths {
             cookie?: never;
         };
         /** Get Profile */
-        get: operations["get_profile_api_v2_profile_get"];
+        get: operations["get_profile_api_profile_get"];
         /** Put Profile */
-        put: operations["put_profile_api_v2_profile_put"];
+        put: operations["put_profile_api_profile_put"];
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/api/v2/companies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Companies */
-        get: operations["list_companies_api_v2_companies_get"];
-        put?: never;
-        /**
-         * Save Company
-         * @description Persists the dossier the caller already has rather than re-fetching:
-         *     what the user reviewed is what gets saved.
-         */
-        post: operations["save_company_api_v2_companies_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/companies/overview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Overview */
-        get: operations["get_overview_api_v2_companies_overview_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/companies/research": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Research Domain
-         * @description Preview only. Saving is a separate POST with the dossier this returns.
-         */
-        post: operations["research_domain_api_v2_companies_research_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v2/companies/{company_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Company */
-        get: operations["get_company_api_v2_companies__company_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Company */
-        patch: operations["update_company_api_v2_companies__company_id__patch"];
-        trace?: never;
-    };
-    "/api/v2/companies/{company_id}/stage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Company Stage */
-        patch: operations["update_company_stage_api_v2_companies__company_id__stage_patch"];
         trace?: never;
     };
 }
@@ -518,6 +535,16 @@ export interface components {
             id: string;
             /** Email */
             email: string;
+            /** Email Verified */
+            email_verified: boolean;
+        };
+        /** ForgotPasswordRequest */
+        ForgotPasswordRequest: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -593,8 +620,8 @@ export interface components {
             /** Refresh Token */
             refresh_token: string;
         };
-        /** LogoutResponse */
-        LogoutResponse: {
+        /** MessageResponse */
+        MessageResponse: {
             /** Detail */
             detail: string;
         };
@@ -658,24 +685,20 @@ export interface components {
             email: string;
             /** Phone */
             phone: string;
-            /** Resume Storage Path */
-            resume_storage_path: string | null;
             /** Resume Parsed Json */
             resume_parsed_json: {
                 [key: string]: unknown;
             } | null;
-            /** Career Arc Storage Path */
-            career_arc_storage_path: string | null;
+            /** Career Arc Parsed Json */
+            career_arc_parsed_json: {
+                [key: string]: unknown;
+            } | null;
             /** Work Preference */
             work_preference: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
             target_roles: string[];
         };
-        /**
-         * ProfileUpsert
-         * @description Storage paths stay optional until file uploads migrate off Supabase
-         *     Storage, which a native-auth session cannot reach.
-         */
+        /** ProfileUpsert */
         ProfileUpsert: {
             /** First Name */
             first_name: string;
@@ -688,10 +711,6 @@ export interface components {
             email: string;
             /** Phone */
             phone: string;
-            /** Resume Storage Path */
-            resume_storage_path?: string | null;
-            /** Career Arc Storage Path */
-            career_arc_storage_path?: string | null;
             /** Work Preference */
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
@@ -734,6 +753,21 @@ export interface components {
             /** Elapsed Ms */
             elapsed_ms: number;
         };
+        /** ResendVerificationRequest */
+        ResendVerificationRequest: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+        };
+        /** ResetPasswordRequest */
+        ResetPasswordRequest: {
+            /** Token */
+            token: string;
+            /** Password */
+            password: string;
+        };
         /** SignupRequest */
         SignupRequest: {
             /**
@@ -772,6 +806,11 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerifyEmailRequest */
+        VerifyEmailRequest: {
+            /** Token */
+            token: string;
         };
         /** WeeklyCompanyCount */
         WeeklyCompanyCount: {
@@ -1129,7 +1168,7 @@ export interface operations {
             };
         };
     };
-    signup_api_v2_auth_signup_post: {
+    signup_api_auth_signup_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1148,6 +1187,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_email_api_auth_verify_email_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["TokenPair"];
                 };
             };
@@ -1162,7 +1234,40 @@ export interface operations {
             };
         };
     };
-    login_api_v2_auth_login_post: {
+    resend_verification_api_auth_resend_verification_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResendVerificationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login_api_auth_login_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1195,7 +1300,126 @@ export interface operations {
             };
         };
     };
-    me_api_v2_auth_me_get: {
+    forgot_password_api_auth_forgot_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_auth_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    google_start_api_auth_google_start_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    google_callback_api_auth_google_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    me_api_auth_me_get: {
         parameters: {
             query?: never;
             header?: {
@@ -1226,7 +1450,7 @@ export interface operations {
             };
         };
     };
-    refresh_api_v2_auth_refresh_post: {
+    refresh_api_auth_refresh_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1259,7 +1483,7 @@ export interface operations {
             };
         };
     };
-    logout_api_v2_auth_logout_post: {
+    logout_api_auth_logout_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1278,7 +1502,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["LogoutResponse"];
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1292,7 +1516,7 @@ export interface operations {
             };
         };
     };
-    get_profile_api_v2_profile_get: {
+    get_profile_api_profile_get: {
         parameters: {
             query?: never;
             header?: {
@@ -1323,7 +1547,7 @@ export interface operations {
             };
         };
     };
-    put_profile_api_v2_profile_put: {
+    put_profile_api_profile_put: {
         parameters: {
             query?: never;
             header?: {
@@ -1345,253 +1569,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_companies_api_v2_companies_get: {
-        parameters: {
-            query?: {
-                /** @description Substring match on domain */
-                search?: string | null;
-                stage?: components["schemas"]["CompanyStage"] | null;
-                sort?: components["schemas"]["CompanySort"];
-                page?: number;
-                page_size?: number;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    save_company_api_v2_companies_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateOrUpdateCompany"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_overview_api_v2_companies_overview_get: {
-        parameters: {
-            query?: {
-                contacted_window_days?: number;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OverviewStats"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    research_domain_api_v2_companies_research_post: {
-        parameters: {
-            query: {
-                /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
-                domain: string;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyDossier"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_company_api_v2_companies__company_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_company_api_v2_companies__company_id__patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CompanyUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_company_stage_api_v2_companies__company_id__stage_patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                company_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StageUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyOut"];
                 };
             };
             /** @description Validation Error */

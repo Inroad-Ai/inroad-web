@@ -6,12 +6,20 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { ApiError, loginNative, signupNative } from "@/lib/api-client/client";
+import {
+  ApiError,
+  googleSignInUrl,
+  login,
+  resendVerification,
+  signup,
+} from "@/lib/api-client/client";
+import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
 import { isValidEmail } from "@/lib/onboarding";
-import { createClient } from "@/lib/supabase/browser";
 
 type Mode = "login" | "signup";
+
+const MIN_PASSWORD_LENGTH = 8;
 
 const COPY: Record<
   Mode,
@@ -51,26 +59,78 @@ function GoogleIcon() {
   );
 }
 
+/** Shown after signup instead of a session: the account isn't usable until
+ * the link in the email is clicked. */
+function CheckYourEmail({ email }: { email: string }) {
+  const [resent, setResent] = useState(false);
+  const [resending, setResending] = useState(false);
+
+  async function handleResend() {
+    setResending(true);
+    try {
+      await resendVerification(email);
+    } finally {
+      setResent(true);
+      setResending(false);
+    }
+  }
+
+  return (
+    <div className="text-center">
+      <h1 className="font-display text-2xl font-semibold text-text-primary">Check your email</h1>
+      <p className="mt-2 font-sans text-sm text-text-secondary">
+        We sent a confirmation link to {email}. Click it to finish setting up your account.
+      </p>
+
+      <Button
+        type="button"
+        variant="quiet"
+        onClick={handleResend}
+        disabled={resending || resent}
+        className="mt-8 w-full"
+      >
+        {resent ? "Sent again" : resending ? "Sending..." : "Resend the link"}
+      </Button>
+
+      <p className="mt-8 border-t border-line pt-6 font-sans text-sm text-text-secondary">
+        Already confirmed?{" "}
+        <Link href="/login" className="text-signal-teal hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </div>
+  );
+}
+
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
-  const supabase = createClient();
   const copy = COPY[mode];
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverified, setUnverified] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
-  const valid = isValidEmail(email) && password.length >= 8;
+  const passwordsMatch = mode === "login" || password === confirmPassword;
+  const valid =
+    isValidEmail(email) && password.length >= MIN_PASSWORD_LENGTH && passwordsMatch;
 
-  async function handleGoogle() {
-    setError(null);
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (oauthError) setError(oauthError.message);
+  function validationMessage(): string {
+    if (!isValidEmail(email)) return "That doesn't look like a real email.";
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return `Password needs to be at least ${MIN_PASSWORD_LENGTH} characters.`;
+    }
+    return "Those passwords don't match.";
+  }
+
+  async function handleResendFromLogin() {
+    await resendVerification(email.trim());
+    setUnverified(false);
+    setError("Sent. Check your inbox for a new link.");
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -80,29 +140,34 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
     setSubmitting(true);
     setError(null);
+    setUnverified(false);
 
-    // Native auth (phase 2 backend) instead of Supabase: signup/login both
-    // return a usable token pair straight away, no email confirmation step
-    // exists on this backend yet, so there's no "check your email" state
-    // to show here anymore, and no Supabase user id to run
-    // resolvePostAuthPath against. Every native account is routed to
-    // /onboarding - onboarding/dashboard data still lives behind Supabase
-    // auth until a later phase, this is a known gap, not an oversight.
     try {
-      const tokens = mode === "login"
-        ? await loginNative(email.trim(), password)
-        : await signupNative(email.trim(), password);
+      if (mode === "signup") {
+        await signup(email.trim(), password);
+        setAwaitingConfirmation(true);
+        return;
+      }
+
+      const tokens = await login(email.trim(), password);
       storeTokens(tokens);
-      router.push("/onboarding");
+      router.push(await resolvePostAuthPath(tokens.access_token));
       router.refresh();
     } catch (submitError) {
-      const message =
+      if (submitError instanceof ApiError && submitError.code === "email_not_verified") {
+        setUnverified(true);
+      }
+      setError(
         submitError instanceof ApiError
           ? submitError.message
-          : "Something went wrong. Try again.";
-      setError(message);
+          : "Something went wrong. Try again.",
+      );
       setSubmitting(false);
     }
+  }
+
+  if (awaitingConfirmation) {
+    return <CheckYourEmail email={email.trim()} />;
   }
 
   return (
@@ -112,7 +177,14 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <p className="mt-2 font-sans text-sm text-text-secondary">{copy.subheading}</p>
       </div>
 
-      <Button type="button" variant="quiet" onClick={handleGoogle} className="mt-8 w-full">
+      <Button
+        type="button"
+        variant="quiet"
+        onClick={() => {
+          window.location.href = googleSignInUrl();
+        }}
+        className="mt-8 w-full"
+      >
         <GoogleIcon />
         Continue with Google
       </Button>
@@ -163,16 +235,36 @@ export function AuthForm({ mode }: { mode: Mode }) {
               className="mt-2"
             />
           </div>
+          {mode === "signup" ? (
+            <div>
+              <label htmlFor="confirm-password" className="utility-label text-text-secondary">
+                Confirm password
+              </label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                className="mt-2"
+              />
+            </div>
+          ) : null}
         </div>
 
         {touched && !valid ? (
-          <p className="mt-3 text-sm text-error">
-            {isValidEmail(email)
-              ? "Password needs to be at least 8 characters."
-              : "That doesn't look like a real email."}
-          </p>
+          <p className="mt-3 text-sm text-error">{validationMessage()}</p>
         ) : null}
         {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
+        {unverified ? (
+          <button
+            type="button"
+            onClick={handleResendFromLogin}
+            className="mt-2 font-sans text-sm text-signal-teal hover:underline"
+          >
+            Send the confirmation link again
+          </button>
+        ) : null}
 
         <Button type="submit" disabled={submitting} className="mt-8 w-full">
           {submitting ? "Working..." : copy.submitLabel}

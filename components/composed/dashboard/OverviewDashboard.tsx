@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { fetchOverviewStatsNative } from "@/lib/api-client/client";
+import { fetchOverviewStats } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { OverviewStats } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
@@ -53,7 +53,7 @@ export function OverviewDashboard() {
       }
 
       try {
-        const response = await fetchOverviewStatsNative(
+        const response = await fetchOverviewStats(
           token,
           controller.signal,
           CONTACTED_WINDOW_DAYS,

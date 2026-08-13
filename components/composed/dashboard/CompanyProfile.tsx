@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  fetchCompanyNative,
-  researchCompanyDomainNative,
-  saveCompanyResearchNative,
-  updateCompanyNotesNative,
-  updateCompanyStageNative,
+  fetchCompany,
+  researchCompanyDomain,
+  saveCompanyResearch,
+  updateCompanyNotes,
+  updateCompanyStage,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { totalTimeSeconds } from "@/lib/api";
@@ -52,7 +52,7 @@ export function CompanyProfile({ companyId }: { companyId: string }) {
     async function load() {
       try {
         const token = await accessToken();
-        setDetail(await fetchCompanyNative(companyId, token, controller.signal));
+        setDetail(await fetchCompany(companyId, token, controller.signal));
         setLoadState("ready");
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -115,7 +115,7 @@ function IdentityHeader({
     setMovingStage(true);
     setStageError("");
     try {
-      const updated = await updateCompanyStageNative(detail.id, stage, await accessToken());
+      const updated = await updateCompanyStage(detail.id, stage, await accessToken());
       onCompanyChange(updated);
     } catch (err) {
       setStageError(err instanceof Error ? err.message : "Could not change the stage.");
@@ -131,9 +131,9 @@ function IdentityHeader({
     setRerunError("");
     try {
       const token = await accessToken();
-      const dossier = await researchCompanyDomainNative(detail.domain, token);
-      await saveCompanyResearchNative(dossier, token);
-      onCompanyChange(await fetchCompanyNative(detail.id, token));
+      const dossier = await researchCompanyDomain(detail.domain, token);
+      await saveCompanyResearch(dossier, token);
+      onCompanyChange(await fetchCompany(detail.id, token));
     } catch (err) {
       setRerunError(err instanceof Error ? err.message : "Could not run research again.");
     } finally {
@@ -430,7 +430,7 @@ function NotesSection({
     try {
       // Empty box means "no notes", not an empty string sitting in the column.
       const trimmed = text.trim();
-      const updated = await updateCompanyNotesNative(
+      const updated = await updateCompanyNotes(
         detail.id,
         trimmed === "" ? null : trimmed,
         await accessToken(),

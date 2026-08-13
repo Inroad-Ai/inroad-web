@@ -1,15 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchProfile } from "@/lib/api-client/client";
 
+/** Where to land someone who just signed in. A missing profile is what
+ * "hasn't onboarded" means, so the profile fetch is the check. */
 export async function resolvePostAuthPath(
-  supabase: SupabaseClient,
-  userId: string,
+  accessToken: string,
 ): Promise<"/onboarding" | "/overview"> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("user_id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  return data ? "/overview" : "/onboarding";
+  const profile = await fetchProfile(accessToken);
+  return profile ? "/overview" : "/onboarding";
 }

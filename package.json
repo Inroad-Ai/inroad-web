@@ -11,8 +11,6 @@
     "generate-api-client": "openapi-typescript \"${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}/openapi.json\" -o lib/api-client/schema.d.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.4",
-    "@supabase/supabase-js": "^2.112.2",
     "jose": "^6.2.8",
     "next": "^14.2.35",
     "openapi-fetch": "^0.17.0",

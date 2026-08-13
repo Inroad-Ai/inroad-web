@@ -12,7 +12,7 @@ const FAQS = [
   {
     question: "Is my data safe?",
     answer:
-      "Your data is stored in Supabase behind row-level security scoped to your account, so it's not readable by other users. Inroad is early: treat it accordingly, and don't put anything in it you wouldn't want stored anywhere new.",
+      "Your data sits in our own Postgres database, and every query that reads it is scoped to your account, so it's not readable by other users. Resumes are parsed and discarded, never stored as files. Inroad is early: treat it accordingly, and don't put anything in it you wouldn't want stored anywhere new.",
   },
   {
     question: "Is it free?",

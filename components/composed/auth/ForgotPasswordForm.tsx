@@ -5,12 +5,10 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { forgotPassword } from "@/lib/api-client/client";
 import { isValidEmail } from "@/lib/onboarding";
-import { createClient } from "@/lib/supabase/browser";
 
 export function ForgotPasswordForm() {
-  const supabase = createClient();
-
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -27,15 +25,17 @@ export function ForgotPasswordForm() {
     setSubmitting(true);
     setError(null);
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/auth/confirm`,
-    });
-
-    // Show "sent" either way - whether or not that email has an account is
-    // not something a stranger submitting this form gets to learn.
-    if (resetError) setError(resetError.message);
-    else setSent(true);
-    setSubmitting(false);
+    // The backend answers the same way for a registered address and an
+    // unknown one, so there is nothing to branch on here: only a transport
+    // failure is worth showing.
+    try {
+      await forgotPassword(email.trim());
+      setSent(true);
+    } catch {
+      setError("Could not reach the auth service. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (sent) {

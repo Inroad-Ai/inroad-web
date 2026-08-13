@@ -14,7 +14,7 @@ import {
   ApiError,
   fetchHistory,
   fetchResearch,
-  saveCompanyResearchNative,
+  saveCompanyResearch,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { recordLiveFetch } from "@/lib/api";
@@ -63,7 +63,7 @@ function SaveResult({ dossier }: { dossier: CompanyDossier }) {
     try {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again to save this.");
-      const company = await saveCompanyResearchNative(dossier, token);
+      const company = await saveCompanyResearch(dossier, token);
       setSavedId(company.id);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Could not save this company.");

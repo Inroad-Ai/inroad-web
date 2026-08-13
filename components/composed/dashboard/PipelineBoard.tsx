@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { fetchCompaniesNative, updateCompanyStageNative } from "@/lib/api-client/client";
+import { fetchCompanies, updateCompanyStage } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { describeHiring } from "@/lib/companies";
 import type { Company } from "@/lib/types";
@@ -81,7 +81,7 @@ export function PipelineBoard() {
       await Promise.all(
         PIPELINE_STAGES.map(async (stage) => {
           try {
-            const response = await fetchCompaniesNative(
+            const response = await fetchCompanies(
               { stage, sort: "updated_desc", page: 1, pageSize: COLUMN_PAGE_SIZE },
               token,
               controller.signal,
@@ -122,7 +122,7 @@ export function PipelineBoard() {
     }
 
     try {
-      const response = await fetchCompaniesNative(
+      const response = await fetchCompanies(
         {
           stage,
           sort: "updated_desc",
@@ -170,7 +170,7 @@ export function PipelineBoard() {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error(SESSION_EXPIRED);
 
-      const updated = await updateCompanyStageNative(company.id, to, token);
+      const updated = await updateCompanyStage(company.id, to, token);
 
       setBoard((prev) => {
         const source = prev[from];

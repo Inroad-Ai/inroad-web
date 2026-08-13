@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { fetchCompaniesNative } from "@/lib/api-client/client";
+import { fetchCompanies } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { describeHiring, SESSION_EXPIRED } from "@/lib/companies";
 import type { Company, CompanySort } from "@/lib/types";
@@ -73,7 +73,7 @@ export function CompaniesTable() {
       }
 
       try {
-        const response = await fetchCompaniesNative(
+        const response = await fetchCompanies(
           {
             search: search || undefined,
             stage: stage === "all" ? undefined : stage,

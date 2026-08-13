@@ -1,18 +1,12 @@
-/** Browser-side storage and refresh for the native (non-Supabase) auth
- * tokens from phase 2. Cookies, not localStorage, so middleware and server
- * layouts can read the same value without a round trip - the same reason
- * the existing Supabase session lives in a cookie rather than localStorage.
+/** Browser-side storage and refresh for the auth token pair. Cookies, not
+ * localStorage, so middleware and server layouts can read the same value
+ * without a round trip.
  *
- * Not httpOnly: these are written from client-side JS (AuthForm calls the
- * FastAPI backend directly with the typed api-client, per this phase's
- * brief), and a browser cannot set an httpOnly cookie from document.cookie
- * - only a server response's Set-Cookie header can. Getting real httpOnly
- * storage would mean routing every auth call through a Next.js server
- * route instead of calling the backend directly from AuthForm, which is a
- * bigger structural change than this phase asked for. This matches how
- * @supabase/ssr's browser client already stores the Supabase session here
- * (also non-httpOnly, for the same reason), so it's not a new trade-off,
- * just the same one this app already made once.
+ * Not httpOnly: these are written from client-side JS, and a browser cannot
+ * set an httpOnly cookie from document.cookie - only a server response's
+ * Set-Cookie header can. Getting real httpOnly storage would mean routing
+ * every auth call through a Next.js route handler instead of calling the
+ * backend directly, which is a larger change than this is worth today.
  */
 
 import { logoutNative, refreshNative, type TokenPair } from "@/lib/api-client/client";

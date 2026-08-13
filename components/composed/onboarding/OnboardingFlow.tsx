@@ -14,7 +14,7 @@ import { TargetRoleScreen } from "@/components/composed/onboarding/TargetRoleScr
 import { SummaryScreen } from "@/components/composed/onboarding/SummaryScreen";
 import { fetchMe, saveProfile } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { FILE_STORAGE_UNAVAILABLE } from "@/lib/profile";
+import { FILE_PARSING_UNAVAILABLE } from "@/lib/profile";
 import { type WorkPreferenceOption } from "@/lib/onboarding";
 
 const STEP_IDS = [
@@ -106,15 +106,12 @@ export function OnboardingFlow() {
         return;
       }
 
-      // Null until uploads migrate off Supabase Storage.
       await saveProfile(
         {
           first_name: form.firstName.trim(),
           last_name: form.lastName.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
-          resume_storage_path: null,
-          career_arc_storage_path: null,
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         },
@@ -176,7 +173,7 @@ export function OnboardingFlow() {
           onSelect={() => undefined}
           onRemove={() => undefined}
           onNext={next}
-          unavailable={FILE_STORAGE_UNAVAILABLE}
+          unavailable={FILE_PARSING_UNAVAILABLE}
         />
       ) : null}
 
@@ -194,7 +191,7 @@ export function OnboardingFlow() {
           onRemove={() => undefined}
           onNext={next}
           onSkip={next}
-          unavailable={FILE_STORAGE_UNAVAILABLE}
+          unavailable={FILE_PARSING_UNAVAILABLE}
         />
       ) : null}
 

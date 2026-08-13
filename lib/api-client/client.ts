@@ -27,21 +27,74 @@ const client = createClient<paths>({ baseUrl: BASE_URL });
 /** Transport failures and 4xx/5xx. A partial dossier is a 200 and never lands here. */
 export class ApiError extends Error {
   readonly status: number;
+  /** The backend's machine-readable error code, when it sent one. Callers
+   * branch on this rather than matching on message text. */
+  readonly code: string | null;
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, code: string | null = null) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
+interface ApiResult<T> {
+  data?: T;
+  error?: unknown;
+  response: Response;
+}
+
+function errorEnvelope(body: unknown): { code?: string; message?: string } | null {
+  if (body && typeof body === "object" && "error" in body) {
+    const envelope = (body as { error?: { code?: string; message?: string } }).error;
+    if (envelope && typeof envelope === "object") return envelope;
+  }
+  return null;
+}
+
 function describeFailure(status: number, body: unknown): string {
+  const envelope = errorEnvelope(body);
+  if (envelope?.message) return envelope.message;
   if (body && typeof body === "object" && typeof (body as { detail?: unknown }).detail === "string") {
     return (body as { detail: string }).detail;
   }
   if (status === 422) return "That does not look like a usable domain.";
-  return `The research service returned ${status}.`;
+  return `The service returned ${status}.`;
 }
+
+/** Every call has the same three outcomes to sort out - an error body, a
+ * response that never arrived, and the success case - so they share one
+ * unwrapper rather than repeating it per function. */
+function unwrap<T>(result: ApiResult<T>, unreachable: string): T {
+  const { data, error, response } = result;
+
+  if (error !== undefined) {
+    throw new ApiError(
+      describeFailure(response.status, error),
+      response.status,
+      errorEnvelope(error)?.code ?? null,
+    );
+  }
+  if (data === undefined) {
+    throw new ApiError(unreachable, 0);
+  }
+
+  return data;
+}
+
+const RESEARCH_UNREACHABLE =
+  "Could not reach the research service. Check that it is running and that this origin is allowed.";
+const COMPANIES_UNREACHABLE =
+  "Could not reach the companies service. Check that it is running and that this origin is allowed.";
+const AUTH_UNREACHABLE = "Could not reach the auth service.";
+const PROFILE_UNREACHABLE = "Could not reach the profile service.";
+
+function authHeaders(accessToken: string): Record<string, string> {
+  return { Authorization: `Bearer ${accessToken}` };
+}
+
+// --- research ---
 
 /** Resolves even for a partial dossier; only bad input and transport problems reject. */
 export async function fetchResearch(
@@ -49,20 +102,13 @@ export async function fetchResearch(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<CompanyDossier> {
-  const { data, error, response } = await client.GET("/api/research", {
+  const result = await client.GET("/api/research", {
     params: { query: { domain: domain.trim() } },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the research service. Check that it is running and that this origin is allowed.", 0);
-  }
-
-  return data as CompanyDossier;
+  return unwrap(result, RESEARCH_UNREACHABLE) as CompanyDossier;
 }
 
 /** Newest first, the caller's own runs only. Server-side memory, so it
@@ -71,20 +117,15 @@ export async function fetchHistory(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<CompanyDossier[]> {
-  const { data, response } = await client.GET("/api/research/history", {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const result = await client.GET("/api/research/history", {
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (data === undefined) {
-    throw new ApiError(`The research service returned ${response.status}.`, response.status);
-  }
-
-  return data as CompanyDossier[];
+  return unwrap(result, RESEARCH_UNREACHABLE) as CompanyDossier[];
 }
 
-const COMPANIES_UNREACHABLE =
-  "Could not reach the companies service. Check that it is running and that this origin is allowed.";
+// --- companies ---
 
 export interface FetchCompaniesParams {
   search?: string;
@@ -94,13 +135,12 @@ export interface FetchCompaniesParams {
   pageSize?: number;
 }
 
-/** The token is forwarded to Postgres as-is: RLS scopes the rows, not this. */
 export async function fetchCompanies(
   params: FetchCompaniesParams,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<CompanyListResponse> {
-  const { data, error, response } = await client.GET("/api/companies", {
+  const result = await client.GET("/api/companies", {
     params: {
       query: {
         search: params.search || undefined,
@@ -110,40 +150,60 @@ export async function fetchCompanies(
         page_size: params.pageSize,
       },
     },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as CompanyListResponse;
+  return unwrap(result, COMPANIES_UNREACHABLE) as CompanyListResponse;
 }
 
-/** The saved row plus its latest dossier and research trail, for the profile page. */
+/** The saved row plus its latest dossier and research trail. */
 export async function fetchCompany(
   companyId: string,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<CompanyDetail> {
-  const { data, error, response } = await client.GET("/api/companies/{company_id}", {
+  const result = await client.GET("/api/companies/{company_id}", {
     params: { path: { company_id: companyId } },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
+  return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
+}
 
-  return data as CompanyDetail;
+/**
+ * Runs the three checks again for a domain the user already has. Nothing is
+ * written: saveCompanyResearch persists what comes back.
+ */
+export async function researchCompanyDomain(
+  domain: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDossier> {
+  const result = await client.POST("/api/companies/research", {
+    params: { query: { domain: domain.trim() } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDossier;
+}
+
+/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
+ * state on an existing company row is left alone. */
+export async function saveCompanyResearch(
+  dossier: CompanyDossier,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const result = await client.POST("/api/companies", {
+    body: { dossier },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
 /** Notes only. Stage goes through updateCompanyStage, which the backend
@@ -154,69 +214,14 @@ export async function updateCompanyNotes(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<Company> {
-  const { data, error, response } = await client.PATCH("/api/companies/{company_id}", {
+  const result = await client.PATCH("/api/companies/{company_id}", {
     params: { path: { company_id: companyId } },
     body: { notes },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
-}
-
-/**
- * Runs the three checks again for a domain the user already has. Nothing is
- * written yet: saveCompanyResearch persists what comes back.
- */
-export async function researchCompanyDomain(
-  domain: string,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyDossier> {
-  const { data, error, response } = await client.POST("/api/companies/research", {
-    params: { query: { domain: domain.trim() } },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as CompanyDossier;
-}
-
-/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
- * state on the existing company row is left alone. */
-export async function saveCompanyResearch(
-  dossier: CompanyDossier,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const { data, error, response } = await client.POST("/api/companies", {
-    body: { dossier },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
 /** Render the row this returns: a first move into "contacted" also stamps
@@ -227,315 +232,114 @@ export async function updateCompanyStage(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<Company> {
-  const { data, error, response } = await client.PATCH("/api/companies/{company_id}/stage", {
+  const result = await client.PATCH("/api/companies/{company_id}/stage", {
     params: { path: { company_id: companyId } },
     body: { stage },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
-/** Aggregates for the Overview page. Same auth shape as fetchCompanies. */
+/** Aggregates for the Overview page. */
 export async function fetchOverviewStats(
   accessToken: string,
   signal?: AbortSignal,
   contactedWindowDays?: number,
 ): Promise<OverviewStats> {
-  const { data, error, response } = await client.GET("/api/companies/overview", {
-    params: {
-      query: {
-        contacted_window_days: contactedWindowDays,
-      },
-    },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as OverviewStats;
-}
-
-// --- Companies on the app's own Postgres (/api/v2) ---
-//
-// The functions above this block are the Supabase-backed originals, kept
-// only until those routes are removed. Everything the app calls now goes
-// through the ones below: same request shapes, different prefix and a native
-// access token instead of a Supabase one.
-
-/** Same filters, sorting and paging as the Supabase-backed original. */
-export async function fetchCompaniesNative(
-  params: FetchCompaniesParams,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyListResponse> {
-  const { data, error, response } = await client.GET("/api/v2/companies", {
-    params: {
-      query: {
-        search: params.search || undefined,
-        stage: params.stage,
-        sort: params.sort,
-        page: params.page,
-        page_size: params.pageSize,
-      },
-    },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as CompanyListResponse;
-}
-
-/** The saved row plus its latest dossier and research trail. */
-export async function fetchCompanyNative(
-  companyId: string,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyDetail> {
-  const { data, error, response } = await client.GET("/api/v2/companies/{company_id}", {
-    params: { path: { company_id: companyId } },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as CompanyDetail;
-}
-
-/**
- * Runs the three checks again for a domain the user already has. Nothing is
- * written: saveCompanyResearchNative persists what comes back.
- */
-export async function researchCompanyDomainNative(
-  domain: string,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyDossier> {
-  const { data, error, response } = await client.POST("/api/v2/companies/research", {
-    params: { query: { domain: domain.trim() } },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as CompanyDossier;
-}
-
-/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
- * state on an existing company row is left alone. */
-export async function saveCompanyResearchNative(
-  dossier: CompanyDossier,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const { data, error, response } = await client.POST("/api/v2/companies", {
-    body: { dossier },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
-}
-
-/** Notes only. Stage goes through updateCompanyStageNative, which the
- * backend treats differently: it also stamps contacted_at. */
-export async function updateCompanyNotesNative(
-  companyId: string,
-  notes: string | null,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const { data, error, response } = await client.PATCH("/api/v2/companies/{company_id}", {
-    params: { path: { company_id: companyId } },
-    body: { notes },
-    headers: { Authorization: `Bearer ${accessToken}` },
-    signal,
-  });
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
-}
-
-/** Render the row this returns: a first move into "contacted" also stamps
- * `contacted_at`, so the response differs from the request by more than stage. */
-export async function updateCompanyStageNative(
-  companyId: string,
-  stage: PipelineStage,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const { data, error, response } = await client.PATCH(
-    "/api/v2/companies/{company_id}/stage",
-    {
-      params: { path: { company_id: companyId } },
-      body: { stage },
-      headers: { Authorization: `Bearer ${accessToken}` },
-      signal,
-    },
-  );
-
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as Company;
-}
-
-/** Aggregates for the Overview page. Companies-only, so it moved with them. */
-export async function fetchOverviewStatsNative(
-  accessToken: string,
-  signal?: AbortSignal,
-  contactedWindowDays?: number,
-): Promise<OverviewStats> {
-  const { data, error, response } = await client.GET("/api/v2/companies/overview", {
+  const result = await client.GET("/api/companies/overview", {
     params: { query: { contacted_window_days: contactedWindowDays } },
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError(COMPANIES_UNREACHABLE, 0);
-  }
-
-  return data as OverviewStats;
+  return unwrap(result, COMPANIES_UNREACHABLE) as OverviewStats;
 }
 
-/** Errors here are for the caller to render (bad credentials, taken email),
- * not a "service unreachable" state, so signup/login describe the failure
- * from the response body itself rather than a generic message. */
-function describeAuthFailure(status: number, body: unknown): string {
-  if (body && typeof body === "object" && "error" in body) {
-    const err = (body as { error?: { message?: string } }).error;
-    if (err?.message) return err.message;
-  }
-  return `The auth service returned ${status}.`;
+// --- auth ---
+
+/** No session comes back: the account isn't usable until the emailed
+ * confirmation link is clicked. */
+export async function signup(email: string, password: string): Promise<string> {
+  const result = await client.POST("/api/auth/signup", { body: { email, password } });
+
+  return unwrap(result, AUTH_UNREACHABLE).detail;
 }
 
-export async function signupNative(email: string, password: string): Promise<TokenPair> {
-  const { data, error, response } = await client.POST("/api/v2/auth/signup", {
-    body: { email, password },
-  });
+export async function login(email: string, password: string): Promise<TokenPair> {
+  const result = await client.POST("/api/auth/login", { body: { email, password } });
 
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the auth service.", 0);
-  }
-
-  return data;
+  return unwrap(result, AUTH_UNREACHABLE);
 }
 
-export async function loginNative(email: string, password: string): Promise<TokenPair> {
-  const { data, error, response } = await client.POST("/api/v2/auth/login", {
-    body: { email, password },
-  });
+/** Signs the user in as well as confirming the address: they just proved
+ * they own the inbox. */
+export async function verifyEmail(token: string): Promise<TokenPair> {
+  const result = await client.POST("/api/auth/verify-email", { body: { token } });
 
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the auth service.", 0);
-  }
+  return unwrap(result, AUTH_UNREACHABLE);
+}
 
-  return data;
+export async function resendVerification(email: string): Promise<string> {
+  const result = await client.POST("/api/auth/resend-verification", { body: { email } });
+
+  return unwrap(result, AUTH_UNREACHABLE).detail;
+}
+
+/** Succeeds whether or not the address is registered, so the response can't
+ * be used to test which addresses have accounts. */
+export async function forgotPassword(email: string): Promise<string> {
+  const result = await client.POST("/api/auth/forgot-password", { body: { email } });
+
+  return unwrap(result, AUTH_UNREACHABLE).detail;
+}
+
+/** Hands back a session: reaching the emailed link already proved the
+ * account is theirs. Every session that existed before the reset is
+ * revoked, this one included, so it is issued after that sweep. */
+export async function resetPassword(token: string, password: string): Promise<TokenPair> {
+  const result = await client.POST("/api/auth/reset-password", { body: { token, password } });
+
+  return unwrap(result, AUTH_UNREACHABLE);
+}
+
+/** Full page navigation, not fetch: the backend redirects to Google, and a
+ * cross-origin redirect can't be followed by an XHR. */
+export function googleSignInUrl(): string {
+  return `${BASE_URL}/api/auth/google/start`;
 }
 
 /** Throws on an invalid/expired/revoked refresh token; callers treat that
  * as "sign the user out locally," not a retryable failure. */
 export async function refreshNative(refreshToken: string): Promise<string> {
-  const { data, error, response } = await client.POST("/api/v2/auth/refresh", {
+  const result = await client.POST("/api/auth/refresh", {
     body: { refresh_token: refreshToken },
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the auth service.", 0);
-  }
-
-  return data.access_token;
+  return unwrap(result, AUTH_UNREACHABLE).access_token;
 }
 
 /** Best-effort: the caller clears local state regardless of whether this
  * succeeds, so a network error here shouldn't stop sign-out. */
 export async function logoutNative(refreshToken: string): Promise<void> {
-  await client.POST("/api/v2/auth/logout", { body: { refresh_token: refreshToken } });
+  await client.POST("/api/auth/logout", { body: { refresh_token: refreshToken } });
 }
 
-/** The signed-in account (id, email). The token says whose, so there's no
- * id to pass. */
+/** The signed-in account. The token says whose, so there's no id to pass. */
 export async function fetchMe(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<CurrentUser> {
-  const { data, error, response } = await client.GET("/api/v2/auth/me", {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const result = await client.GET("/api/auth/me", {
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the auth service.", 0);
-  }
-
-  return data;
+  return unwrap(result, AUTH_UNREACHABLE);
 }
+
+// --- profile ---
 
 /** Null, not a throw, when there's no profile yet: callers route on it
  * rather than treating it as an error. */
@@ -543,20 +347,14 @@ export async function fetchProfile(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<Profile | null> {
-  const { data, error, response } = await client.GET("/api/v2/profile", {
-    headers: { Authorization: `Bearer ${accessToken}` },
+  const result = await client.GET("/api/profile", {
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (response.status === 404) return null;
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the profile service.", 0);
-  }
+  if (result.response.status === 404) return null;
 
-  return data;
+  return unwrap(result, PROFILE_UNREACHABLE);
 }
 
 /** Upsert: creates from onboarding, rewrites from settings. Whose row it is
@@ -566,18 +364,11 @@ export async function saveProfile(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<Profile> {
-  const { data, error, response } = await client.PUT("/api/v2/profile", {
+  const result = await client.PUT("/api/profile", {
     body: profile,
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
     signal,
   });
 
-  if (error !== undefined) {
-    throw new ApiError(describeAuthFailure(response.status, error), response.status);
-  }
-  if (data === undefined) {
-    throw new ApiError("Could not reach the profile service.", 0);
-  }
-
-  return data;
+  return unwrap(result, PROFILE_UNREACHABLE);
 }
