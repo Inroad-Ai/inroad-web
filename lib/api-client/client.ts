@@ -14,6 +14,9 @@ import type { PipelineStage } from "@/components/ui/StatusBadge";
 import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];
+export type CurrentUser = components["schemas"]["CurrentUser"];
+export type Profile = components["schemas"]["ProfileOut"];
+export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
@@ -320,4 +323,70 @@ export async function refreshNative(refreshToken: string): Promise<string> {
  * succeeds, so a network error here shouldn't stop sign-out. */
 export async function logoutNative(refreshToken: string): Promise<void> {
   await client.POST("/api/v2/auth/logout", { body: { refresh_token: refreshToken } });
+}
+
+/** The signed-in account (id, email). The token says whose, so there's no
+ * id to pass. */
+export async function fetchMe(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CurrentUser> {
+  const { data, error, response } = await client.GET("/api/v2/auth/me", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the auth service.", 0);
+  }
+
+  return data;
+}
+
+/** Null, not a throw, when there's no profile yet: callers route on it
+ * rather than treating it as an error. */
+export async function fetchProfile(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Profile | null> {
+  const { data, error, response } = await client.GET("/api/v2/profile", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (response.status === 404) return null;
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the profile service.", 0);
+  }
+
+  return data;
+}
+
+/** Upsert: creates from onboarding, rewrites from settings. Whose row it is
+ * comes from the token, never the body. */
+export async function saveProfile(
+  profile: ProfileUpsert,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Profile> {
+  const { data, error, response } = await client.PUT("/api/v2/profile", {
+    body: profile,
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeAuthFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError("Could not reach the profile service.", 0);
+  }
+
+  return data;
 }

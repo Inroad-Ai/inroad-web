@@ -5,22 +5,18 @@ import { useEffect, useState } from "react";
 
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
-import { FileUpload } from "@/components/ui/FileUpload";
 import { Input } from "@/components/ui/Input";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { TagInput } from "@/components/ui/TagInput";
+import { fetchProfile, saveProfile } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
 import {
-  WORK_PREFERENCE_OPTIONS,
-  uploadOnboardingFile,
-  type UploadState,
-  type WorkPreferenceOption,
-} from "@/lib/onboarding";
-import {
-  fetchProfile,
+  FILE_STORAGE_UNAVAILABLE,
   fileNameFromPath,
   getSignedFileUrl,
-  updateProfile,
-  type ProfileRow,
+  toUpsert,
+  type Profile,
 } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -33,7 +29,7 @@ interface FormState {
   targetRoles: string[];
 }
 
-function toFormState(profile: ProfileRow): FormState {
+function toFormState(profile: Profile): FormState {
   return {
     firstName: profile.first_name,
     lastName: profile.last_name,
@@ -47,19 +43,12 @@ function toFormState(profile: ProfileRow): FormState {
 export default function SettingsPage() {
   const supabase = createClient();
 
-  const [userId, setUserId] = useState<string | null>(null);
+  // The whole row, not just editable fields: PUT replaces the row, so a save
+  // has to send the storage paths back untouched rather than blanking them.
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
-
-  const [resumePath, setResumePath] = useState<string | null>(null);
-  const [careerArcPath, setCareerArcPath] = useState<string | null>(null);
-  const [resumeUploadState, setResumeUploadState] = useState<UploadState>("idle");
-  const [careerArcUploadState, setCareerArcUploadState] = useState<UploadState>("idle");
-  const [resumeUploadProgress, setResumeUploadProgress] = useState(0);
-  const [careerArcUploadProgress, setCareerArcUploadProgress] = useState(0);
-  const [resumeError, setResumeError] = useState<string | null>(null);
-  const [careerArcError, setCareerArcError] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -69,22 +58,17 @@ export default function SettingsPage() {
     let cancelled = false;
 
     async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
-      setUserId(user.id);
-
       try {
-        const profile = await fetchProfile(supabase, user.id);
-        if (cancelled) return;
-        if (profile) {
-          setForm(toFormState(profile));
-          setResumePath(profile.resume_storage_path);
-          setCareerArcPath(profile.career_arc_storage_path);
-          setResumeUploadState(profile.resume_storage_path ? "done" : "idle");
-          setCareerArcUploadState(profile.career_arc_storage_path ? "done" : "idle");
+        const token = await ensureValidAccessToken();
+        if (!token) {
+          if (!cancelled) setLoadError("Your session expired. Sign in again.");
+          return;
         }
+
+        const loaded = await fetchProfile(token);
+        if (cancelled || !loaded) return;
+        setProfile(loaded);
+        setForm(toFormState(loaded));
       } catch (error) {
         if (!cancelled) {
           setLoadError(error instanceof Error ? error.message : "Could not load your profile.");
@@ -98,7 +82,6 @@ export default function SettingsPage() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -115,61 +98,35 @@ export default function SettingsPage() {
   }
 
   async function handleSave() {
-    if (!userId || !form) return;
+    if (!profile || !form) return;
     setSaving(true);
     setSaveError(null);
     setSaved(false);
 
     try {
-      await updateProfile(supabase, userId, {
-        first_name: form.firstName.trim(),
-        last_name: form.lastName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim(),
-        work_preference: form.workPreference,
-        target_roles: form.targetRoles,
-      });
+      const token = await ensureValidAccessToken();
+      if (!token) {
+        setSaveError("Your session expired. Sign in again.");
+        return;
+      }
+
+      const updated = await saveProfile(
+        toUpsert(profile, {
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          work_preference: form.workPreference,
+          target_roles: form.targetRoles,
+        }),
+        token,
+      );
+      setProfile(updated);
       setSaved(true);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Could not save your changes.");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleFileReplace(
-    bucket: "resumes" | "career-arc-documents",
-    field: "resume" | "careerArc",
-    file: File,
-  ) {
-    if (!userId) return;
-    const setState = field === "resume" ? setResumeUploadState : setCareerArcUploadState;
-    const setProgress = field === "resume" ? setResumeUploadProgress : setCareerArcUploadProgress;
-    const setError = field === "resume" ? setResumeError : setCareerArcError;
-    const setPath = field === "resume" ? setResumePath : setCareerArcPath;
-
-    setState("uploading");
-    setProgress(0);
-    setError(null);
-
-    try {
-      const path = await uploadOnboardingFile({
-        supabase,
-        bucket,
-        userId,
-        file,
-        onProgress: setProgress,
-      });
-      await updateProfile(
-        supabase,
-        userId,
-        field === "resume" ? { resume_storage_path: path } : { career_arc_storage_path: path },
-      );
-      setPath(path);
-      setState("done");
-    } catch (error) {
-      setState("error");
-      setError(error instanceof Error ? error.message : "Upload failed.");
     }
   }
 
@@ -212,8 +169,8 @@ export default function SettingsPage() {
     );
   }
 
-  const resumeFileName = fileNameFromPath(resumePath);
-  const careerArcFileName = fileNameFromPath(careerArcPath);
+  const resumePath = profile?.resume_storage_path ?? null;
+  const careerArcPath = profile?.career_arc_storage_path ?? null;
 
   return (
     <PageShell title="Settings" description="Everything from onboarding, editable here.">
@@ -274,24 +231,14 @@ export default function SettingsPage() {
       <section className="mt-6 space-y-6 rounded-sm border border-line bg-surface p-6">
         <FileField
           label="Resume"
-          fileName={resumeFileName}
-          state={resumeUploadState}
-          progress={resumeUploadProgress}
-          errorMessage={resumeError}
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          fileName={fileNameFromPath(resumePath)}
           onView={resumePath ? () => handleView("resumes", resumePath) : undefined}
-          onSelect={(file) => handleFileReplace("resumes", "resume", file)}
         />
 
         <FileField
           label="Career arc document"
-          fileName={careerArcFileName}
-          state={careerArcUploadState}
-          progress={careerArcUploadProgress}
-          errorMessage={careerArcError}
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          fileName={fileNameFromPath(careerArcPath)}
           onView={careerArcPath ? () => handleView("career-arc-documents", careerArcPath) : undefined}
-          onSelect={(file) => handleFileReplace("career-arc-documents", "careerArc", file)}
         />
       </section>
       </div>
@@ -308,24 +255,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+/** Read-only while storage is being migrated. View still works for files
+ * uploaded before the auth cutover. */
 function FileField({
   label,
   fileName,
-  state,
-  progress,
-  errorMessage,
-  accept,
   onView,
-  onSelect,
 }: {
   label: string;
   fileName: string | null;
-  state: UploadState;
-  progress: number;
-  errorMessage: string | null;
-  accept: string;
   onView?: () => void;
-  onSelect: (file: File) => void;
 }) {
   return (
     <div>
@@ -341,20 +280,10 @@ function FileField({
           </button>
         ) : null}
       </div>
-      <div className="mt-2">
-        <FileUpload
-          accept={accept}
-          fileName={fileName}
-          state={state}
-          progress={progress}
-          errorMessage={errorMessage}
-          onSelect={onSelect}
-          // The "Replace" label already opens the file picker natively (it's
-          // htmlFor the hidden input); this only needs to exist so the
-          // control renders, current file stays shown until a new one lands.
-          onRemove={() => undefined}
-        />
-      </div>
+      <p className="mt-2 w-full rounded-md border border-line bg-surface p-5 text-sm text-text-secondary">
+        {fileName ?? "No file"}
+        <span className="mt-1 block text-xs">{FILE_STORAGE_UNAVAILABLE}</span>
+      </p>
     </div>
   );
 }

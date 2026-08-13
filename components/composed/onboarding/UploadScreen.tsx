@@ -16,6 +16,7 @@ export function UploadScreen({
   onRemove,
   onNext,
   onSkip,
+  unavailable,
 }: {
   heading: string;
   helperText: string;
@@ -29,8 +30,11 @@ export function UploadScreen({
   onRemove: () => void;
   onNext: () => void;
   onSkip?: () => void;
+  /** Shown instead of the file picker. Also releases Continue, so a required
+   * step stays passable while uploads are down. */
+  unavailable?: string;
 }) {
-  const canContinue = state === "done";
+  const canContinue = Boolean(unavailable) || state === "done";
 
   return (
     <div>
@@ -43,15 +47,21 @@ export function UploadScreen({
       <p className="mt-2 text-sm text-text-secondary">{helperText}</p>
 
       <div className="mt-6">
-        <FileUpload
-          accept={accept}
-          fileName={fileName}
-          state={state}
-          progress={progress}
-          errorMessage={errorMessage}
-          onSelect={onSelect}
-          onRemove={onRemove}
-        />
+        {unavailable ? (
+          <p className="w-full rounded-md border border-line bg-surface p-5 text-sm text-text-secondary">
+            {unavailable}
+          </p>
+        ) : (
+          <FileUpload
+            accept={accept}
+            fileName={fileName}
+            state={state}
+            progress={progress}
+            errorMessage={errorMessage}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+        )}
       </div>
 
       <div className="mt-8 flex items-center gap-4">

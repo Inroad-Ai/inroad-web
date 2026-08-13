@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { signOutNative } from "@/lib/auth-native/browser";
+import { fetchMe } from "@/lib/api-client/client";
+import { ensureValidAccessToken, signOutNative } from "@/lib/auth-native/browser";
 import { createClient } from "@/lib/supabase/browser";
 
 const TITLES: Record<string, string> = {
@@ -29,9 +30,24 @@ export function DashboardHeader() {
   const [signingOut, setSigningOut] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
 
+  // Native-auth only, no Supabase fallback: middleware.ts and
+  // (dashboard)/layout.tsx admit a request only with a valid native token, so
+  // anything rendering this header is a native session by definition.
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+    let cancelled = false;
+
+    ensureValidAccessToken()
+      .then((token) => (token ? fetchMe(token) : null))
+      .then((user) => {
+        if (!cancelled) setEmail(user?.email ?? null);
+      })
+      .catch(() => {
+        // Header just drops the address; the route guards own session state.
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function signOut() {

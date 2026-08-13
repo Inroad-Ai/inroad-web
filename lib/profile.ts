@@ -1,45 +1,34 @@
-/** Settings-page reads and writes. Straight to Supabase: no backend route
- * exists for profile data, and RLS scopes every call. */
+/** Profile reads and writes go through the typed api-client. The file
+ * helpers at the bottom are still Supabase Storage; buckets haven't
+ * migrated yet. */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { WorkPreferenceOption } from "./onboarding";
+import type { Profile, ProfileUpsert } from "@/lib/api-client/client";
 
-export interface ProfileRow {
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  resume_storage_path: string | null;
-  career_arc_storage_path: string | null;
-  work_preference: WorkPreferenceOption[];
-  target_roles: string[];
+export type { Profile, ProfileUpsert };
+
+/** PUT /profile replaces the whole row, so a partial edit has to send back
+ * the fields it isn't changing. */
+export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): ProfileUpsert {
+  return {
+    first_name: profile.first_name,
+    last_name: profile.last_name,
+    email: profile.email,
+    phone: profile.phone,
+    resume_storage_path: profile.resume_storage_path,
+    career_arc_storage_path: profile.career_arc_storage_path,
+    work_preference: profile.work_preference,
+    target_roles: profile.target_roles,
+    ...changes,
+  };
 }
 
-export async function fetchProfile(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<ProfileRow | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(
-      "first_name, last_name, email, phone, resume_storage_path, career_arc_storage_path, work_preference, target_roles",
-    )
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  return data as ProfileRow | null;
-}
-
-export async function updateProfile(
-  supabase: SupabaseClient,
-  userId: string,
-  fields: Partial<ProfileRow>,
-): Promise<void> {
-  const { error } = await supabase.from("profiles").update(fields).eq("user_id", userId);
-  if (error) throw new Error(error.message);
-}
+/** Uploads went to Supabase Storage on a Supabase session, which native-auth
+ * accounts don't have, so they fail for every account created since the
+ * auth cutover. */
+export const FILE_STORAGE_UNAVAILABLE =
+  "File uploads are unavailable while storage is being migrated. You can finish without one and add it later.";
 
 /** `{userId}/{timestamp}-{name}` -> `{name}`. */
 export function fileNameFromPath(path: string | null): string | null {

@@ -183,6 +183,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Me */
+        get: operations["me_api_v2_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/auth/refresh": {
         parameters: {
             query?: never;
@@ -211,6 +228,29 @@ export interface paths {
         put?: never;
         /** Logout */
         post: operations["logout_api_v2_auth_logout_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v2/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Profile */
+        get: operations["get_profile_api_v2_profile_get"];
+        /**
+         * Put Profile
+         * @description Upsert, not create-or-conflict: onboarding writes the row once and
+         *     settings rewrites it afterwards, and a retried onboarding submit has to
+         *     be safe.
+         */
+        put: operations["put_profile_api_v2_profile_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -376,6 +416,16 @@ export interface components {
         CreateOrUpdateCompany: {
             dossier: components["schemas"]["CompanyDossier"];
         };
+        /** CurrentUser */
+        CurrentUser: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Email */
+            email: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -495,6 +545,67 @@ export interface components {
             /** Companies By Week */
             companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
         };
+        /** ProfileOut */
+        ProfileOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /** Email */
+            email: string;
+            /** Phone */
+            phone: string;
+            /** Resume Storage Path */
+            resume_storage_path: string | null;
+            /** Resume Parsed Json */
+            resume_parsed_json: {
+                [key: string]: unknown;
+            } | null;
+            /** Career Arc Storage Path */
+            career_arc_storage_path: string | null;
+            /** Work Preference */
+            work_preference: components["schemas"]["WorkPreferenceOption"][];
+            /** Target Roles */
+            target_roles: string[];
+        };
+        /**
+         * ProfileUpsert
+         * @description What onboarding and settings both send. Storage paths are optional:
+         *     file uploads still live behind Supabase Storage, which a native-auth
+         *     session cannot reach, so a profile can be saved without them until
+         *     storage migrates.
+         */
+        ProfileUpsert: {
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Phone */
+            phone: string;
+            /** Resume Storage Path */
+            resume_storage_path?: string | null;
+            /** Career Arc Storage Path */
+            career_arc_storage_path?: string | null;
+            /** Work Preference */
+            work_preference?: components["schemas"]["WorkPreferenceOption"][];
+            /** Target Roles */
+            target_roles?: string[];
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -581,6 +692,11 @@ export interface components {
             /** Count */
             count: number;
         };
+        /**
+         * WorkPreferenceOption
+         * @enum {string}
+         */
+        WorkPreferenceOption: "remote" | "hybrid" | "onsite" | "relocation";
     };
     responses: never;
     parameters: never;
@@ -975,6 +1091,37 @@ export interface operations {
             };
         };
     };
+    me_api_v2_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     refresh_api_v2_auth_refresh_post: {
         parameters: {
             query?: never;
@@ -1028,6 +1175,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LogoutResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_profile_api_v2_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_profile_api_v2_profile_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
                 };
             };
             /** @description Validation Error */
