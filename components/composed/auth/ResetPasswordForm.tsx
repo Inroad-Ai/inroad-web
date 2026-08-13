@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ApiError, resetPassword } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
@@ -85,9 +85,8 @@ export function ResetPasswordForm() {
             <label htmlFor="password" className="utility-label text-text-secondary">
               New password
             </label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoFocus
               autoComplete="new-password"
               value={password}
@@ -99,9 +98,8 @@ export function ResetPasswordForm() {
             <label htmlFor="confirm-password" className="utility-label text-text-secondary">
               Confirm new password
             </label>
-            <Input
+            <PasswordInput
               id="confirm-password"
-              type="password"
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}

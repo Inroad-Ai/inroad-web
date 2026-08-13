@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import {
   ApiError,
   googleSignInUrl,
@@ -226,9 +227,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 </Link>
               ) : null}
             </div>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -240,9 +240,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
               <label htmlFor="confirm-password" className="utility-label text-text-secondary">
                 Confirm password
               </label>
-              <Input
+              <PasswordInput
                 id="confirm-password"
-                type="password"
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
