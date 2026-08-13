@@ -263,11 +263,10 @@ export async function fetchOverviewStats(
 
 // --- Companies on the app's own Postgres (/api/v2) ---
 //
-// The five functions above this block are the Supabase-backed originals.
-// They are only still reachable through the research write path, which
-// cannot move until research_runs does; everything that reads or updates a
-// company now goes through these. Same request shapes, different prefix and
-// a native access token instead of a Supabase one.
+// The functions above this block are the Supabase-backed originals, kept
+// only until those routes are removed. Everything the app calls now goes
+// through the ones below: same request shapes, different prefix and a native
+// access token instead of a Supabase one.
 
 /** Same filters, sorting and paging as the Supabase-backed original. */
 export async function fetchCompaniesNative(
@@ -299,15 +298,62 @@ export async function fetchCompaniesNative(
   return data as CompanyListResponse;
 }
 
-/** The saved row only. The research trail the old detail endpoint also
- * returned lives in research_runs, which has not migrated. */
+/** The saved row plus its latest dossier and research trail. */
 export async function fetchCompanyNative(
   companyId: string,
   accessToken: string,
   signal?: AbortSignal,
-): Promise<Company> {
+): Promise<CompanyDetail> {
   const { data, error, response } = await client.GET("/api/v2/companies/{company_id}", {
     params: { path: { company_id: companyId } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as CompanyDetail;
+}
+
+/**
+ * Runs the three checks again for a domain the user already has. Nothing is
+ * written: saveCompanyResearchNative persists what comes back.
+ */
+export async function researchCompanyDomainNative(
+  domain: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDossier> {
+  const { data, error, response } = await client.POST("/api/v2/companies/research", {
+    params: { query: { domain: domain.trim() } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as CompanyDossier;
+}
+
+/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
+ * state on an existing company row is left alone. */
+export async function saveCompanyResearchNative(
+  dossier: CompanyDossier,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.POST("/api/v2/companies", {
+    body: { dossier },
     headers: { Authorization: `Bearer ${accessToken}` },
     signal,
   });

@@ -262,7 +262,12 @@ export interface paths {
         /** List Companies */
         get: operations["list_companies_api_v2_companies_get"];
         put?: never;
-        post?: never;
+        /**
+         * Save Company
+         * @description Persists the dossier the caller already has rather than re-fetching:
+         *     what the user reviewed is what gets saved.
+         */
+        post: operations["save_company_api_v2_companies_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -286,6 +291,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/companies/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Research Domain
+         * @description Preview only. Saving is a separate POST with the dossier this returns.
+         */
+        post: operations["research_domain_api_v2_companies_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/companies/{company_id}": {
         parameters: {
             query?: never;
@@ -293,11 +318,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Get Company
-         * @description The saved row only. The research trail the Supabase-era detail endpoint
-         *     also returned comes from research_runs, which migrates separately.
-         */
+        /** Get Company */
         get: operations["get_company_api_v2_companies__company_id__get"];
         put?: never;
         post?: never;
@@ -1358,6 +1379,41 @@ export interface operations {
             };
         };
     };
+    save_company_api_v2_companies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrUpdateCompany"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_overview_api_v2_companies_overview_get: {
         parameters: {
             query?: {
@@ -1391,6 +1447,40 @@ export interface operations {
             };
         };
     };
+    research_domain_api_v2_companies_research_post: {
+        parameters: {
+            query: {
+                /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
+                domain: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyDossier"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_company_api_v2_companies__company_id__get: {
         parameters: {
             query?: never;
@@ -1410,7 +1500,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompanyOut"];
+                    "application/json": components["schemas"]["CompanyDetail"];
                 };
             };
             /** @description Validation Error */

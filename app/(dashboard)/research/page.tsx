@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { DossierSummary } from "@/components/composed/dashboard/DossierSummary";
@@ -7,8 +8,15 @@ import { HistoryList } from "@/components/composed/dashboard/HistoryList";
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
 import { SearchBar } from "@/components/composed/dashboard/SearchBar";
+import { Button } from "@/components/ui/Button";
 import { StatusDot } from "@/components/ui/StatusDot";
-import { ApiError, fetchHistory, fetchResearch } from "@/lib/api-client/client";
+import {
+  ApiError,
+  fetchHistory,
+  fetchResearch,
+  saveCompanyResearchNative,
+} from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { recordLiveFetch } from "@/lib/api";
 import {
   SOURCE_KEYS,
@@ -32,6 +40,67 @@ function settle(dossier: CompanyDossier): CardStates {
     states[key] = dossier[key] === null ? "failed" : "done";
     return states;
   }, {} as CardStates);
+}
+
+/** The run above is a preview and nothing more until this saves it. Saving
+ * sends the dossier the user is looking at rather than researching again, so
+ * what is on screen is what lands in the companies table. */
+function SaveResult({ dossier }: { dossier: CompanyDossier }) {
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState("");
+
+  // A new domain resets the button, otherwise the previous run's "Saved"
+  // state would carry over onto an unsaved one.
+  useEffect(() => {
+    setSavedId(null);
+    setSaveError("");
+  }, [dossier]);
+
+  async function save() {
+    setSaving(true);
+    setSaveError("");
+    try {
+      const token = await ensureValidAccessToken();
+      if (!token) throw new Error("Your session expired. Sign in again to save this.");
+      const company = await saveCompanyResearchNative(dossier, token);
+      setSavedId(company.id);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Could not save this company.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (savedId !== null) {
+    return (
+      <p className="mt-4 text-xs text-text-secondary/70">
+        Saved to your companies.{" "}
+        <Link
+          href={`/companies/${savedId}`}
+          className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+        >
+          Open {dossier.domain}
+        </Link>
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-4">
+      <Button variant="quiet" onClick={save} disabled={saving} className="px-5 py-2.5">
+        {saving ? "Saving..." : "Save to companies"}
+      </Button>
+      <span className="text-xs text-text-secondary/70">
+        This is a live preview. Nothing is stored until you save it.
+      </span>
+      {saveError ? (
+        <p className="w-full text-sm text-error" role="alert">
+          {saveError}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 export default function ResearchPage() {
@@ -137,12 +206,7 @@ export default function ResearchPage() {
                 All three ran together. They fill in at the same moment because
                 the service replies once, after the slowest one finishes.
               </p>
-              {/* Remove once this page can save a result. Until then the run
-                  looks identical to a saved one, which it is not. */}
-              <p className="mt-2 text-xs text-text-secondary/70">
-                This is a live preview. It has not been saved to your companies
-                yet.
-              </p>
+              <SaveResult dossier={dossier} />
             </>
           ) : null}
         </>
