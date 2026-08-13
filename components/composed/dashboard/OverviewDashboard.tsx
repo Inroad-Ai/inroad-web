@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -13,8 +13,8 @@ import {
   YAxis,
 } from "recharts";
 
-import { fetchOverviewStats } from "@/lib/api-client/client";
-import { createClient } from "@/lib/supabase/browser";
+import { fetchOverviewStatsNative } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { OverviewStats } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -36,8 +36,6 @@ function formatDelta(current: number, prior: number): string {
 }
 
 export function OverviewDashboard() {
-  const supabase = useMemo(() => createClient(), []);
-
   const [state, setState] = useState<LoadState>("loading");
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -47,18 +45,16 @@ export function OverviewDashboard() {
 
     async function load() {
       setState("loading");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
+      const token = await ensureValidAccessToken();
+      if (!token) {
         setErrorMessage("Your session expired. Sign in again to see your overview.");
         setState("error");
         return;
       }
 
       try {
-        const response = await fetchOverviewStats(
-          session.access_token,
+        const response = await fetchOverviewStatsNative(
+          token,
           controller.signal,
           CONTACTED_WINDOW_DAYS,
         );
@@ -73,7 +69,7 @@ export function OverviewDashboard() {
 
     load();
     return () => controller.abort();
-  }, [supabase]);
+  }, []);
 
   if (state === "error") {
     return (

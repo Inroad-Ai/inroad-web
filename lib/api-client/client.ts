@@ -261,6 +261,142 @@ export async function fetchOverviewStats(
   return data as OverviewStats;
 }
 
+// --- Companies on the app's own Postgres (/api/v2) ---
+//
+// The five functions above this block are the Supabase-backed originals.
+// They are only still reachable through the research write path, which
+// cannot move until research_runs does; everything that reads or updates a
+// company now goes through these. Same request shapes, different prefix and
+// a native access token instead of a Supabase one.
+
+/** Same filters, sorting and paging as the Supabase-backed original. */
+export async function fetchCompaniesNative(
+  params: FetchCompaniesParams,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyListResponse> {
+  const { data, error, response } = await client.GET("/api/v2/companies", {
+    params: {
+      query: {
+        search: params.search || undefined,
+        stage: params.stage,
+        sort: params.sort,
+        page: params.page,
+        page_size: params.pageSize,
+      },
+    },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as CompanyListResponse;
+}
+
+/** The saved row only. The research trail the old detail endpoint also
+ * returned lives in research_runs, which has not migrated. */
+export async function fetchCompanyNative(
+  companyId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.GET("/api/v2/companies/{company_id}", {
+    params: { path: { company_id: companyId } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as Company;
+}
+
+/** Notes only. Stage goes through updateCompanyStageNative, which the
+ * backend treats differently: it also stamps contacted_at. */
+export async function updateCompanyNotesNative(
+  companyId: string,
+  notes: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.PATCH("/api/v2/companies/{company_id}", {
+    params: { path: { company_id: companyId } },
+    body: { notes },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as Company;
+}
+
+/** Render the row this returns: a first move into "contacted" also stamps
+ * `contacted_at`, so the response differs from the request by more than stage. */
+export async function updateCompanyStageNative(
+  companyId: string,
+  stage: PipelineStage,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const { data, error, response } = await client.PATCH(
+    "/api/v2/companies/{company_id}/stage",
+    {
+      params: { path: { company_id: companyId } },
+      body: { stage },
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal,
+    },
+  );
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as Company;
+}
+
+/** Aggregates for the Overview page. Companies-only, so it moved with them. */
+export async function fetchOverviewStatsNative(
+  accessToken: string,
+  signal?: AbortSignal,
+  contactedWindowDays?: number,
+): Promise<OverviewStats> {
+  const { data, error, response } = await client.GET("/api/v2/companies/overview", {
+    params: { query: { contacted_window_days: contactedWindowDays } },
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
+
+  if (error !== undefined) {
+    throw new ApiError(describeFailure(response.status, error), response.status);
+  }
+  if (data === undefined) {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+
+  return data as OverviewStats;
+}
+
 /** Errors here are for the caller to render (bad credentials, taken email),
  * not a "service unreachable" state, so signup/login describe the failure
  * from the response body itself rather than a generic message. */

@@ -1,19 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
-  fetchCompany,
+  fetchCompanyNative,
   researchCompanyDomain,
   saveCompanyResearch,
-  updateCompanyNotes,
-  updateCompanyStage,
+  updateCompanyNotesNative,
+  updateCompanyStageNative,
 } from "@/lib/api-client/client";
-import { describeHiring } from "@/lib/companies";
-import { createClient } from "@/lib/supabase/browser";
-import { totalTimeSeconds } from "@/lib/api";
-import type { Company, CompanyDetail, ResearchRunSummary } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { describeHiring, RESEARCH_UNAVAILABLE } from "@/lib/companies";
+import type { Company } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Menu } from "@/components/ui/Menu";
@@ -22,10 +20,6 @@ import { Textarea } from "@/components/ui/Textarea";
 import { PIPELINE_STAGES, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
-
-// Longer than the table's rows: history stays collapsed only when there is
-// more to hide than to show.
-const COLLAPSED_RUN_COUNT = 3;
 
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -38,19 +32,15 @@ function formatTimestamp(iso: string): string {
 }
 
 export function CompanyProfile({ companyId }: { companyId: string }) {
-  const supabase = useMemo(() => createClient(), []);
-
-  const [detail, setDetail] = useState<CompanyDetail | null>(null);
+  const [detail, setDetail] = useState<Company | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "error" | "ready">("loading");
   const [loadError, setLoadError] = useState("");
 
   const accessToken = useCallback(async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) throw new Error(SESSION_EXPIRED);
-    return session.access_token;
-  }, [supabase]);
+    const token = await ensureValidAccessToken();
+    if (!token) throw new Error(SESSION_EXPIRED);
+    return token;
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,7 +48,7 @@ export function CompanyProfile({ companyId }: { companyId: string }) {
     async function load() {
       try {
         const token = await accessToken();
-        setDetail(await fetchCompany(companyId, token, controller.signal));
+        setDetail(await fetchCompanyNative(companyId, token, controller.signal));
         setLoadState("ready");
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -87,17 +77,14 @@ export function CompanyProfile({ companyId }: { companyId: string }) {
         detail={detail}
         accessToken={accessToken}
         onCompanyChange={(company) => setDetail({ ...detail, ...company })}
-        onResearched={setDetail}
-        refresh={async () => fetchCompany(companyId, await accessToken())}
       />
       <HiringSection detail={detail} />
-      <LatestResearchSection detail={detail} />
       <NotesSection
         detail={detail}
         accessToken={accessToken}
         onSaved={(company) => setDetail({ ...detail, ...company })}
       />
-      <ResearchHistorySection detail={detail} />
+      <ResearchHistorySection />
     </div>
   );
 }
@@ -106,14 +93,10 @@ function IdentityHeader({
   detail,
   accessToken,
   onCompanyChange,
-  onResearched,
-  refresh,
 }: {
-  detail: CompanyDetail;
+  detail: Company;
   accessToken: () => Promise<string>;
   onCompanyChange: (company: Company) => void;
-  onResearched: (detail: CompanyDetail) => void;
-  refresh: () => Promise<CompanyDetail>;
 }) {
   const [movingStage, setMovingStage] = useState(false);
   const [stageError, setStageError] = useState("");
@@ -127,7 +110,7 @@ function IdentityHeader({
     setMovingStage(true);
     setStageError("");
     try {
-      const updated = await updateCompanyStage(detail.id, stage, await accessToken());
+      const updated = await updateCompanyStageNative(detail.id, stage, await accessToken());
       onCompanyChange(updated);
     } catch (err) {
       setStageError(err instanceof Error ? err.message : "Could not change the stage.");
@@ -137,9 +120,10 @@ function IdentityHeader({
   }
 
   /**
-   * Three calls on purpose: research, save, then re-read. The save returns
-   * only the company row, and the page also needs the new research_runs row
-   * it wrote, which the detail endpoint is the only thing that returns.
+   * Still the Supabase-backed write path: it appends a research_runs row, and
+   * research_runs has not migrated. It will not authenticate a native-auth
+   * session, so this fails for accounts created since the auth cutover. Left
+   * on its original path deliberately rather than half-migrated.
    */
   async function rerunResearch() {
     setRerunning(true);
@@ -148,7 +132,7 @@ function IdentityHeader({
       const token = await accessToken();
       const dossier = await researchCompanyDomain(detail.domain, token);
       await saveCompanyResearch(dossier, token);
-      onResearched(await refresh());
+      onCompanyChange(await fetchCompanyNative(detail.id, token));
     } catch (err) {
       setRerunError(err instanceof Error ? err.message : "Could not run research again.");
     } finally {
@@ -246,7 +230,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function HiringSection({ detail }: { detail: CompanyDetail }) {
+function HiringSection({ detail }: { detail: Company }) {
   const hiring = describeHiring(detail);
 
   return (
@@ -303,131 +287,12 @@ function HiringSection({ detail }: { detail: CompanyDetail }) {
   );
 }
 
-function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
-  const research = detail.latest_research;
-
-  if (research === null) {
-    return (
-      <Section title="Latest research">
-        <EmptyState>
-          Nothing saved for this company yet. Run research again to fill this in.
-        </EmptyState>
-      </Section>
-    );
-  }
-
-  const homepage = research.homepage;
-  const news = research.news;
-  const failedSources = Object.entries(research.errors);
-
-  return (
-    <Section
-      title="Latest research"
-      meta={
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge tone={research.from_cache ? "amber" : "teal"}>
-            {research.from_cache ? "Served from cache" : "Fetched live"}
-          </Badge>
-          <span className="utility-label text-text-secondary/70">
-            {totalTimeSeconds(research.elapsed_ms)}s
-          </span>
-        </div>
-      }
-    >
-      {/* A partial run is still a 200 with nulls in it. Say so plainly rather
-          than letting the empty fields below read as "nothing to report". */}
-      {research.partial ? (
-        <div
-          role="status"
-          className="mb-5 rounded-sm border border-muted-rose/40 bg-muted-rose-subtle p-5"
-        >
-          <p className="utility-label text-muted-rose">This run came back incomplete</p>
-          <p className="mt-2 text-sm text-text-secondary">
-            {failedSources.length} of 3 sources did not answer, so what is below may be out of
-            date or missing. Run research again to try those sources once more.
-          </p>
-          {failedSources.length > 0 ? (
-            <ul className="mt-3 space-y-1">
-              {failedSources.map(([source, reason]) => (
-                <li key={source} className="text-sm text-text-secondary">
-                  <span className="text-ink">{source}</span>: {reason}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div>
-          <p className="utility-label text-text-secondary/70">Homepage</p>
-          {homepage === null ? (
-            <EmptyState className="mt-2">The site did not answer on the last run.</EmptyState>
-          ) : (
-            <>
-              <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                {homepage.description ?? "No description on the page."}
-              </p>
-              <dl className="mt-4 grid grid-cols-2 gap-4">
-                <Field label="Words">{homepage.word_count.toLocaleString()}</Field>
-                <Field label="Headings">{homepage.headings.length}</Field>
-              </dl>
-              {homepage.headings.length > 0 ? (
-                <ul className="mt-4 space-y-1.5">
-                  {homepage.headings.map((heading, index) => (
-                    <li key={`${heading}-${index}`} className="text-sm text-ink">
-                      {heading}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          )}
-        </div>
-
-        <div>
-          <p className="utility-label text-text-secondary/70">News</p>
-          {news === null ? (
-            <EmptyState className="mt-2">The news check did not answer on the last run.</EmptyState>
-          ) : news.items.length === 0 ? (
-            <EmptyState className="mt-2">Nothing published about this company recently.</EmptyState>
-          ) : (
-            <ul className="mt-2 space-y-4">
-              {news.items.map((item, index) => (
-                <li key={`${item.link ?? item.title}-${index}`}>
-                  {item.link ? (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm leading-snug text-ink underline decoration-line underline-offset-4 hover:decoration-signal-teal"
-                    >
-                      {item.title}
-                    </a>
-                  ) : (
-                    <span className="text-sm leading-snug text-ink">{item.title}</span>
-                  )}
-                  {item.source || item.published ? (
-                    <span className="utility-label mt-1 block text-text-secondary/70">
-                      {[item.source, item.published].filter(Boolean).join(" - ")}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </Section>
-  );
-}
-
 function NotesSection({
   detail,
   accessToken,
   onSaved,
 }: {
-  detail: CompanyDetail;
+  detail: Company;
   accessToken: () => Promise<string>;
   onSaved: (company: Company) => void;
 }) {
@@ -445,7 +310,7 @@ function NotesSection({
     try {
       // Empty box means "no notes", not an empty string sitting in the column.
       const trimmed = text.trim();
-      const updated = await updateCompanyNotes(
+      const updated = await updateCompanyNotesNative(
         detail.id,
         trimmed === "" ? null : trimmed,
         await accessToken(),
@@ -499,72 +364,14 @@ function NotesSection({
   );
 }
 
-function ResearchHistorySection({ detail }: { detail: CompanyDetail }) {
-  const runs = detail.recent_research_runs;
-  const [expanded, setExpanded] = useState(false);
-
-  const collapsible = runs.length > COLLAPSED_RUN_COUNT;
-  const shown = collapsible && !expanded ? runs.slice(0, COLLAPSED_RUN_COUNT) : runs;
-  // The backend caps what it sends, so the count can exceed what is listed.
-  const olderNotSent = detail.research_run_count - runs.length;
-
+/** The run list and the latest dossier both come from research_runs, which is
+ * still on the Supabase stack. Say that plainly rather than rendering an empty
+ * history, which would read as "this company has never been researched". */
+function ResearchHistorySection() {
   return (
-    <Section
-      title="Research history"
-      meta={
-        <span className="utility-label text-text-secondary/70">
-          {detail.research_run_count} {detail.research_run_count === 1 ? "run" : "runs"}
-        </span>
-      }
-    >
-      {runs.length === 0 ? (
-        <EmptyState>No runs recorded for this company yet.</EmptyState>
-      ) : (
-        <>
-          <ul className="divide-y divide-line">
-            {shown.map((run) => (
-              <RunRow key={run.id} run={run} />
-            ))}
-          </ul>
-
-          {collapsible ? (
-            <Button
-              variant="quiet"
-              onClick={() => setExpanded((value) => !value)}
-              className="mt-4 px-5 py-2.5"
-            >
-              {expanded
-                ? "Show fewer"
-                : `Show all ${runs.length} recent runs`}
-            </Button>
-          ) : null}
-
-          {olderNotSent > 0 ? (
-            <p className="mt-4 text-xs text-text-secondary/70">
-              {olderNotSent} older {olderNotSent === 1 ? "run is" : "runs are"} kept but not shown
-              here.
-            </p>
-          ) : null}
-        </>
-      )}
+    <Section title="Research history">
+      <EmptyState>{RESEARCH_UNAVAILABLE}</EmptyState>
     </Section>
-  );
-}
-
-function RunRow({ run }: { run: ResearchRunSummary }) {
-  return (
-    <li className="flex flex-wrap items-center justify-between gap-3 py-3">
-      <span className="text-sm text-ink">{formatTimestamp(run.created_at)}</span>
-      <span className="flex flex-wrap items-center gap-3">
-        {run.partial ? <Badge tone="rose">Partial</Badge> : <Badge tone="neutral">Complete</Badge>}
-        <Badge tone={run.from_cache ? "amber" : "teal"}>
-          {run.from_cache ? "Cached" : "Live"}
-        </Badge>
-        <span className="utility-label text-text-secondary/70">
-          {totalTimeSeconds(run.elapsed_ms)}s
-        </span>
-      </span>
-    </li>
   );
 }
 

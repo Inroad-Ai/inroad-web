@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { fetchCompanies } from "@/lib/api-client/client";
-import { describeHiring } from "@/lib/companies";
-import { createClient } from "@/lib/supabase/browser";
+import { fetchCompaniesNative } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { describeHiring, SESSION_EXPIRED } from "@/lib/companies";
 import type { Company, CompanySort } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -38,7 +38,6 @@ function formatDate(iso: string): string {
 
 export function CompaniesTable() {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -66,17 +65,15 @@ export function CompaniesTable() {
 
     async function load() {
       setState("loading");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        setErrorMessage("Your session expired. Sign in again to see your companies.");
+      const token = await ensureValidAccessToken();
+      if (!token) {
+        setErrorMessage(SESSION_EXPIRED);
         setState("error");
         return;
       }
 
       try {
-        const response = await fetchCompanies(
+        const response = await fetchCompaniesNative(
           {
             search: search || undefined,
             stage: stage === "all" ? undefined : stage,
@@ -84,7 +81,7 @@ export function CompaniesTable() {
             page,
             pageSize: PAGE_SIZE,
           },
-          session.access_token,
+          token,
           controller.signal,
         );
         setData({ items: response.items, total: response.total });
@@ -98,7 +95,7 @@ export function CompaniesTable() {
 
     load();
     return () => controller.abort();
-  }, [search, stage, sort, page, supabase]);
+  }, [search, stage, sort, page]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
   const hasFilters = search !== "" || stage !== "all";

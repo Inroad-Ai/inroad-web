@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { fetchCompanies, updateCompanyStage } from "@/lib/api-client/client";
+import { fetchCompaniesNative, updateCompanyStageNative } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { describeHiring } from "@/lib/companies";
-import { createClient } from "@/lib/supabase/browser";
 import type { Company } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -47,7 +47,6 @@ const SESSION_EXPIRED = "Your session expired. Sign in again to see your pipelin
 
 export function PipelineBoard() {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
 
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [movingId, setMovingId] = useState<string | null>(null);
@@ -66,10 +65,8 @@ export function PipelineBoard() {
     const controller = new AbortController();
 
     async function load() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
+      const token = await ensureValidAccessToken();
+      if (!token) {
         setBoard(
           Object.fromEntries(
             PIPELINE_STAGES.map((stage) => [
@@ -84,9 +81,9 @@ export function PipelineBoard() {
       await Promise.all(
         PIPELINE_STAGES.map(async (stage) => {
           try {
-            const response = await fetchCompanies(
+            const response = await fetchCompaniesNative(
               { stage, sort: "updated_desc", page: 1, pageSize: COLUMN_PAGE_SIZE },
-              session.access_token,
+              token,
               controller.signal,
             );
             patchColumn(stage, {
@@ -109,7 +106,7 @@ export function PipelineBoard() {
 
     load();
     return () => controller.abort();
-  }, [supabase, patchColumn]);
+  }, [patchColumn]);
 
   // Cards moving between stages shift the underlying offsets, so a page
   // fetched after a move can repeat a row. De-duplicate rather than refetch.
@@ -118,23 +115,21 @@ export function PipelineBoard() {
     if (column.loadingMore) return;
 
     patchColumn(stage, { loadingMore: true });
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
+    const token = await ensureValidAccessToken();
+    if (!token) {
       patchColumn(stage, { loadingMore: false, status: "error", errorMessage: SESSION_EXPIRED });
       return;
     }
 
     try {
-      const response = await fetchCompanies(
+      const response = await fetchCompaniesNative(
         {
           stage,
           sort: "updated_desc",
           page: column.pagesLoaded + 1,
           pageSize: COLUMN_PAGE_SIZE,
         },
-        session.access_token,
+        token,
       );
       setBoard((prev) => {
         const current = prev[stage];
@@ -172,12 +167,10 @@ export function PipelineBoard() {
     });
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) throw new Error(SESSION_EXPIRED);
+      const token = await ensureValidAccessToken();
+      if (!token) throw new Error(SESSION_EXPIRED);
 
-      const updated = await updateCompanyStage(company.id, to, session.access_token);
+      const updated = await updateCompanyStageNative(company.id, to, token);
 
       setBoard((prev) => {
         const source = prev[from];
