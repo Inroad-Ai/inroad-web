@@ -129,13 +129,21 @@ export default function ResearchPage() {
             ))}
           </div>
           {dossier ? (
-            // Worth saying plainly: the three checks do run at the same time,
-            // but the service answers once, when the last of them is done, so
-            // all three cards land together.
-            <p className="mt-4 text-xs text-text-secondary/70">
-              All three ran together. They fill in at the same moment because
-              the service replies once, after the slowest one finishes.
-            </p>
+            <>
+              {/* Worth saying plainly: the three checks do run at the same time,
+                  but the service answers once, when the last of them is done, so
+                  all three cards land together. */}
+              <p className="mt-4 text-xs text-text-secondary/70">
+                All three ran together. They fill in at the same moment because
+                the service replies once, after the slowest one finishes.
+              </p>
+              {/* Remove once this page can save a result. Until then the run
+                  looks identical to a saved one, which it is not. */}
+              <p className="mt-2 text-xs text-text-secondary/70">
+                This is a live preview. It has not been saved to your companies
+                yet.
+              </p>
+            </>
           ) : null}
         </>
       ) : null}
