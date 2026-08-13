@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
@@ -15,8 +15,16 @@ import { storeTokens } from "@/lib/auth-native/browser";
 export function GoogleCallback() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  // Reading the fragment consumes it: the tokens are cleared from the URL
+  // below. Under React's development double-invoke that would leave the
+  // second run looking at an empty fragment and reporting a failed sign-in
+  // over the top of a successful one, so the whole effect runs once.
+  const handled = useRef(false);
 
   useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+
     const params = new URLSearchParams(window.location.hash.slice(1));
     const accessToken = params.get("access_token");
     const refreshToken = params.get("refresh_token");

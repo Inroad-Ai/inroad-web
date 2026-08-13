@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ApiError, verifyEmail } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
@@ -14,34 +14,35 @@ export function VerifyEmail() {
   const router = useRouter();
   const token = useSearchParams().get("token");
   const [error, setError] = useState<string | null>(null);
+  // The confirmation token is single-use, so spending it twice reports a
+  // dead link over the top of a confirmation that actually worked. React's
+  // development double-invoke would do exactly that without this guard.
+  const handled = useRef(false);
 
   useEffect(() => {
     if (!token) {
       setError("This confirmation link is missing its token.");
       return;
     }
+    if (handled.current) return;
+    handled.current = true;
 
-    let cancelled = false;
-
+    // No cancel-on-unmount flag: the token has already been spent by the
+    // time this resolves, so dropping the result would strand the user on a
+    // spinner with no way to retry.
     verifyEmail(token)
       .then(async (tokens) => {
-        if (cancelled) return;
         storeTokens(tokens);
         router.replace(await resolvePostAuthPath(tokens.access_token));
         router.refresh();
       })
       .catch((verifyError) => {
-        if (cancelled) return;
         setError(
           verifyError instanceof ApiError
             ? verifyError.message
             : "Could not confirm your email. Try again.",
         );
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, [token, router]);
 
   if (error) {
