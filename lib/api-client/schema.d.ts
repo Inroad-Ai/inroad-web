@@ -28,7 +28,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Research */
+        /**
+         * Research
+         * @description Preview only. The run is attributed to the caller so it shows up in
+         *     their history, but nothing is persisted.
+         */
         get: operations["research_api_research_get"];
         put?: never;
         post?: never;
@@ -819,7 +823,9 @@ export interface operations {
                 /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
                 domain: string;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -848,7 +854,9 @@ export interface operations {
     research_history_api_research_history_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -861,6 +869,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyDossier"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

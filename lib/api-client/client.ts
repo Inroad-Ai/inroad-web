@@ -46,10 +46,12 @@ function describeFailure(status: number, body: unknown): string {
 /** Resolves even for a partial dossier; only bad input and transport problems reject. */
 export async function fetchResearch(
   domain: string,
+  accessToken: string,
   signal?: AbortSignal,
 ): Promise<CompanyDossier> {
   const { data, error, response } = await client.GET("/api/research", {
     params: { query: { domain: domain.trim() } },
+    headers: { Authorization: `Bearer ${accessToken}` },
     signal,
   });
 
@@ -63,9 +65,16 @@ export async function fetchResearch(
   return data as CompanyDossier;
 }
 
-/** Newest first. Server-side memory, so it empties on backend restart. */
-export async function fetchHistory(signal?: AbortSignal): Promise<CompanyDossier[]> {
-  const { data, response } = await client.GET("/api/research/history", { signal });
+/** Newest first, the caller's own runs only. Server-side memory, so it
+ * empties on backend restart. */
+export async function fetchHistory(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDossier[]> {
+  const { data, response } = await client.GET("/api/research/history", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    signal,
+  });
 
   if (data === undefined) {
     throw new ApiError(`The research service returned ${response.status}.`, response.status);

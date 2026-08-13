@@ -113,7 +113,9 @@ export default function ResearchPage() {
 
   const loadHistory = useCallback(async () => {
     try {
-      setRuns(await fetchHistory());
+      const token = await ensureValidAccessToken();
+      if (!token) return;
+      setRuns(await fetchHistory(token));
     } catch {
       // History is a convenience. If it is unavailable the page still works,
       // and the empty-list copy is honest either way.
@@ -132,7 +134,13 @@ export default function ResearchPage() {
     setCards(ALL_PENDING);
 
     try {
-      const result = await fetchResearch(next);
+      const token = await ensureValidAccessToken();
+      if (!token) {
+        setCards(ALL_IDLE);
+        setProblem("Your session expired. Sign in again to run this.");
+        return;
+      }
+      const result = await fetchResearch(next, token);
       if (!result.from_cache) recordLiveFetch(result.domain);
       setDossier(result);
       setCards(settle(result));
