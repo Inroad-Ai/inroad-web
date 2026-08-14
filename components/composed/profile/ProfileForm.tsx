@@ -4,17 +4,20 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EducationEditor } from "@/components/composed/profile/EducationEditor";
+import { ProjectsEditor } from "@/components/composed/profile/ProjectsEditor";
 import { WorkHistoryEditor } from "@/components/composed/profile/WorkHistoryEditor";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { TagInput } from "@/components/ui/TagInput";
+import { Textarea } from "@/components/ui/Textarea";
 import { useProfile } from "@/hooks/useProfile";
 import {
   saveProfile,
   type EducationEntry,
   type Profile,
+  type ProjectEntry,
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -29,9 +32,11 @@ interface FormState {
   linkedinUrl: string;
   githubUrl: string;
   portfolioUrl: string;
+  summary: string;
   skills: string[];
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
+  projects: ProjectEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
 }
@@ -45,11 +50,13 @@ function toFormState(profile: Profile): FormState {
     linkedinUrl: profile.linkedin_url ?? "",
     githubUrl: profile.github_url ?? "",
     portfolioUrl: profile.portfolio_url ?? "",
+    summary: profile.summary ?? "",
     // Optional in the generated type because the server defaults them, so
     // they are absent rather than empty on a profile with no parse.
     skills: profile.skills ?? [],
     workHistory: profile.work_history ?? [],
     education: profile.education ?? [],
+    projects: profile.projects ?? [],
     workPreference: profile.work_preference,
     targetRoles: profile.target_roles,
   };
@@ -115,9 +122,11 @@ export function ProfileForm() {
           linkedin_url: orNull(form.linkedinUrl),
           github_url: orNull(form.githubUrl),
           portfolio_url: orNull(form.portfolioUrl),
+          summary: form.summary.trim(),
           skills: form.skills,
           work_history: withoutBlanks(form.workHistory),
           education: withoutBlanks(form.education),
+          projects: withoutBlanks(form.projects),
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         }),
@@ -240,6 +249,20 @@ export function ProfileForm() {
         </div>
       </Section>
 
+      <Section title="Summary">
+        <Field
+          label="Summary"
+          hint="Taken from your resume's own summary section, if it had one."
+        >
+          <Textarea
+            rows={4}
+            value={form.summary}
+            onChange={(event) => update("summary", event.target.value)}
+            placeholder="A couple of lines on what you do."
+          />
+        </Field>
+      </Section>
+
       <Section title="Skills">
         <Field label="Skills">
           <TagInput
@@ -261,6 +284,13 @@ export function ProfileForm() {
         <EducationEditor
           entries={form.education}
           onChange={(education) => update("education", education)}
+        />
+      </Section>
+
+      <Section title="Projects">
+        <ProjectsEditor
+          entries={form.projects}
+          onChange={(projects) => update("projects", projects)}
         />
       </Section>
 

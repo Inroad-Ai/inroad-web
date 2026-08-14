@@ -17,9 +17,11 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
     // Read back flat and sent back flat. Leaving these out would blank the
     // stored resume parse, since the fields are columns and JSON the server
     // rewrites wholesale, not a patch.
+    summary: profile.summary,
     skills: profile.skills,
     work_history: profile.work_history,
     education: profile.education,
+    projects: profile.projects,
     work_preference: profile.work_preference,
     target_roles: profile.target_roles,
     ...changes,

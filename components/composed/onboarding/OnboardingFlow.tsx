@@ -19,6 +19,7 @@ import {
   parseResume,
   saveProfile,
   type EducationEntry,
+  type ProjectEntry,
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -59,9 +60,11 @@ interface FormState {
   linkedinUrl: string;
   githubUrl: string;
   portfolioUrl: string;
+  summary: string;
   skills: string[];
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
+  projects: ProjectEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
 }
@@ -76,9 +79,11 @@ const INITIAL_STATE: FormState = {
   linkedinUrl: "",
   githubUrl: "",
   portfolioUrl: "",
+  summary: "",
   skills: [],
   workHistory: [],
   education: [],
+  projects: [],
   workPreference: [],
   targetRoles: [],
 };
@@ -192,9 +197,13 @@ export function OnboardingFlow() {
           linkedin_url: form.linkedinUrl.trim() || null,
           github_url: form.githubUrl.trim() || null,
           portfolio_url: form.portfolioUrl.trim() || null,
+          // No onboarding screen asks for these two; they ride through from
+          // the resume parse so a confirmed parse isn't dropped at save.
+          summary: form.summary.trim(),
           skills: form.skills,
           work_history: form.workHistory,
           education: form.education,
+          projects: form.projects,
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         },

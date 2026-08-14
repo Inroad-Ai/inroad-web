@@ -3,6 +3,7 @@
 
 import type {
   EducationEntry,
+  ProjectEntry,
   ResumeParseResult,
   WorkHistoryEntry,
 } from "@/lib/api-client/client";
@@ -16,9 +17,11 @@ export interface ParsedFields {
   linkedinUrl: string;
   githubUrl: string;
   portfolioUrl: string;
+  summary: string;
   skills: string[];
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
+  projects: ProjectEntry[];
 }
 
 /** Everything the parse can omit lands as "", which is what an unanswered
@@ -36,9 +39,11 @@ export function toFormFields(parsed: ResumeParseResult): ParsedFields {
     linkedinUrl: parsed.linkedin_url ?? "",
     githubUrl: parsed.github_url ?? "",
     portfolioUrl: parsed.portfolio_url ?? "",
+    summary: parsed.summary ?? "",
     skills: parsed.skills ?? [],
     workHistory: parsed.work_history ?? [],
     education: parsed.education ?? [],
+    projects: parsed.projects ?? [],
   };
 }
 

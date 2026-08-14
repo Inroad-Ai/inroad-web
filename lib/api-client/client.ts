@@ -20,6 +20,7 @@ export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
+export type ProjectEntry = components["schemas"]["ProjectEntry"];
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"

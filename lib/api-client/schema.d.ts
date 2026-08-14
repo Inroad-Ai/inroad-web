@@ -738,12 +738,16 @@ export interface components {
             work_preference: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
             target_roles: string[];
+            /** Summary */
+            summary?: string | null;
             /** Skills */
             skills?: string[];
             /** Work History */
             work_history?: components["schemas"]["WorkHistoryEntry"][];
             /** Education */
             education?: components["schemas"]["EducationEntry"][];
+            /** Projects */
+            projects?: components["schemas"]["ProjectEntry"][];
         };
         /** ProfileUpsert */
         ProfileUpsert: {
@@ -785,6 +789,25 @@ export interface components {
              * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
              */
             education?: components["schemas"]["EducationEntry"][] | null;
+            /**
+             * Projects
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            projects?: components["schemas"]["ProjectEntry"][] | null;
+            /**
+             * Summary
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            summary?: string | null;
+        };
+        /** ProjectEntry */
+        ProjectEntry: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Url */
+            url?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -854,12 +877,16 @@ export interface components {
             github_url?: string | null;
             /** Portfolio Url */
             portfolio_url?: string | null;
+            /** Summary */
+            summary?: string | null;
             /** Skills */
             skills?: string[];
             /** Work History */
             work_history?: components["schemas"]["WorkHistoryEntry"][];
             /** Education */
             education?: components["schemas"]["EducationEntry"][];
+            /** Projects */
+            projects?: components["schemas"]["ProjectEntry"][];
         };
         /** SignupRequest */
         SignupRequest: {
