@@ -8,7 +8,14 @@ import {
 } from "@/lib/auth-native/constants";
 import { verifyAccessToken } from "@/lib/auth-native/verify";
 
-const GATED_PREFIXES = ["/onboarding", "/research", "/settings", "/companies", "/overview"];
+const GATED_PREFIXES = [
+  "/onboarding",
+  "/research",
+  "/settings",
+  "/profile",
+  "/companies",
+  "/overview",
+];
 
 export async function middleware(request: NextRequest) {
   const isGated = GATED_PREFIXES.some((prefix) => request.nextUrl.pathname.startsWith(prefix));

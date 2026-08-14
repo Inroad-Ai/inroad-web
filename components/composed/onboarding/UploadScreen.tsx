@@ -11,6 +11,7 @@ export function UploadScreen({
   fileName,
   state,
   progress,
+  statusLabel,
   errorMessage,
   onSelect,
   onRemove,
@@ -24,7 +25,8 @@ export function UploadScreen({
   optional: boolean;
   fileName: string | null;
   state: UploadState;
-  progress: number;
+  progress: number | null;
+  statusLabel?: string;
   errorMessage: string | null;
   onSelect: (file: File) => void;
   onRemove: () => void;
@@ -34,7 +36,9 @@ export function UploadScreen({
    * step stays passable while uploads are down. */
   unavailable?: string;
 }) {
-  const canContinue = Boolean(unavailable) || state === "done";
+  // An error releases Continue as well: a file that couldn't be read is a
+  // reason to ask for those fields by hand, not to trap the user on this step.
+  const canContinue = Boolean(unavailable) || state === "done" || state === "error";
 
   return (
     <div>
@@ -57,6 +61,7 @@ export function UploadScreen({
             fileName={fileName}
             state={state}
             progress={progress}
+            statusLabel={statusLabel}
             errorMessage={errorMessage}
             onSelect={onSelect}
             onRemove={onRemove}
@@ -68,7 +73,7 @@ export function UploadScreen({
         <Button type="button" onClick={onNext} disabled={!canContinue}>
           Continue
         </Button>
-        {optional && onSkip ? (
+        {onSkip ? (
           <button
             type="button"
             onClick={onSkip}

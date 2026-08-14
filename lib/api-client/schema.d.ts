@@ -367,10 +367,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/resume/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Parse Resume */
+        post: operations["parse_resume_api_resume_parse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Body_parse_resume_api_resume_parse_post */
+        Body_parse_resume_api_resume_parse_post: {
+            /** File */
+            file: string;
+        };
         /** CompanyDetail */
         CompanyDetail: {
             /**
@@ -538,6 +560,17 @@ export interface components {
             /** Email Verified */
             email_verified: boolean;
         };
+        /** EducationEntry */
+        EducationEntry: {
+            /** Institution */
+            institution?: string | null;
+            /** Degree */
+            degree?: string | null;
+            /** Field */
+            field?: string | null;
+            /** End Date */
+            end_date?: string | null;
+        };
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             /**
@@ -685,6 +718,14 @@ export interface components {
             email: string;
             /** Phone */
             phone: string;
+            /** Location */
+            location: string | null;
+            /** Linkedin Url */
+            linkedin_url: string | null;
+            /** Github Url */
+            github_url: string | null;
+            /** Portfolio Url */
+            portfolio_url: string | null;
             /** Resume Parsed Json */
             resume_parsed_json: {
                 [key: string]: unknown;
@@ -697,6 +738,16 @@ export interface components {
             work_preference: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
             target_roles: string[];
+            /** Summary */
+            summary?: string | null;
+            /** Skills */
+            skills?: string[];
+            /** Work History */
+            work_history?: components["schemas"]["WorkHistoryEntry"][];
+            /** Education */
+            education?: components["schemas"]["EducationEntry"][];
+            /** Projects */
+            projects?: components["schemas"]["ProjectEntry"][];
         };
         /** ProfileUpsert */
         ProfileUpsert: {
@@ -711,10 +762,52 @@ export interface components {
             email: string;
             /** Phone */
             phone: string;
+            /** Location */
+            location?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Github Url */
+            github_url?: string | null;
+            /** Portfolio Url */
+            portfolio_url?: string | null;
             /** Work Preference */
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
             target_roles?: string[];
+            /**
+             * Skills
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            skills?: string[] | null;
+            /**
+             * Work History
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            work_history?: components["schemas"]["WorkHistoryEntry"][] | null;
+            /**
+             * Education
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            education?: components["schemas"]["EducationEntry"][] | null;
+            /**
+             * Projects
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            projects?: components["schemas"]["ProjectEntry"][] | null;
+            /**
+             * Summary
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            summary?: string | null;
+        };
+        /** ProjectEntry */
+        ProjectEntry: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Url */
+            url?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -767,6 +860,33 @@ export interface components {
             token: string;
             /** Password */
             password: string;
+        };
+        /** ResumeParseResult */
+        ResumeParseResult: {
+            /** Full Name */
+            full_name?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Github Url */
+            github_url?: string | null;
+            /** Portfolio Url */
+            portfolio_url?: string | null;
+            /** Summary */
+            summary?: string | null;
+            /** Skills */
+            skills?: string[];
+            /** Work History */
+            work_history?: components["schemas"]["WorkHistoryEntry"][];
+            /** Education */
+            education?: components["schemas"]["EducationEntry"][];
+            /** Projects */
+            projects?: components["schemas"]["ProjectEntry"][];
         };
         /** SignupRequest */
         SignupRequest: {
@@ -821,6 +941,19 @@ export interface components {
             week_start: string;
             /** Count */
             count: number;
+        };
+        /** WorkHistoryEntry */
+        WorkHistoryEntry: {
+            /** Company */
+            company?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            /** Description */
+            description?: string | null;
         };
         /**
          * WorkPreferenceOption
@@ -1569,6 +1702,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parse_resume_api_resume_parse_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_parse_resume_api_resume_parse_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeParseResult"];
                 };
             };
             /** @description Validation Error */

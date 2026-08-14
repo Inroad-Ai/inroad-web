@@ -13,6 +13,11 @@ export function SummaryScreen({
   lastName,
   email,
   phone,
+  location,
+  linkedinUrl,
+  githubUrl,
+  portfolioUrl,
+  skills,
   resumeFileName,
   careerArcFileName,
   workPreference,
@@ -20,6 +25,8 @@ export function SummaryScreen({
   onEditName,
   onEditEmail,
   onEditPhone,
+  onEditLocation,
+  onEditLinks,
   onEditResume,
   onEditCareerArc,
   onEditWorkPreference,
@@ -32,6 +39,11 @@ export function SummaryScreen({
   lastName: string;
   email: string;
   phone: string;
+  location: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  portfolioUrl: string;
+  skills: string[];
   resumeFileName: string | null;
   careerArcFileName: string | null;
   workPreference: WorkPreferenceOption[];
@@ -39,6 +51,8 @@ export function SummaryScreen({
   onEditName: () => void;
   onEditEmail: () => void;
   onEditPhone: () => void;
+  onEditLocation: () => void;
+  onEditLinks: () => void;
   onEditResume: () => void;
   onEditCareerArc: () => void;
   onEditWorkPreference: () => void;
@@ -51,11 +65,21 @@ export function SummaryScreen({
     .map((value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value)
     .join(", ");
 
+  const links = [linkedinUrl, githubUrl, portfolioUrl].filter(Boolean);
+
   const rows: SummaryRow[] = [
     { label: "Name", value: `${firstName} ${lastName}`, onEdit: onEditName },
     { label: "Email", value: email, onEdit: onEditEmail },
     { label: "Phone", value: phone, onEdit: onEditPhone },
-    { label: "Resume", value: resumeFileName ?? "Not uploaded", onEdit: onEditResume },
+    { label: "Location", value: location || "Not set", onEdit: onEditLocation },
+    { label: "Links", value: links.join(", ") || "None", onEdit: onEditLinks },
+    {
+      label: "Resume",
+      value: resumeFileName
+        ? `${resumeFileName}${skills.length ? ` — ${skills.length} skills read` : ""}`
+        : "Not uploaded",
+      onEdit: onEditResume,
+    },
     {
       label: "Career arc",
       value: careerArcFileName ?? "Skipped",
