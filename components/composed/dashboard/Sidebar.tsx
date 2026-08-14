@@ -25,7 +25,6 @@ function isGroup(entry: NavEntry): entry is NavGroup {
 
 const NAV: NavEntry[] = [
   { href: "/overview", label: "Overview", icon: OverviewIcon },
-  { href: "/profile", label: "Profile", icon: ProfileIcon },
   { href: "/research", label: "Research", icon: ResearchIcon },
   {
     label: "Companies",
@@ -69,21 +68,6 @@ function OverviewIcon() {
   );
 }
 
-function ProfileIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      className="h-4 w-4 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-    >
-      <circle cx="8" cy="5.25" r="2.75" />
-      <path d="M2.75 14c0-2.9 2.35-4.75 5.25-4.75s5.25 1.85 5.25 4.75" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function ResearchIcon() {
   return (
     <svg
@@ -93,8 +77,8 @@ function ResearchIcon() {
       stroke="currentColor"
       strokeWidth={1.5}
     >
-      <circle cx="7" cy="7" r="4.5" />
-      <path d="M13 13l-2.7-2.7" strokeLinecap="round" />
+      <circle cx="7.25" cy="7.25" r="4.5" />
+      <path d="M10.6 10.6 13.75 13.75" strokeLinecap="round" />
     </svg>
   );
 }
@@ -108,9 +92,11 @@ function CompaniesIcon() {
       stroke="currentColor"
       strokeWidth={1.5}
     >
-      <path d="M3 14.25V2.75a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 .5.5v11.5" strokeLinejoin="round" />
-      <path d="M9 6.75h3.5a.5.5 0 0 1 .5.5v7" strokeLinejoin="round" />
-      <path d="M5 5h1.2M5 7.5h1.2M5 10h1.2" strokeLinecap="round" />
+      <path d="M1.75 13.75h12.5" strokeLinecap="round" />
+      <path d="M3.5 13.75V3a.75.75 0 0 1 .75-.75h4.5A.75.75 0 0 1 9.5 3v10.75" strokeLinejoin="round" />
+      <path d="M9.5 6.75h2.25a.75.75 0 0 1 .75.75v6.25" strokeLinejoin="round" />
+      <path d="M5.25 5h2M5.25 7.75h2" strokeLinecap="round" />
+      <path d="M5.75 13.75v-2.5h1.5v2.5" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -124,9 +110,9 @@ function PipelineIcon() {
       stroke="currentColor"
       strokeWidth={1.5}
     >
-      <rect x="1.75" y="2.5" width="3.5" height="11" rx="1" />
-      <rect x="6.25" y="2.5" width="3.5" height="7.5" rx="1" />
-      <rect x="10.75" y="2.5" width="3.5" height="4.5" rx="1" />
+      <rect x="1.75" y="2.5" width="5.5" height="11" rx="1.25" />
+      <rect x="8.75" y="2.5" width="5.5" height="11" rx="1.25" />
+      <path d="M3.25 5.75h2.5M10.25 5.75h2.5" strokeLinecap="round" />
     </svg>
   );
 }
@@ -140,11 +126,9 @@ function SettingsIcon() {
       stroke="currentColor"
       strokeWidth={1.5}
     >
-      <circle cx="8" cy="8" r="2.25" />
-      <path
-        d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.5 3.5l-1.1 1.1M4.6 11.4l-1.1 1.1M12.5 12.5l-1.1-1.1M4.6 4.6 3.5 3.5"
-        strokeLinecap="round"
-      />
+      <path d="M2 4.25h2.25M7.75 4.25H14M2 11.75h6.75M12.25 11.75H14" strokeLinecap="round" />
+      <circle cx="6" cy="4.25" r="1.75" />
+      <circle cx="10.5" cy="11.75" r="1.75" />
     </svg>
   );
 }
@@ -175,7 +159,9 @@ function NavItem({
     <Link
       href={link.href}
       title={collapsed ? link.label : undefined}
-      className={`utility-label flex items-center gap-3 rounded-full px-3 py-2 transition-colors ${
+      className={`utility-label flex items-center rounded-full py-2 transition-colors ${
+        collapsed ? "justify-center" : "gap-3 px-3"
+      } ${
         active
           ? "bg-signal-teal-subtle text-signal-teal"
           : "text-text-secondary hover:bg-surface-raised hover:text-signal-teal"
@@ -184,6 +170,21 @@ function NavItem({
       <Icon />
       {collapsed ? null : link.label}
     </Link>
+  );
+}
+
+/** Sits beside the logo when expanded and on its own row when collapsed,
+ * where a 32px mark and a button will not both fit the 64px header. */
+function CollapseToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      className="flex items-center justify-center rounded-full p-1.5 text-text-secondary transition-colors hover:bg-surface-raised hover:text-signal-teal"
+    >
+      <ChevronIcon collapsed={collapsed} />
+    </button>
   );
 }
 
@@ -203,24 +204,23 @@ export function Sidebar({
       }`}
     >
       <div
-        className={`flex h-16 border-b border-line px-3 ${
-          collapsed ? "flex-col items-center justify-center gap-1" : "items-center justify-between"
+        className={`flex h-16 items-center border-b border-line px-3 ${
+          collapsed ? "justify-center" : "justify-between"
         }`}
       >
         <Link href="/" aria-label="Inroad">
           <Logo variant={collapsed ? "mark" : "full"} />
         </Link>
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex items-center justify-center rounded-full p-1.5 text-text-secondary transition-colors hover:bg-surface-raised hover:text-signal-teal"
-        >
-          <ChevronIcon collapsed={collapsed} />
-        </button>
+        {collapsed ? null : <CollapseToggle collapsed={collapsed} onToggle={onToggle} />}
       </div>
 
-      <nav className="flex-1 px-2 py-4">
+      {collapsed ? (
+        <div className="flex justify-center pt-3">
+          <CollapseToggle collapsed={collapsed} onToggle={onToggle} />
+        </div>
+      ) : null}
+
+      <nav className={`flex-1 px-2 pb-4 ${collapsed ? "pt-2" : "pt-4"}`}>
         <ul className="flex flex-col gap-1">
           {NAV.map((entry) => {
             if (!isGroup(entry)) {

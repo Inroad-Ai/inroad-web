@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { fetchMe } from "@/lib/api-client/client";
-import { ensureValidAccessToken, signOutNative } from "@/lib/auth-native/browser";
+import { useProfile } from "@/hooks/useProfile";
+import { signOutNative } from "@/lib/auth-native/browser";
 
 function SignOutIcon() {
   return (
@@ -23,27 +24,13 @@ function SignOutIcon() {
 
 export function SidebarAccount({ collapsed }: { collapsed: boolean }) {
   const router = useRouter();
+  const { profile } = useProfile();
   const [signingOut, setSigningOut] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
 
-  // middleware.ts and (dashboard)/layout.tsx admit a request only with a
-  // valid access token, so anything rendering this is signed in.
-  useEffect(() => {
-    let cancelled = false;
-
-    ensureValidAccessToken()
-      .then((token) => (token ? fetchMe(token) : null))
-      .then((user) => {
-        if (!cancelled) setEmail(user?.email ?? null);
-      })
-      .catch(() => {
-        // Just drops the address; the route guards own session state.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // No profile means onboarding was never finished, and a load error is the
+  // profile page's problem to report, not the sidebar's. Either way the row
+  // just drops out and sign out stays reachable.
+  const name = profile ? `${profile.first_name} ${profile.last_name}`.trim() : null;
 
   async function signOut() {
     setSigningOut(true);
@@ -54,20 +41,21 @@ export function SidebarAccount({ collapsed }: { collapsed: boolean }) {
 
   return (
     <div className="flex flex-col gap-1">
-      {email ? (
-        <div
-          title={collapsed ? email : undefined}
-          className={`flex items-center rounded-full px-3 py-2 ${
+      {name ? (
+        <Link
+          href="/profile"
+          title={collapsed ? name : undefined}
+          className={`flex items-center rounded-full px-2 py-2 transition-colors hover:bg-surface-raised ${
             collapsed ? "justify-center" : "gap-2.5"
           }`}
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-signal-teal-subtle font-display text-xs font-semibold text-signal-teal">
-            {email.slice(0, 1).toUpperCase()}
+            {name.slice(0, 1).toUpperCase()}
           </span>
           {collapsed ? null : (
-            <span className="truncate font-sans text-sm text-text-secondary">{email}</span>
+            <span className="truncate font-sans text-sm text-text-secondary">{name}</span>
           )}
-        </div>
+        </Link>
       ) : null}
 
       <button
@@ -75,7 +63,9 @@ export function SidebarAccount({ collapsed }: { collapsed: boolean }) {
         onClick={signOut}
         disabled={signingOut}
         title={collapsed ? "Sign out" : undefined}
-        className="utility-label flex w-full items-center justify-center gap-2 rounded-full px-3 py-2 text-text-secondary transition-colors hover:bg-surface-raised hover:text-muted-rose disabled:opacity-50"
+        className={`utility-label flex w-full items-center rounded-full py-2 text-text-secondary transition-colors hover:bg-surface-raised hover:text-muted-rose disabled:opacity-50 ${
+          collapsed ? "justify-center" : "gap-3 px-3"
+        }`}
       >
         <SignOutIcon />
         {collapsed ? null : <span>{signingOut ? "Signing out..." : "Sign out"}</span>}
