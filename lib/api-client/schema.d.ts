@@ -770,11 +770,20 @@ export interface components {
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
             target_roles?: string[];
-            /** Skills */
+            /**
+             * Skills
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
             skills?: string[] | null;
-            /** Work History */
+            /**
+             * Work History
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
             work_history?: components["schemas"]["WorkHistoryEntry"][] | null;
-            /** Education */
+            /**
+             * Education
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
             education?: components["schemas"]["EducationEntry"][] | null;
         };
         /** RefreshRequest */

@@ -17,6 +17,9 @@ export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
 export type Profile = components["schemas"]["ProfileOut"];
 export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
+export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
+export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
+export type EducationEntry = components["schemas"]["EducationEntry"];
 
 const BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
@@ -89,6 +92,7 @@ const COMPANIES_UNREACHABLE =
   "Could not reach the companies service. Check that it is running and that this origin is allowed.";
 const AUTH_UNREACHABLE = "Could not reach the auth service.";
 const PROFILE_UNREACHABLE = "Could not reach the profile service.";
+const RESUME_UNREACHABLE = "Could not reach the resume service.";
 
 function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
@@ -355,6 +359,30 @@ export async function fetchProfile(
   if (result.response.status === 404) return null;
 
   return unwrap(result, PROFILE_UNREACHABLE);
+}
+
+/** Parses and returns; nothing is saved and the file is never stored. What
+ * the user confirms afterwards goes through saveProfile like any other edit. */
+export async function parseResume(
+  file: File,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<ResumeParseResult> {
+  const result = await client.POST("/api/resume/parse", {
+    // The generated body type calls `file` a string, which is how
+    // openapi-typescript renders a binary part. FormData is what actually
+    // goes on the wire, so the serializer is the real contract here.
+    body: { file: file as unknown as string },
+    bodySerializer(body: { file: unknown }) {
+      const form = new FormData();
+      form.append("file", body.file as Blob);
+      return form;
+    },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, RESUME_UNREACHABLE);
 }
 
 /** Upsert: creates from onboarding, rewrites from settings. Whose row it is

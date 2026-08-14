@@ -8,21 +8,34 @@ import { WelcomeScreen } from "@/components/composed/onboarding/WelcomeScreen";
 import { NameScreen } from "@/components/composed/onboarding/NameScreen";
 import { EmailScreen } from "@/components/composed/onboarding/EmailScreen";
 import { PhoneScreen } from "@/components/composed/onboarding/PhoneScreen";
+import { LocationScreen } from "@/components/composed/onboarding/LocationScreen";
+import { LinksScreen } from "@/components/composed/onboarding/LinksScreen";
 import { UploadScreen } from "@/components/composed/onboarding/UploadScreen";
 import { WorkPreferenceScreen } from "@/components/composed/onboarding/WorkPreferenceScreen";
 import { TargetRoleScreen } from "@/components/composed/onboarding/TargetRoleScreen";
 import { SummaryScreen } from "@/components/composed/onboarding/SummaryScreen";
-import { fetchMe, saveProfile } from "@/lib/api-client/client";
+import {
+  fetchMe,
+  parseResume,
+  saveProfile,
+  type EducationEntry,
+  type WorkHistoryEntry,
+} from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { FILE_PARSING_UNAVAILABLE } from "@/lib/profile";
-import { type WorkPreferenceOption } from "@/lib/onboarding";
+import { toFormFields } from "@/lib/resume";
+import { type UploadState, type WorkPreferenceOption } from "@/lib/onboarding";
 
+// Resume first, so every screen after it can be answered by correcting a
+// parsed value instead of typing from nothing.
 const STEP_IDS = [
   "welcome",
+  "resume",
   "name",
   "email",
   "phone",
-  "resume",
+  "location",
+  "links",
   "careerArc",
   "workPreference",
   "targetRole",
@@ -33,12 +46,22 @@ type StepId = (typeof STEP_IDS)[number];
 
 const TOTAL_STEPS = STEP_IDS.length;
 
+const DOCUMENT_ACCEPT =
+  ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
 interface FormState {
   firstName: string;
   lastName: string;
   email: string;
   emailPrefilled: boolean;
   phone: string;
+  location: string;
+  linkedinUrl: string;
+  githubUrl: string;
+  portfolioUrl: string;
+  skills: string[];
+  workHistory: WorkHistoryEntry[];
+  education: EducationEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
 }
@@ -49,15 +72,31 @@ const INITIAL_STATE: FormState = {
   email: "",
   emailPrefilled: false,
   phone: "",
+  location: "",
+  linkedinUrl: "",
+  githubUrl: "",
+  portfolioUrl: "",
+  skills: [],
+  workHistory: [],
+  education: [],
   workPreference: [],
   targetRoles: [],
 };
+
+interface ResumeState {
+  fileName: string | null;
+  state: UploadState;
+  error: string | null;
+}
+
+const INITIAL_RESUME: ResumeState = { fileName: null, state: "idle", error: null };
 
 export function OnboardingFlow() {
   const router = useRouter();
 
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
+  const [resume, setResume] = useState<ResumeState>(INITIAL_RESUME);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -95,6 +134,43 @@ export function OnboardingFlow() {
     setStepIndex((index) => Math.max(index - 1, 0));
   }
 
+  async function handleResumeSelect(file: File) {
+    setResume({ fileName: file.name, state: "uploading", error: null });
+
+    try {
+      const token = await ensureValidAccessToken();
+      if (!token) {
+        setResume({
+          fileName: file.name,
+          state: "error",
+          error: "Your session expired. Sign in again to read your resume.",
+        });
+        return;
+      }
+
+      const parsed = await parseResume(file, token);
+      const fields = toFormFields(parsed);
+
+      setForm((prev) => ({
+        ...prev,
+        ...fields,
+        // The signed-in address beats whatever the resume prints; that one is
+        // confirmed and this one is a document that may be years old.
+        email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
+      }));
+      setResume({ fileName: file.name, state: "done", error: null });
+    } catch (error) {
+      setResume({
+        fileName: file.name,
+        state: "error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Could not read that file. You can fill the next few screens in yourself.",
+      });
+    }
+  }
+
   async function handleSubmit() {
     setSubmitting(true);
     setSubmitError(null);
@@ -112,6 +188,13 @@ export function OnboardingFlow() {
           last_name: form.lastName.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
+          location: form.location.trim() || null,
+          linkedin_url: form.linkedinUrl.trim() || null,
+          github_url: form.githubUrl.trim() || null,
+          portfolio_url: form.portfolioUrl.trim() || null,
+          skills: form.skills,
+          work_history: form.workHistory,
+          education: form.education,
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         },
@@ -133,6 +216,26 @@ export function OnboardingFlow() {
   return (
     <ScreenShell key={step} step={stepNumber} total={TOTAL_STEPS} onBack={onBack}>
       {step === "welcome" ? <WelcomeScreen onStart={next} /> : null}
+
+      {step === "resume" ? (
+        <UploadScreen
+          heading="Start with your resume"
+          helperText="PDF or DOCX. We read it, fill in what we can, and never keep the file."
+          accept={DOCUMENT_ACCEPT}
+          optional={false}
+          fileName={resume.fileName}
+          state={resume.state}
+          progress={null}
+          statusLabel="Reading your resume"
+          errorMessage={resume.error}
+          onSelect={handleResumeSelect}
+          onRemove={() => setResume(INITIAL_RESUME)}
+          onNext={next}
+          // Only offered once a parse has actually failed. Skipping outright
+          // isn't the point of this step; not being stuck on it is.
+          onSkip={resume.state === "error" ? next : undefined}
+        />
+      ) : null}
 
       {step === "name" ? (
         <NameScreen
@@ -160,20 +263,23 @@ export function OnboardingFlow() {
         />
       ) : null}
 
-      {step === "resume" ? (
-        <UploadScreen
-          heading="Upload your resume"
-          helperText="PDF or DOCX. We store it as-is, parsing happens later."
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          optional={false}
-          fileName={null}
-          state="idle"
-          progress={0}
-          errorMessage={null}
-          onSelect={() => undefined}
-          onRemove={() => undefined}
+      {step === "location" ? (
+        <LocationScreen
+          location={form.location}
+          onChange={(location) => setForm((prev) => ({ ...prev, location }))}
           onNext={next}
-          unavailable={FILE_PARSING_UNAVAILABLE}
+        />
+      ) : null}
+
+      {step === "links" ? (
+        <LinksScreen
+          links={{
+            linkedinUrl: form.linkedinUrl,
+            githubUrl: form.githubUrl,
+            portfolioUrl: form.portfolioUrl,
+          }}
+          onChange={(links) => setForm((prev) => ({ ...prev, ...links }))}
+          onNext={next}
         />
       ) : null}
 
@@ -181,7 +287,7 @@ export function OnboardingFlow() {
         <UploadScreen
           heading="Career arc document"
           helperText="A longer story of your career, if you have one written up. Skip if not."
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          accept={DOCUMENT_ACCEPT}
           optional
           fileName={null}
           state="idle"
@@ -217,13 +323,20 @@ export function OnboardingFlow() {
           lastName={form.lastName}
           email={form.email}
           phone={form.phone}
-          resumeFileName={null}
+          location={form.location}
+          linkedinUrl={form.linkedinUrl}
+          githubUrl={form.githubUrl}
+          portfolioUrl={form.portfolioUrl}
+          skills={form.skills}
+          resumeFileName={resume.state === "done" ? resume.fileName : null}
           careerArcFileName={null}
           workPreference={form.workPreference}
           targetRoles={form.targetRoles}
           onEditName={() => goTo("name")}
           onEditEmail={() => goTo("email")}
           onEditPhone={() => goTo("phone")}
+          onEditLocation={() => goTo("location")}
+          onEditLinks={() => goTo("links")}
           onEditResume={() => goTo("resume")}
           onEditCareerArc={() => goTo("careerArc")}
           onEditWorkPreference={() => goTo("workPreference")}
