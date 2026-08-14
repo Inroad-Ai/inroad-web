@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { SidebarAccount } from "@/components/composed/dashboard/SidebarAccount";
 import { Logo } from "@/components/ui/Logo";
 
 interface NavLink {
@@ -201,10 +202,22 @@ export function Sidebar({
         collapsed ? "w-16" : "w-56"
       }`}
     >
-      <div className="flex h-16 items-center border-b border-line px-4">
-        <Link href="/overview" aria-label="Inroad">
+      <div
+        className={`flex h-16 border-b border-line px-3 ${
+          collapsed ? "flex-col items-center justify-center gap-1" : "items-center justify-between"
+        }`}
+      >
+        <Link href="/" aria-label="Inroad">
           <Logo variant={collapsed ? "mark" : "full"} />
         </Link>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="flex items-center justify-center rounded-full p-1.5 text-text-secondary transition-colors hover:bg-surface-raised hover:text-signal-teal"
+        >
+          <ChevronIcon collapsed={collapsed} />
+        </button>
       </div>
 
       <nav className="flex-1 px-2 py-4">
@@ -247,15 +260,7 @@ export function Sidebar({
       </nav>
 
       <div className="border-t border-line p-2">
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex w-full items-center justify-center gap-2 rounded-full px-3 py-2 text-text-secondary transition-colors hover:bg-surface-raised hover:text-signal-teal"
-        >
-          <ChevronIcon collapsed={collapsed} />
-          {collapsed ? null : <span className="utility-label">Collapse</span>}
-        </button>
+        <SidebarAccount collapsed={collapsed} />
       </div>
     </aside>
   );
