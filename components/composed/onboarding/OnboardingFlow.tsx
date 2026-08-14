@@ -22,7 +22,7 @@ import {
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { FILE_PARSING_UNAVAILABLE } from "@/lib/profile";
+import { CAREER_ARC_PARSING_UNAVAILABLE } from "@/lib/profile";
 import { toFormFields } from "@/lib/resume";
 import { type UploadState, type WorkPreferenceOption } from "@/lib/onboarding";
 
@@ -297,7 +297,7 @@ export function OnboardingFlow() {
           onRemove={() => undefined}
           onNext={next}
           onSkip={next}
-          unavailable={FILE_PARSING_UNAVAILABLE}
+          unavailable={CAREER_ARC_PARSING_UNAVAILABLE}
         />
       ) : null}
 

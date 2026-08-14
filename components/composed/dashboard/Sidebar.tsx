@@ -24,6 +24,7 @@ function isGroup(entry: NavEntry): entry is NavGroup {
 
 const NAV: NavEntry[] = [
   { href: "/overview", label: "Overview", icon: OverviewIcon },
+  { href: "/profile", label: "Profile", icon: ProfileIcon },
   { href: "/research", label: "Research", icon: ResearchIcon },
   {
     label: "Companies",
@@ -63,6 +64,21 @@ function OverviewIcon() {
       <rect x="8.75" y="1.75" width="5.5" height="5.5" rx="1.25" />
       <rect x="1.75" y="8.75" width="5.5" height="5.5" rx="1.25" />
       <rect x="8.75" y="8.75" width="5.5" height="5.5" rx="1.25" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className="h-4 w-4 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+    >
+      <circle cx="8" cy="5.25" r="2.75" />
+      <path d="M2.75 14c0-2.9 2.35-4.75 5.25-4.75s5.25 1.85 5.25 4.75" strokeLinecap="round" />
     </svg>
   );
 }

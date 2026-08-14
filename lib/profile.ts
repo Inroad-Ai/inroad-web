@@ -26,8 +26,8 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
   };
 }
 
-/** Resume and career-arc files are parsed in process and discarded, never
- * stored, so there is nothing to upload or download yet. The parsing flow
- * that replaces this is its own phase; see project-overview.md. */
-export const FILE_PARSING_UNAVAILABLE =
-  "Resume and career-arc parsing isn't wired up yet. You can finish without one and add it later.";
+/** Resume parsing is wired up; the career-arc document is not yet. Files are
+ * parsed in process and discarded either way, so there is never a document to
+ * show here, only whether a parse exists. */
+export const CAREER_ARC_PARSING_UNAVAILABLE =
+  "Career arc parsing isn't wired up yet. You can finish without one and add it later.";
