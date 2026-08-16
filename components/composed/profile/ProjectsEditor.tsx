@@ -4,6 +4,7 @@ import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { RepeatableList } from "@/components/ui/RepeatableList";
 import { Textarea } from "@/components/ui/Textarea";
+import { UrlInput } from "@/components/ui/UrlInput";
 import type { ProjectEntry } from "@/lib/api-client/client";
 
 const BLANK: ProjectEntry = {
@@ -37,8 +38,7 @@ export function ProjectsEditor({
               />
             </Field>
             <Field label="Link">
-              <Input
-                type="url"
+              <UrlInput
                 value={entry.url ?? ""}
                 onChange={(event) => update({ url: event.target.value })}
                 placeholder="https://github.com/you/project"
