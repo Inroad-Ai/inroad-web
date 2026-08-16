@@ -78,6 +78,16 @@ export function SlidersIcon() {
   );
 }
 
+export function ExternalLinkIcon() {
+  return (
+    <Icon>
+      <path d="M6.5 2.75H3.5a.75.75 0 0 0-.75.75v9c0 .414.336.75.75.75h9a.75.75 0 0 0 .75-.75v-3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8.75 2.75h4.5v4.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.25 2.75 7 9" strokeLinecap="round" strokeLinejoin="round" />
+    </Icon>
+  );
+}
+
 export function SignOutIcon() {
   return (
     <Icon>

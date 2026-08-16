@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { TagInput } from "@/components/ui/TagInput";
 import { Textarea } from "@/components/ui/Textarea";
+import { UrlInput } from "@/components/ui/UrlInput";
 import { useProfile } from "@/hooks/useProfile";
 import {
   saveProfile,
@@ -200,24 +201,21 @@ export function ProfileForm() {
 
       <Section title="Links">
         <Field label="LinkedIn">
-          <Input
-            type="url"
+          <UrlInput
             value={form.linkedinUrl}
             onChange={(event) => update("linkedinUrl", event.target.value)}
             placeholder="https://linkedin.com/in/you"
           />
         </Field>
         <Field label="GitHub">
-          <Input
-            type="url"
+          <UrlInput
             value={form.githubUrl}
             onChange={(event) => update("githubUrl", event.target.value)}
             placeholder="https://github.com/you"
           />
         </Field>
         <Field label="Portfolio or site">
-          <Input
-            type="url"
+          <UrlInput
             value={form.portfolioUrl}
             onChange={(event) => update("portfolioUrl", event.target.value)}
             placeholder="https://yoursite.com"
