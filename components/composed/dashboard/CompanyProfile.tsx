@@ -161,6 +161,26 @@ function IdentityHeader({
               {detail.homepage_url}
             </a>
           ) : null}
+          {detail.matched_role_title ? (
+            <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
+              <Badge tone="amber">Matched</Badge>
+              {detail.matched_role_url ? (
+                <a
+                  href={detail.matched_role_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+                >
+                  {detail.matched_role_title}
+                </a>
+              ) : (
+                <span>{detail.matched_role_title}</span>
+              )}
+              {detail.matched_posted_text ? (
+                <span className="text-text-secondary/70">· posted {detail.matched_posted_text}</span>
+              ) : null}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col items-start gap-3 sm:items-end">

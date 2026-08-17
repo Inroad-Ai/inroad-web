@@ -102,6 +102,11 @@ export interface Company {
   careers_url: string | null;
   sample_roles: string[];
   profile: CompanyProfile | null;
+  /** Set only when this company came from a Job Run match, not manual
+   * domain research - null on everything researched by URL. */
+  matched_role_title: string | null;
+  matched_role_url: string | null;
+  matched_posted_text: string | null;
   stage: PipelineStage;
   contacted_at: string | null;
   notes: string | null;
