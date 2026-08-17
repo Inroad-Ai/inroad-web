@@ -37,6 +37,25 @@ export interface HiringResult {
   source: string | null;
   careers_url: string | null;
   sample_roles: string[];
+  /** Platforms beyond `source` that also confirmed hiring: "indeed" |
+   * "glassdoor" | "linkedin-jobs". Presence signal only, no role titles. */
+  additional_sources: string[];
+}
+
+export interface LinkedInCompanyResult {
+  url: string;
+  raw_text: string;
+}
+
+/** LLM-synthesized narrative fields. Every field is a normal, expected null
+ * when there wasn't enough scraped content to say something. */
+export interface CompanyProfile {
+  what_it_does: string | null;
+  problem_solved: string | null;
+  introduction: string | null;
+  tech_stack: string[];
+  company_size: string | null;
+  funding: string | null;
 }
 
 export interface CompanyDossier {
@@ -44,6 +63,8 @@ export interface CompanyDossier {
   homepage: HomepageResult | null;
   news: NewsResult | null;
   hiring: HiringResult | null;
+  linkedin: LinkedInCompanyResult | null;
+  profile: CompanyProfile | null;
   /** Source name -> reason. Only contains entries for sources that failed. */
   errors: Record<string, string>;
   partial: boolean;
@@ -51,7 +72,10 @@ export interface CompanyDossier {
   elapsed_ms: number;
 }
 
-/** In the order they are shown everywhere in the UI. */
+/** The three mechanical sources, in the order the landing page's sample
+ * dossier shows them. Not used by the real Research page anymore - that
+ * page now shows a run list, not per-source cards - but the marketing
+ * mockup (Hero, SampleDossier) still renders this layout. */
 export const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
 export type SourceKey = (typeof SOURCE_KEYS)[number];
 
@@ -68,6 +92,7 @@ export interface Company {
   hiring_source: string | null;
   careers_url: string | null;
   sample_roles: string[];
+  profile: CompanyProfile | null;
   stage: PipelineStage;
   contacted_at: string | null;
   notes: string | null;

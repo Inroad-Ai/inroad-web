@@ -5,7 +5,6 @@ import createClient from "openapi-fetch";
 import type {
   Company,
   CompanyDetail,
-  CompanyDossier,
   CompanyListResponse,
   CompanySort,
   OverviewStats,
@@ -87,8 +86,6 @@ function unwrap<T>(result: ApiResult<T>, unreachable: string): T {
   return data;
 }
 
-const RESEARCH_UNREACHABLE =
-  "Could not reach the research service. Check that it is running and that this origin is allowed.";
 const COMPANIES_UNREACHABLE =
   "Could not reach the companies service. Check that it is running and that this origin is allowed.";
 const AUTH_UNREACHABLE = "Could not reach the auth service.";
@@ -97,37 +94,6 @@ const RESUME_UNREACHABLE = "Could not reach the resume service.";
 
 function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
-}
-
-// --- research ---
-
-/** Resolves even for a partial dossier; only bad input and transport problems reject. */
-export async function fetchResearch(
-  domain: string,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyDossier> {
-  const result = await client.GET("/api/research", {
-    params: { query: { domain: domain.trim() } },
-    headers: authHeaders(accessToken),
-    signal,
-  });
-
-  return unwrap(result, RESEARCH_UNREACHABLE) as CompanyDossier;
-}
-
-/** Newest first, the caller's own runs only. Server-side memory, so it
- * empties on backend restart. */
-export async function fetchHistory(
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CompanyDossier[]> {
-  const result = await client.GET("/api/research/history", {
-    headers: authHeaders(accessToken),
-    signal,
-  });
-
-  return unwrap(result, RESEARCH_UNREACHABLE) as CompanyDossier[];
 }
 
 // --- companies ---
@@ -177,33 +143,16 @@ export async function fetchCompany(
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
 }
 
-/**
- * Runs the three checks again for a domain the user already has. Nothing is
- * written: saveCompanyResearch persists what comes back.
- */
+/** Researches a domain and saves it in one call - there is no preview step.
+ * Upserts on (user_id, domain) and appends a research_runs row; pipeline
+ * state on an existing company row is left alone. */
 export async function researchCompanyDomain(
   domain: string,
   accessToken: string,
   signal?: AbortSignal,
-): Promise<CompanyDossier> {
+): Promise<Company> {
   const result = await client.POST("/api/companies/research", {
     params: { query: { domain: domain.trim() } },
-    headers: authHeaders(accessToken),
-    signal,
-  });
-
-  return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDossier;
-}
-
-/** Upserts on (user_id, domain) and appends a research_runs row. Pipeline
- * state on an existing company row is left alone. */
-export async function saveCompanyResearch(
-  dossier: CompanyDossier,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const result = await client.POST("/api/companies", {
-    body: { dossier },
     headers: authHeaders(accessToken),
     signal,
   });

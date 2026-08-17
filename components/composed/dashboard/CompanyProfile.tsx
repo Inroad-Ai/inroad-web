@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchCompany,
   researchCompanyDomain,
-  saveCompanyResearch,
   updateCompanyNotes,
   updateCompanyStage,
 } from "@/lib/api-client/client";
@@ -82,6 +81,7 @@ export function CompanyProfile({ companyId }: { companyId: string }) {
         accessToken={accessToken}
         onCompanyChange={(company) => setDetail({ ...detail, ...company })}
       />
+      <ProfileSection detail={detail} />
       <HiringSection detail={detail} />
       <LatestResearchSection detail={detail} />
       <NotesSection
@@ -124,15 +124,14 @@ function IdentityHeader({
     }
   }
 
-  /** Research, save, then re-read: the saved row and the run list both change,
-   * and the save response only carries the row. */
+  /** Research and save happen in one call now; re-read afterward for the
+   * refreshed run list, since the save response only carries the row. */
   async function rerunResearch() {
     setRerunning(true);
     setRerunError("");
     try {
       const token = await accessToken();
-      const dossier = await researchCompanyDomain(detail.domain, token);
-      await saveCompanyResearch(dossier, token);
+      await researchCompanyDomain(detail.domain, token);
       onCompanyChange(await fetchCompany(detail.id, token));
     } catch (err) {
       setRerunError(err instanceof Error ? err.message : "Could not run research again.");
@@ -231,8 +230,60 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function HiringSection({ detail }: { detail: Company }) {
+const PROFILE_FIELDS: { key: keyof NonNullable<Company["profile"]>; label: string }[] = [
+  { key: "what_it_does", label: "What they do" },
+  { key: "problem_solved", label: "Problem they solve" },
+  { key: "introduction", label: "Introduction" },
+  { key: "company_size", label: "Company size" },
+  { key: "funding", label: "Funding" },
+];
+
+function ProfileSection({ detail }: { detail: Company }) {
+  const profile = detail.profile;
+
+  if (profile === null) {
+    return (
+      <Section title="Profile">
+        <EmptyState>
+          Not enough was found on the last run to write a profile. Run research again to try.
+        </EmptyState>
+      </Section>
+    );
+  }
+
+  const written = PROFILE_FIELDS.filter(({ key }) => profile[key]);
+
+  return (
+    <Section title="Profile">
+      {written.length === 0 && profile.tech_stack.length === 0 ? (
+        <EmptyState>Nothing came back that was substantial enough to write down.</EmptyState>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {written.map(({ key, label }) => (
+            <Field key={key} label={label}>
+              {profile[key]}
+            </Field>
+          ))}
+          {profile.tech_stack.length > 0 ? (
+            <Field label="Tech stack">
+              <div className="flex flex-wrap gap-2">
+                {profile.tech_stack.map((tech) => (
+                  <Badge key={tech} tone="neutral">
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            </Field>
+          ) : null}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+function HiringSection({ detail }: { detail: CompanyDetail }) {
   const hiring = describeHiring(detail);
+  const additionalSources = detail.latest_research?.hiring?.additional_sources ?? [];
 
   return (
     <Section title="Hiring">
@@ -284,6 +335,19 @@ function HiringSection({ detail }: { detail: Company }) {
           </ul>
         )}
       </div>
+
+      {additionalSources.length > 0 ? (
+        <div className="mt-6">
+          <p className="utility-label text-text-secondary/70">Also listed on</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {additionalSources.map((source) => (
+              <Badge key={source} tone="neutral">
+                {source}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </Section>
   );
 }
