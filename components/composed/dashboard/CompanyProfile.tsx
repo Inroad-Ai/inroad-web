@@ -392,8 +392,9 @@ function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
         >
           <p className="utility-label text-muted-rose">This run came back incomplete</p>
           <p className="mt-2 text-sm text-text-secondary">
-            {failedSources.length} of 3 sources did not answer, so what is below may be out of
-            date or missing. Run research again to try those sources once more.
+            {failedSources.length} {failedSources.length === 1 ? "source" : "sources"} did not
+            answer, so what is below may be out of date or missing. Run research again to try
+            them once more.
           </p>
           {failedSources.length > 0 ? (
             <ul className="mt-3 space-y-1">
