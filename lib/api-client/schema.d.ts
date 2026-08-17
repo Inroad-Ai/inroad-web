@@ -525,6 +525,10 @@ export interface components {
             company_size?: string | null;
             /** Funding */
             funding?: string | null;
+            /** Biggest Challenge */
+            biggest_challenge?: string | null;
+            /** Why Reach Out Now */
+            why_reach_out_now?: string | null;
         };
         /**
          * CompanySort
@@ -642,6 +646,8 @@ export interface components {
              * @description Company LinkedIn page, if linked from the footer/nav
              */
             linkedin_url?: string | null;
+            /** Detected Technologies */
+            detected_technologies?: string[];
         };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {

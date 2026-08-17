@@ -234,6 +234,8 @@ const PROFILE_FIELDS: { key: keyof NonNullable<Company["profile"]>; label: strin
   { key: "what_it_does", label: "What they do" },
   { key: "problem_solved", label: "Problem they solve" },
   { key: "introduction", label: "Introduction" },
+  { key: "biggest_challenge", label: "Biggest challenge right now" },
+  { key: "why_reach_out_now", label: "Why reach out now" },
   { key: "company_size", label: "Company size" },
   { key: "funding", label: "Funding" },
 ];

@@ -14,6 +14,12 @@ export interface HomepageResult {
   description: string | null;
   headings: string[];
   word_count: number;
+  /** Capped excerpt, synthesis input only - not rendered anywhere. */
+  body_text: string | null;
+  linkedin_url: string | null;
+  /** Best-effort brand fingerprints (script src, meta generator). Synthesis
+   * input, not a real dependency scan. */
+  detected_technologies: string[];
 }
 
 export interface NewsItem {
@@ -56,6 +62,9 @@ export interface CompanyProfile {
   tech_stack: string[];
   company_size: string | null;
   funding: string | null;
+  biggest_challenge: string | null;
+  /** The outreach hook: why this company is worth contacting right now. */
+  why_reach_out_now: string | null;
 }
 
 export interface CompanyDossier {

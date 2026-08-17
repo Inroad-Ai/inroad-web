@@ -23,6 +23,9 @@ const SAMPLE: CompanyDossier = {
       "Designed for developers",
     ],
     word_count: 1284,
+    body_text: null,
+    linkedin_url: null,
+    detected_technologies: [],
   },
   news: {
     query: "stripe.com",

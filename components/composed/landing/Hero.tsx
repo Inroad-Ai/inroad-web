@@ -18,6 +18,9 @@ const PREVIEW: CompanyDossier = {
       "Global scale",
     ],
     word_count: 1284,
+    body_text: null,
+    linkedin_url: null,
+    detected_technologies: [],
   },
   news: {
     query: "stripe.com",
