@@ -144,6 +144,26 @@ export interface CompanyListResponse {
   total: number;
 }
 
+/** Mirrors app/schemas/pipeline.py. */
+export const PIPELINE_RUN_STATUSES = ["pending", "running", "completed", "failed"] as const;
+export type PipelineRunStatus = (typeof PIPELINE_RUN_STATUSES)[number];
+
+export interface PipelineRunOut {
+  id: string;
+  status: PipelineRunStatus;
+  error: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+/** GET /api/companies/match/{run_id}. Empty matched_company_ids until
+ * status is "completed" - and it can stay empty on a completed run that
+ * matched nothing, which is a valid outcome, not a failure. */
+export interface MatchRunResult extends PipelineRunOut {
+  matched_company_ids: string[];
+}
+
 /** One point on the Overview "companies added over time" chart. */
 export interface WeeklyCompanyCount {
   week_start: string;
