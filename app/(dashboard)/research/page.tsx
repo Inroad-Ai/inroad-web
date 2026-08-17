@@ -30,11 +30,18 @@ interface MatchRun {
   status: PipelineRunStatus;
   error: string | null;
   matchedCompanyIds: string[];
+  /** Gave up polling before reaching a terminal status - most likely the
+   * background worker isn't running, not that the search is still going. */
+  timedOut: boolean;
 }
 
 let nextRunId = 0;
 
 const MATCH_POLL_INTERVAL_MS = 3000;
+// ~2 minutes: comfortably above the 17-38s a real match run has taken, but
+// short enough that a dead worker doesn't leave this polling silently
+// forever with nothing to show for it.
+const MATCH_POLL_MAX_ATTEMPTS = 40;
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
@@ -83,16 +90,21 @@ export default function ResearchPage() {
     setMatchRuns((prev) => prev.map((r) => (r.id === runId ? { ...r, ...update } : r)));
   }
 
-  async function pollMatch(runId: string, token: string) {
+  async function pollMatch(runId: string, token: string, attempt = 0) {
     try {
       const result = await getMatchRun(runId, token);
       settleMatch(runId, {
         status: result.status,
         error: result.error,
         matchedCompanyIds: result.matched_company_ids,
+        timedOut: false,
       });
       if (result.status === "pending" || result.status === "running") {
-        setTimeout(() => void pollMatch(runId, token), MATCH_POLL_INTERVAL_MS);
+        if (attempt + 1 >= MATCH_POLL_MAX_ATTEMPTS) {
+          settleMatch(runId, { timedOut: true });
+          return;
+        }
+        setTimeout(() => void pollMatch(runId, token, attempt + 1), MATCH_POLL_INTERVAL_MS);
       }
     } catch (error) {
       settleMatch(runId, {
@@ -101,6 +113,19 @@ export default function ResearchPage() {
           error instanceof ApiError ? error.message : "Lost track of this run's progress.",
       });
     }
+  }
+
+  async function retryMatchPoll(runId: string) {
+    settleMatch(runId, { timedOut: false });
+    const token = await ensureValidAccessToken();
+    if (!token) {
+      settleMatch(runId, {
+        status: "failed",
+        error: "Your session expired. Sign in again to check this.",
+      });
+      return;
+    }
+    void pollMatch(runId, token, 0);
   }
 
   async function runMatch() {
@@ -114,6 +139,7 @@ export default function ResearchPage() {
             status: "failed",
             error: "Your session expired. Sign in again to run this.",
             matchedCompanyIds: [],
+            timedOut: false,
           },
           ...prev,
         ]);
@@ -126,6 +152,7 @@ export default function ResearchPage() {
           status: initial.status,
           error: initial.error,
           matchedCompanyIds: [],
+          timedOut: false,
         },
         ...prev,
       ]);
@@ -140,6 +167,7 @@ export default function ResearchPage() {
               ? error.message
               : "Something went wrong before the match could start.",
           matchedCompanyIds: [],
+          timedOut: false,
         },
         ...prev,
       ]);
@@ -203,7 +231,7 @@ export default function ResearchPage() {
           <ul className="divide-y divide-line">
             {matchRuns.map((r) => (
               <li key={r.id}>
-                <MatchRunRow run={r} />
+                <MatchRunRow run={r} onRetry={retryMatchPoll} />
               </li>
             ))}
           </ul>
@@ -244,9 +272,10 @@ function RunRow({ run }: { run: Run }) {
   return body;
 }
 
-function MatchRunRow({ run }: { run: MatchRun }) {
-  const inFlight = run.status === "pending" || run.status === "running";
-  const dotState: CardState = inFlight ? "pending" : run.status === "failed" ? "failed" : "done";
+function MatchRunRow({ run, onRetry }: { run: MatchRun; onRetry: (runId: string) => void }) {
+  const inFlight = (run.status === "pending" || run.status === "running") && !run.timedOut;
+  const dotState: CardState =
+    run.timedOut || run.status === "failed" ? "failed" : inFlight ? "pending" : "done";
 
   return (
     <div className="px-6 py-4">
@@ -254,20 +283,37 @@ function MatchRunRow({ run }: { run: MatchRun }) {
         <span className="flex items-center gap-3">
           <StatusDot state={dotState} />
           <span className="font-sans text-sm text-ink">
-            {inFlight
-              ? "Searching for matches..."
-              : run.status === "failed"
-                ? "Could not complete"
-                : run.matchedCompanyIds.length === 0
-                  ? "Nothing matched today"
-                  : `${run.matchedCompanyIds.length} ${
-                      run.matchedCompanyIds.length === 1 ? "match" : "matches"
-                    } found`}
+            {run.timedOut
+              ? "Taking longer than expected"
+              : inFlight
+                ? "Searching for matches..."
+                : run.status === "failed"
+                  ? "Could not complete"
+                  : run.matchedCompanyIds.length === 0
+                    ? "Nothing matched today"
+                    : `${run.matchedCompanyIds.length} ${
+                        run.matchedCompanyIds.length === 1 ? "match" : "matches"
+                      } found`}
           </span>
         </span>
       </div>
 
-      {run.status === "failed" && run.error ? (
+      {run.timedOut ? (
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-text-secondary">
+            This is taking longer than expected. The background worker may not be running.
+          </p>
+          <Button
+            variant="quiet"
+            onClick={() => onRetry(run.id)}
+            className="px-4 py-2 text-xs"
+          >
+            Check again
+          </Button>
+        </div>
+      ) : null}
+
+      {!run.timedOut && run.status === "failed" && run.error ? (
         <p className="mt-2 text-sm text-error">{run.error}</p>
       ) : null}
 
