@@ -394,6 +394,12 @@ function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
   const homepage = research.homepage;
   const news = research.news;
   const failedSources = Object.entries(research.errors);
+  // careers-roles only means "couldn't list specific open-role titles" -
+  // homepage, news, hiring itself and the profile are all still good. That's
+  // a narrower miss than any other source failing, so it doesn't earn the
+  // same "this run is stale, don't trust it" banner.
+  const onlyMissingRoleTitles =
+    failedSources.length === 1 && failedSources[0][0] === "careers-roles";
 
   return (
     <Section
@@ -411,7 +417,17 @@ function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
     >
       {/* A partial run is still a 200 with nulls in it. Say so plainly rather
           than letting the empty fields below read as "nothing to report". */}
-      {research.partial ? (
+      {research.partial && onlyMissingRoleTitles ? (
+        <div
+          role="status"
+          className="mb-5 rounded-sm border border-line bg-surface-raised p-5"
+        >
+          <p className="text-sm text-text-secondary">
+            Everything else came back fine - just couldn&apos;t list specific open-role titles
+            from their careers page this run. Run research again to try that once more.
+          </p>
+        </div>
+      ) : research.partial ? (
         <div
           role="status"
           className="mb-5 rounded-sm border border-muted-rose/40 bg-muted-rose-subtle p-5"
