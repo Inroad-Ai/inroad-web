@@ -25,6 +25,7 @@ const SAMPLE: CompanyDossier = {
     word_count: 1284,
     body_text: null,
     linkedin_url: null,
+    logo_url: null,
     detected_technologies: [],
   },
   news: {

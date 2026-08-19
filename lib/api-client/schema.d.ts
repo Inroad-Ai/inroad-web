@@ -383,6 +383,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -478,6 +480,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -646,6 +650,11 @@ export interface components {
              * @description Company LinkedIn page, if linked from the footer/nav
              */
             linkedin_url?: string | null;
+            /**
+             * Logo Url
+             * @description apple-touch-icon / favicon / og:image, in that preference order
+             */
+            logo_url?: string | null;
             /** Detected Technologies */
             detected_technologies?: string[];
         };

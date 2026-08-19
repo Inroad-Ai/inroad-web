@@ -14,6 +14,7 @@ import { describeHiring } from "@/lib/companies";
 import type { Company, CompanyDetail, ResearchRunSummary } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Menu } from "@/components/ui/Menu";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -143,24 +144,31 @@ function IdentityHeader({
   return (
     <section className="rounded-md border border-line bg-surface p-7 shadow-overlay">
       <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="min-w-0">
-          <p className="utility-label text-text-secondary">Domain</p>
-          <p className="mt-1 font-display text-2xl text-ink">{detail.domain}</p>
-          {detail.homepage_title ? (
-            <p className="mt-2 max-w-xl text-sm leading-snug text-text-secondary">
-              {detail.homepage_title}
-            </p>
-          ) : null}
-          {detail.homepage_url ? (
-            <a
-              href={detail.homepage_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-            >
-              {detail.homepage_url}
-            </a>
-          ) : null}
+        <div className="flex min-w-0 gap-4">
+          <CompanyLogo
+            logoUrl={detail.logo_url}
+            domain={detail.domain}
+            className="h-12 w-12"
+          />
+          <div className="min-w-0">
+            <p className="utility-label text-text-secondary">Domain</p>
+            <p className="mt-1 font-display text-2xl text-ink">{detail.domain}</p>
+            {detail.homepage_title ? (
+              <p className="mt-2 max-w-xl text-sm leading-snug text-text-secondary">
+                {detail.homepage_title}
+              </p>
+            ) : null}
+            {detail.homepage_url ? (
+              <a
+                href={detail.homepage_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+              >
+                {detail.homepage_url}
+              </a>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-col items-start gap-3 sm:items-end">
@@ -324,7 +332,7 @@ function HiringSection({ detail }: { detail: CompanyDetail }) {
       </dl>
 
       <div className="mt-6">
-        <p className="utility-label text-text-secondary/70">Sample roles</p>
+        <p className="utility-label text-text-secondary/70">Open roles</p>
         {detail.sample_roles.length === 0 ? (
           <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
         ) : (

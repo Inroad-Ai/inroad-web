@@ -17,6 +17,8 @@ export interface HomepageResult {
   /** Capped excerpt, synthesis input only - not rendered anywhere. */
   body_text: string | null;
   linkedin_url: string | null;
+  /** apple-touch-icon / favicon / og:image, in that preference order. */
+  logo_url: string | null;
   /** Best-effort brand fingerprints (script src, meta generator). Synthesis
    * input, not a real dependency scan. */
   detected_technologies: string[];
@@ -39,7 +41,7 @@ export interface HiringResult {
   is_hiring: boolean;
   /** null means "could not count", not 0 ("counted, none open"). */
   open_roles: number | null;
-  /** "greenhouse" | "lever" | "careers-page" */
+  /** "greenhouse" | "lever" | "ashby" | "careers-page" */
   source: string | null;
   careers_url: string | null;
   sample_roles: string[];
@@ -95,6 +97,7 @@ export interface Company {
   homepage_url: string | null;
   homepage_title: string | null;
   homepage_description: string | null;
+  logo_url: string | null;
   is_hiring: boolean | null;
   /** null means "could not determine", not 0. Never coerce. */
   open_roles: number | null;
