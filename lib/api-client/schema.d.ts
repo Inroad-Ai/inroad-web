@@ -128,6 +128,27 @@ export interface paths {
         patch: operations["update_company_stage_api_companies__company_id__stage_patch"];
         trace?: never;
     };
+    "/api/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Jobs
+         * @description Shared pool: every signed-in user sees the same board, not just jobs
+         *     surfaced by their own research.
+         */
+        get: operations["list_jobs_api_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -615,6 +636,8 @@ export interface components {
             careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
+            /** Role Postings */
+            role_postings?: components["schemas"]["RolePosting"][];
             /** Additional Sources */
             additional_sources?: string[];
         };
@@ -657,6 +680,40 @@ export interface components {
             logo_url?: string | null;
             /** Detected Technologies */
             detected_technologies?: string[];
+        };
+        /** JobListResponse */
+        JobListResponse: {
+            /** Items */
+            items: components["schemas"]["JobOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** JobOut */
+        JobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Company Name */
+            company_name: string;
+            /** Domain */
+            domain: string;
+            /** Url */
+            url?: string | null;
+            /** Source */
+            source?: string | null;
+            /**
+             * Discovered At
+             * Format: date-time
+             */
+            discovered_at: string;
         };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {
@@ -914,6 +971,18 @@ export interface components {
             education?: components["schemas"]["EducationEntry"][];
             /** Projects */
             projects?: components["schemas"]["ProjectEntry"][];
+        };
+        /**
+         * RolePosting
+         * @description One open role with its own application link, when the source hands
+         *     one back. careers-page extraction only sees titles in scraped markdown,
+         *     so url stays None there - callers fall back to careers_url instead.
+         */
+        RolePosting: {
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
         };
         /** SignupRequest */
         SignupRequest: {
@@ -1246,6 +1315,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_jobs_api_jobs_get: {
+        parameters: {
+            query?: {
+                /** @description Substring match on title or company name */
+                search?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobListResponse"];
                 };
             };
             /** @description Validation Error */

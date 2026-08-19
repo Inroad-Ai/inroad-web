@@ -7,6 +7,7 @@ import type {
   CompanyDetail,
   CompanyListResponse,
   CompanySort,
+  JobListResponse,
   OverviewStats,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
@@ -91,6 +92,8 @@ const COMPANIES_UNREACHABLE =
 const AUTH_UNREACHABLE = "Could not reach the auth service.";
 const PROFILE_UNREACHABLE = "Could not reach the profile service.";
 const RESUME_UNREACHABLE = "Could not reach the resume service.";
+const JOBS_UNREACHABLE =
+  "Could not reach the job board service. Check that it is running and that this origin is allowed.";
 
 function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
@@ -209,6 +212,35 @@ export async function fetchOverviewStats(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as OverviewStats;
+}
+
+// --- jobs ---
+
+export interface FetchJobsParams {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/** The shared job board: pooled across every user's research, not scoped to the caller. */
+export async function fetchJobs(
+  params: FetchJobsParams,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<JobListResponse> {
+  const result = await client.GET("/api/jobs", {
+    params: {
+      query: {
+        search: params.search || undefined,
+        page: params.page,
+        page_size: params.pageSize,
+      },
+    },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, JOBS_UNREACHABLE) as JobListResponse;
 }
 
 // --- auth ---
