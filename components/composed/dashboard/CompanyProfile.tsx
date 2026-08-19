@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   fetchCompany,
   researchCompanyDomain,
-  saveCompanyResearch,
   updateCompanyNotes,
   updateCompanyStage,
 } from "@/lib/api-client/client";
@@ -15,6 +14,7 @@ import { describeHiring } from "@/lib/companies";
 import type { Company, CompanyDetail, ResearchRunSummary } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Menu } from "@/components/ui/Menu";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -82,6 +82,7 @@ export function CompanyProfile({ companyId }: { companyId: string }) {
         accessToken={accessToken}
         onCompanyChange={(company) => setDetail({ ...detail, ...company })}
       />
+      <ProfileSection detail={detail} />
       <HiringSection detail={detail} />
       <LatestResearchSection detail={detail} />
       <NotesSection
@@ -124,15 +125,14 @@ function IdentityHeader({
     }
   }
 
-  /** Research, save, then re-read: the saved row and the run list both change,
-   * and the save response only carries the row. */
+  /** Research and save happen in one call now; re-read afterward for the
+   * refreshed run list, since the save response only carries the row. */
   async function rerunResearch() {
     setRerunning(true);
     setRerunError("");
     try {
       const token = await accessToken();
-      const dossier = await researchCompanyDomain(detail.domain, token);
-      await saveCompanyResearch(dossier, token);
+      await researchCompanyDomain(detail.domain, token);
       onCompanyChange(await fetchCompany(detail.id, token));
     } catch (err) {
       setRerunError(err instanceof Error ? err.message : "Could not run research again.");
@@ -144,24 +144,31 @@ function IdentityHeader({
   return (
     <section className="rounded-md border border-line bg-surface p-7 shadow-overlay">
       <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="min-w-0">
-          <p className="utility-label text-text-secondary">Domain</p>
-          <p className="mt-1 font-display text-2xl text-ink">{detail.domain}</p>
-          {detail.homepage_title ? (
-            <p className="mt-2 max-w-xl text-sm leading-snug text-text-secondary">
-              {detail.homepage_title}
-            </p>
-          ) : null}
-          {detail.homepage_url ? (
-            <a
-              href={detail.homepage_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-            >
-              {detail.homepage_url}
-            </a>
-          ) : null}
+        <div className="flex min-w-0 gap-4">
+          <CompanyLogo
+            logoUrl={detail.logo_url}
+            domain={detail.domain}
+            className="h-12 w-12"
+          />
+          <div className="min-w-0">
+            <p className="utility-label text-text-secondary">Domain</p>
+            <p className="mt-1 font-display text-2xl text-ink">{detail.domain}</p>
+            {detail.homepage_title ? (
+              <p className="mt-2 max-w-xl text-sm leading-snug text-text-secondary">
+                {detail.homepage_title}
+              </p>
+            ) : null}
+            {detail.homepage_url ? (
+              <a
+                href={detail.homepage_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+              >
+                {detail.homepage_url}
+              </a>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-col items-start gap-3 sm:items-end">
@@ -231,8 +238,62 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function HiringSection({ detail }: { detail: Company }) {
+const PROFILE_FIELDS: { key: keyof NonNullable<Company["profile"]>; label: string }[] = [
+  { key: "what_it_does", label: "What they do" },
+  { key: "problem_solved", label: "Problem they solve" },
+  { key: "introduction", label: "Introduction" },
+  { key: "biggest_challenge", label: "Biggest challenge right now" },
+  { key: "why_reach_out_now", label: "Why reach out now" },
+  { key: "company_size", label: "Company size" },
+  { key: "funding", label: "Funding" },
+];
+
+function ProfileSection({ detail }: { detail: Company }) {
+  const profile = detail.profile;
+
+  if (profile === null) {
+    return (
+      <Section title="Profile">
+        <EmptyState>
+          Not enough was found on the last run to write a profile. Run research again to try.
+        </EmptyState>
+      </Section>
+    );
+  }
+
+  const written = PROFILE_FIELDS.filter(({ key }) => profile[key]);
+
+  return (
+    <Section title="Profile">
+      {written.length === 0 && profile.tech_stack.length === 0 ? (
+        <EmptyState>Nothing came back that was substantial enough to write down.</EmptyState>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {written.map(({ key, label }) => (
+            <Field key={key} label={label}>
+              {profile[key]}
+            </Field>
+          ))}
+          {profile.tech_stack.length > 0 ? (
+            <Field label="Tech stack">
+              <div className="flex flex-wrap gap-2">
+                {profile.tech_stack.map((tech) => (
+                  <Badge key={tech} tone="neutral">
+                    {tech}
+                  </Badge>
+                ))}
+              </div>
+            </Field>
+          ) : null}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+function HiringSection({ detail }: { detail: CompanyDetail }) {
   const hiring = describeHiring(detail);
+  const additionalSources = detail.latest_research?.hiring?.additional_sources ?? [];
 
   return (
     <Section title="Hiring">
@@ -271,7 +332,7 @@ function HiringSection({ detail }: { detail: Company }) {
       </dl>
 
       <div className="mt-6">
-        <p className="utility-label text-text-secondary/70">Sample roles</p>
+        <p className="utility-label text-text-secondary/70">Open roles</p>
         {detail.sample_roles.length === 0 ? (
           <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
         ) : (
@@ -284,6 +345,19 @@ function HiringSection({ detail }: { detail: Company }) {
           </ul>
         )}
       </div>
+
+      {additionalSources.length > 0 ? (
+        <div className="mt-6">
+          <p className="utility-label text-text-secondary/70">Also listed on</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {additionalSources.map((source) => (
+              <Badge key={source} tone="neutral">
+                {source}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </Section>
   );
 }
@@ -328,8 +402,9 @@ function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
         >
           <p className="utility-label text-muted-rose">This run came back incomplete</p>
           <p className="mt-2 text-sm text-text-secondary">
-            {failedSources.length} of 3 sources did not answer, so what is below may be out of
-            date or missing. Run research again to try those sources once more.
+            {failedSources.length} {failedSources.length === 1 ? "source" : "sources"} did not
+            answer, so what is below may be out of date or missing. Run research again to try
+            them once more.
           </p>
           {failedSources.length > 0 ? (
             <ul className="mt-3 space-y-1">

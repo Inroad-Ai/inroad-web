@@ -21,27 +21,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/research": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Research
-         * @description Preview only. The run is attributed to the caller so it shows up in
-         *     their history, but nothing is persisted.
-         */
-        get: operations["research_api_research_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/research/history": {
         parameters: {
             query?: never;
@@ -69,12 +48,7 @@ export interface paths {
         /** List Companies */
         get: operations["list_companies_api_companies_get"];
         put?: never;
-        /**
-         * Save Company
-         * @description Persists the dossier the caller already has rather than re-fetching:
-         *     what the user reviewed is what gets saved.
-         */
-        post: operations["save_company_api_companies_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -109,7 +83,8 @@ export interface paths {
         put?: never;
         /**
          * Research Domain
-         * @description Preview only. Saving is a separate POST with the dossier this returns.
+         * @description Researches the domain and saves it in one call - there is no preview
+         *     step, entering a domain is what puts it in the caller's companies list.
          */
         post: operations["research_domain_api_companies_research_post"];
         delete?: never;
@@ -408,6 +383,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -418,6 +395,7 @@ export interface components {
             careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
+            profile?: components["schemas"]["CompanyProfile"] | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -449,6 +427,8 @@ export interface components {
             homepage?: components["schemas"]["HomepageResult"] | null;
             news?: components["schemas"]["NewsResult"] | null;
             hiring?: components["schemas"]["HiringResult"] | null;
+            linkedin?: components["schemas"]["LinkedInCompanyResult"] | null;
+            profile?: components["schemas"]["CompanyProfile"] | null;
             /**
              * Errors
              * @description tool name -> reason, present only for tools that failed
@@ -500,6 +480,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -510,6 +492,7 @@ export interface components {
             careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
+            profile?: components["schemas"]["CompanyProfile"] | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -525,6 +508,31 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * CompanyProfile
+         * @description LLM-synthesized narrative fields, over the raw scraped/mechanical
+         *     results above. Every field optional: a company with too little scraped
+         *     content to say something is a normal result, not a failed parse (same
+         *     rule as ResumeParseResult).
+         */
+        CompanyProfile: {
+            /** What It Does */
+            what_it_does?: string | null;
+            /** Problem Solved */
+            problem_solved?: string | null;
+            /** Introduction */
+            introduction?: string | null;
+            /** Tech Stack */
+            tech_stack?: string[];
+            /** Company Size */
+            company_size?: string | null;
+            /** Funding */
+            funding?: string | null;
+            /** Biggest Challenge */
+            biggest_challenge?: string | null;
+            /** Why Reach Out Now */
+            why_reach_out_now?: string | null;
         };
         /**
          * CompanySort
@@ -543,10 +551,6 @@ export interface components {
         CompanyUpdate: {
             /** Notes */
             notes?: string | null;
-        };
-        /** CreateOrUpdateCompany */
-        CreateOrUpdateCompany: {
-            dossier: components["schemas"]["CompanyDossier"];
         };
         /** CurrentUser */
         CurrentUser: {
@@ -611,6 +615,8 @@ export interface components {
             careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
+            /** Additional Sources */
+            additional_sources?: string[];
         };
         /** HomepageResult */
         HomepageResult: {
@@ -637,6 +643,27 @@ export interface components {
              * @default 0
              */
             word_count: number;
+            /** Body Text */
+            body_text?: string | null;
+            /**
+             * Linkedin Url
+             * @description Company LinkedIn page, if linked from the footer/nav
+             */
+            linkedin_url?: string | null;
+            /**
+             * Logo Url
+             * @description apple-touch-icon / favicon / og:image, in that preference order
+             */
+            logo_url?: string | null;
+            /** Detected Technologies */
+            detected_technologies?: string[];
+        };
+        /** LinkedInCompanyResult */
+        LinkedInCompanyResult: {
+            /** Url */
+            url: string;
+            /** Raw Text */
+            raw_text: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -989,40 +1016,6 @@ export interface operations {
             };
         };
     };
-    research_api_research_get: {
-        parameters: {
-            query: {
-                /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
-                domain: string;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyDossier"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     research_history_api_research_history_get: {
         parameters: {
             query?: never;
@@ -1092,41 +1085,6 @@ export interface operations {
             };
         };
     };
-    save_company_api_companies_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateOrUpdateCompany"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CompanyOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_overview_api_companies_overview_get: {
         parameters: {
             query?: {
@@ -1175,12 +1133,12 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompanyDossier"];
+                    "application/json": components["schemas"]["CompanyOut"];
                 };
             };
             /** @description Validation Error */
