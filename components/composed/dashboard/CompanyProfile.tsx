@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   fetchCompany,
-  researchCompanyDomain,
   updateCompanyNotes,
   updateCompanyStage,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { totalTimeSeconds } from "@/lib/api";
 import { describeHiring } from "@/lib/companies";
+import { useResearchRuns } from "@/lib/research-runs";
 import type { Company, CompanyDetail, ResearchRunSummary } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -106,8 +106,35 @@ function IdentityHeader({
 }) {
   const [movingStage, setMovingStage] = useState(false);
   const [stageError, setStageError] = useState("");
-  const [rerunning, setRerunning] = useState(false);
   const [rerunError, setRerunError] = useState("");
+  const [activeRunId, setActiveRunId] = useState<number | null>(null);
+  const handledRunId = useRef<number | null>(null);
+
+  const { runs, startResearch } = useResearchRuns();
+  const activeRun = runs.find((r) => r.id === activeRunId) ?? null;
+  const rerunning = activeRun?.state === "pending";
+
+  // The run is tracked in ResearchRunsProvider, not here, so it keeps going
+  // (and this effect still fires to react to it) even if this page was
+  // navigated away from and back while it was in flight. handledRunId
+  // guards against acting twice on the same run if this effect re-fires for
+  // an unrelated reason (onCompanyChange isn't memoized by the caller).
+  useEffect(() => {
+    if (!activeRun || activeRun.state === "pending") return;
+    if (handledRunId.current === activeRun.id) return;
+    handledRunId.current = activeRun.id;
+
+    if (activeRun.state === "done") {
+      accessToken()
+        .then((token) => fetchCompany(detail.id, token))
+        .then(onCompanyChange)
+        .catch((err) => {
+          setRerunError(err instanceof Error ? err.message : "Could not refresh this company.");
+        });
+    } else {
+      setRerunError(activeRun.error ?? "Could not run research again.");
+    }
+  }, [activeRun, accessToken, detail.id, onCompanyChange]);
 
   // The same PATCH the Pipeline board uses, so a stage moved here and a card
   // dragged there go through one code path and one set of side effects.
@@ -125,20 +152,9 @@ function IdentityHeader({
     }
   }
 
-  /** Research and save happen in one call now; re-read afterward for the
-   * refreshed run list, since the save response only carries the row. */
-  async function rerunResearch() {
-    setRerunning(true);
+  function rerunResearch() {
     setRerunError("");
-    try {
-      const token = await accessToken();
-      await researchCompanyDomain(detail.domain, token);
-      onCompanyChange(await fetchCompany(detail.id, token));
-    } catch (err) {
-      setRerunError(err instanceof Error ? err.message : "Could not run research again.");
-    } finally {
-      setRerunning(false);
-    }
+    setActiveRunId(startResearch(detail.domain));
   }
 
   return (
