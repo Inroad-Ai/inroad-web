@@ -1,5 +1,5 @@
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
-import { totalTimeSeconds } from "@/lib/api";
+import { totalTimeSeconds } from "@/lib/format";
 import { SOURCE_KEYS, type CompanyDossier } from "@/lib/types";
 
 /**

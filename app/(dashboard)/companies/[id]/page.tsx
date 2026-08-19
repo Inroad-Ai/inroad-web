@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import { CompanyProfile } from "@/components/composed/dashboard/CompanyProfile";
+import { CompanyReport } from "@/components/composed/dashboard/company-report/CompanyReport";
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 
-export default function CompanyProfilePage({ params }: { params: { id: string } }) {
+export default function CompanyReportPage({ params }: { params: { id: string } }) {
   return (
     <PageShell
       title="Company"
@@ -17,7 +17,7 @@ export default function CompanyProfilePage({ params }: { params: { id: string } 
         </Link>
       }
     >
-      <CompanyProfile companyId={params.id} />
+      <CompanyReport companyId={params.id} />
     </PageShell>
   );
 }

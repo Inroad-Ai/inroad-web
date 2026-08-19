@@ -1,3 +1,4 @@
+import { DataField } from "@/components/ui/DataField";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusDot } from "@/components/ui/StatusDot";
 import type { CardState, CompanyDossier, SourceKey } from "@/lib/types";
@@ -118,8 +119,8 @@ function Homepage({ dossier }: { dossier: CompanyDossier }) {
         <p className="text-sm text-text-secondary">No description on the page.</p>
       )}
       <dl className="mt-auto grid grid-cols-2 gap-x-4 gap-y-1 pt-2">
-        <Field label="Words" value={homepage.word_count.toLocaleString()} />
-        <Field label="Headings" value={String(homepage.headings.length)} />
+        <DataField label="Words">{homepage.word_count.toLocaleString()}</DataField>
+        <DataField label="Headings">{homepage.headings.length}</DataField>
       </dl>
     </div>
   );
@@ -199,32 +200,20 @@ function Hiring({ dossier }: { dossier: CompanyDossier }) {
         </ul>
       ) : null}
       <dl className="mt-auto grid grid-cols-2 gap-x-4 gap-y-1 pt-2">
-        <Field label="Board" value={hiring.source ?? "unknown"} />
+        <DataField label="Board">{hiring.source ?? "unknown"}</DataField>
         {hiring.careers_url ? (
-          <div>
-            <dt className="utility-label text-text-secondary/70">Careers</dt>
-            <dd>
-              <a
-                href={hiring.careers_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-sans text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-              >
-                Open
-              </a>
-            </dd>
-          </div>
+          <DataField label="Careers">
+            <a
+              href={hiring.careers_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+            >
+              Open
+            </a>
+          </DataField>
         ) : null}
       </dl>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="utility-label text-text-secondary/70">{label}</dt>
-      <dd className="font-sans text-sm text-ink">{value}</dd>
     </div>
   );
 }
