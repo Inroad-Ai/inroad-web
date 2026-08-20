@@ -30,7 +30,6 @@ type NavEntry = NavLink | NavGroup;
 const NAV: NavEntry[] = [
   { href: "/overview", label: "Overview", icon: GridIcon },
   { href: "/research", label: "Research", icon: SearchIcon },
-  { href: "/jobs", label: "Job Board", icon: BoardIcon },
   {
     label: "Companies",
     items: [
