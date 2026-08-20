@@ -46,6 +46,7 @@ const PREVIEW: CompanyDossier = {
     open_roles: 548,
     source: "greenhouse",
     careers_url: "https://stripe.com/jobs/search",
+    company_careers_url: "https://stripe.com/jobs/search",
     sample_roles: [
       "Staff Engineer, Payments Infrastructure",
       "Account Executive, Mid-Market",

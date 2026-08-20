@@ -44,6 +44,10 @@ export interface HiringResult {
   /** "greenhouse" | "lever" | "ashby" | "careers-page" */
   source: string | null;
   careers_url: string | null;
+  /** The company's own careers page, kept even when an ATS board is the
+   * winning source. Unlike `careers_url`, which may be an ATS board root,
+   * this is a page on the company's own domain that answered a request. */
+  company_careers_url: string | null;
   sample_roles: string[];
   /** Platforms beyond `source` that also confirmed hiring: "indeed" |
    * "linkedin-jobs". Presence signal only, no role titles. */
@@ -103,6 +107,10 @@ export interface Company {
   open_roles: number | null;
   hiring_source: string | null;
   careers_url: string | null;
+  /** The company's own careers page, kept even when an ATS board is the
+   * winning source. Unlike `careers_url`, which may be an ATS board root,
+   * this is a page on the company's own domain that answered a request. */
+  company_careers_url: string | null;
   sample_roles: string[];
   profile: CompanyProfile | null;
   stage: PipelineStage;

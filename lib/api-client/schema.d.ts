@@ -634,6 +634,8 @@ export interface components {
             source?: string | null;
             /** Careers Url */
             careers_url?: string | null;
+            /** Company Careers Url */
+            company_careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
             /** Role Postings */
