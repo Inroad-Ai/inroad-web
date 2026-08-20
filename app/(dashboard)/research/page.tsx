@@ -7,58 +7,18 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { SearchBar } from "@/components/composed/dashboard/SearchBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatusDot } from "@/components/ui/StatusDot";
-import { ApiError, researchCompanyDomain } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import type { CardState } from "@/lib/types";
-
-interface Run {
-  id: number;
-  domain: string;
-  state: CardState;
-  companyId: string | null;
-  error: string | null;
-}
-
-let nextRunId = 0;
+import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [runs, setRuns] = useState<Run[]>([]);
+  const { runs, startResearch } = useResearchRuns();
+  // One at a time in this box, same as before - startResearch itself has no
+  // such limit, this is just the input's own UX.
+  const busy = runs.some((r) => r.state === "pending");
 
-  async function run(next: string) {
+  function run(next: string) {
     setDomain(next);
-    setBusy(true);
-
-    const id = nextRunId++;
-    setRuns((prev) => [
-      { id, domain: next, state: "pending", companyId: null, error: null },
-      ...prev,
-    ]);
-
-    function settle(update: Partial<Run>) {
-      setRuns((prev) => prev.map((r) => (r.id === id ? { ...r, ...update } : r)));
-    }
-
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) {
-        settle({ state: "failed", error: "Your session expired. Sign in again to run this." });
-        return;
-      }
-      const company = await researchCompanyDomain(next, token);
-      settle({ state: "done", companyId: company.id });
-    } catch (error) {
-      settle({
-        state: "failed",
-        error:
-          error instanceof ApiError
-            ? error.message
-            : "Something went wrong before the check could run.",
-      });
-    } finally {
-      setBusy(false);
-    }
+    startResearch(next);
   }
 
   return (
@@ -97,7 +57,7 @@ export default function ResearchPage() {
   );
 }
 
-function RunRow({ run }: { run: Run }) {
+function RunRow({ run }: { run: ResearchRun }) {
   const body = (
     <div className="flex w-full flex-wrap items-center justify-between gap-3 px-6 py-4 text-left">
       <span className="flex items-center gap-3">
