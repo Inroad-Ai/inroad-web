@@ -46,7 +46,7 @@ export interface HiringResult {
   careers_url: string | null;
   sample_roles: string[];
   /** Platforms beyond `source` that also confirmed hiring: "indeed" |
-   * "glassdoor" | "linkedin-jobs". Presence signal only, no role titles. */
+   * "linkedin-jobs". Presence signal only, no role titles. */
   additional_sources: string[];
 }
 
