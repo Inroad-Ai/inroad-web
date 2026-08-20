@@ -625,6 +625,8 @@ export interface components {
              * @default false
              */
             is_hiring: boolean;
+            /** Company Name */
+            company_name?: string | null;
             /** Open Roles */
             open_roles?: number | null;
             /**
@@ -979,12 +981,28 @@ export interface components {
          * @description One open role with its own application link, when the source hands
          *     one back. careers-page extraction only sees titles in scraped markdown,
          *     so url stays None there - callers fall back to careers_url instead.
+         *
+         *     Every field below title is optional because sources differ in what they
+         *     publish: an ATS returns structured detail, a scraped careers page returns
+         *     a line of text.
          */
         RolePosting: {
             /** Title */
             title: string;
             /** Url */
             url?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Remote */
+            remote?: boolean | null;
+            /** Department */
+            department?: string | null;
+            /** Employment Type */
+            employment_type?: string | null;
+            /** Posted At */
+            posted_at?: string | null;
         };
         /** SignupRequest */
         SignupRequest: {
