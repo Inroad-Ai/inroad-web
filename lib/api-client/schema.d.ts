@@ -384,6 +384,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApplyUrlState
+         * @description How far a posting's apply link has been shown to work.
+         *
+         *     `board` is the common good case: the posting's board was sampled and
+         *     served a real posting, so its links are taken at their word.
+         *     `verified` is this exact url having been fetched. `fallback` means no
+         *     per-role link can be trusted and the company careers page is the
+         *     honest target. `unverified` is a check that could not be made, which
+         *     is not the same as one that failed.
+         * @enum {string}
+         */
+        ApplyUrlState: "verified" | "board" | "fallback" | "unverified";
         /** Body_parse_resume_api_resume_parse_post */
         Body_parse_resume_api_resume_parse_post: {
             /** File */
@@ -625,6 +638,8 @@ export interface components {
              * @default false
              */
             is_hiring: boolean;
+            /** Company Name */
+            company_name?: string | null;
             /** Open Roles */
             open_roles?: number | null;
             /**
@@ -634,6 +649,8 @@ export interface components {
             source?: string | null;
             /** Careers Url */
             careers_url?: string | null;
+            /** Company Careers Url */
+            company_careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
             /** Role Postings */
@@ -977,12 +994,30 @@ export interface components {
          * @description One open role with its own application link, when the source hands
          *     one back. careers-page extraction only sees titles in scraped markdown,
          *     so url stays None there - callers fall back to careers_url instead.
+         *
+         *     Every field below title is optional because sources differ in what they
+         *     publish: an ATS returns structured detail, a scraped careers page returns
+         *     a line of text.
          */
         RolePosting: {
             /** Title */
             title: string;
             /** Url */
             url?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Remote */
+            remote?: boolean | null;
+            /** Department */
+            department?: string | null;
+            /** Employment Type */
+            employment_type?: string | null;
+            /** Posted At */
+            posted_at?: string | null;
+            /** @default unverified */
+            apply_url_state: components["schemas"]["ApplyUrlState"];
         };
         /** SignupRequest */
         SignupRequest: {
