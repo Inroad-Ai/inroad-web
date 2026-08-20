@@ -384,6 +384,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApplyUrlState
+         * @description How far a posting's apply link has been shown to work.
+         *
+         *     `board` is the common good case: the posting's board was sampled and
+         *     served a real posting, so its links are taken at their word.
+         *     `verified` is this exact url having been fetched. `fallback` means no
+         *     per-role link can be trusted and the company careers page is the
+         *     honest target. `unverified` is a check that could not be made, which
+         *     is not the same as one that failed.
+         * @enum {string}
+         */
+        ApplyUrlState: "verified" | "board" | "fallback" | "unverified";
         /** Body_parse_resume_api_resume_parse_post */
         Body_parse_resume_api_resume_parse_post: {
             /** File */
@@ -1003,6 +1016,8 @@ export interface components {
             employment_type?: string | null;
             /** Posted At */
             posted_at?: string | null;
+            /** @default unverified */
+            apply_url_state: components["schemas"]["ApplyUrlState"];
         };
         /** SignupRequest */
         SignupRequest: {
