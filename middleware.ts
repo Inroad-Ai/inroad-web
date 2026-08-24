@@ -15,7 +15,6 @@ const GATED_PREFIXES = [
   "/profile",
   "/companies",
   "/overview",
-  "/jobs",
 ];
 
 export async function middleware(request: NextRequest) {

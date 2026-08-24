@@ -155,25 +155,6 @@ export interface CompanyListResponse {
   total: number;
 }
 
-/** One row on the shared Job Board (GET /api/jobs) - pooled across every
- * user's research, not scoped to the caller. */
-export interface Job {
-  id: string;
-  title: string;
-  company_name: string;
-  domain: string;
-  url: string | null;
-  source: string | null;
-  discovered_at: string;
-}
-
-export interface JobListResponse {
-  items: Job[];
-  page: number;
-  page_size: number;
-  total: number;
-}
-
 /** One point on the Overview "companies added over time" chart. */
 export interface WeeklyCompanyCount {
   week_start: string;
