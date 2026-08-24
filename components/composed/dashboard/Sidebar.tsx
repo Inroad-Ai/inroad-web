@@ -41,7 +41,7 @@ const NAV: NavEntry[] = [
     // Labelled distinctly from the top-level "Companies" link above -
     // that's the plain list, these are the two stage boards.
     items: [
-      { href: "/companies/pipeline", label: "Stages", icon: BoardIcon },
+      { href: "/companies/pipeline", label: "Stages", icon: BuildingIcon },
       { href: "/contacts", label: "People", icon: UserIcon },
     ],
   },
@@ -143,7 +143,17 @@ function NavGroupAccordion({
       </button>
 
       {open ? (
-        <ul className="mt-1 flex flex-col gap-1 pl-4">
+        // Icon-only rail has no room to indent, so nesting reads instead as
+        // a visually distinct, contained cluster (tinted, rounded) directly
+        // under the trigger. Once there's room for labels and real
+        // indentation (lg and up, not js-collapsed), the tint drops and a
+        // left indent takes over - the label text is what carries the
+        // hierarchy at that point, not a background.
+        <ul
+          className={`mt-1 flex flex-col gap-1 rounded-md bg-surface-raised/70 py-1 ${
+            collapsed ? "" : "lg:bg-transparent lg:py-0 lg:pl-4"
+          }`}
+        >
           {group.items.map((item) => (
             <li key={item.href}>
               <NavItem
