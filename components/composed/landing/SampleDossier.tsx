@@ -66,6 +66,7 @@ const SAMPLE: CompanyDossier = {
     additional_sources: [],
   },
   linkedin: null,
+  people: null,
   profile: null,
   errors: {},
   partial: false,

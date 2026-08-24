@@ -128,6 +128,40 @@ export interface paths {
         patch: operations["update_company_stage_api_companies__company_id__stage_patch"];
         trace?: never;
     };
+    "/api/companies/{company_id}/primary-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Primary Contact */
+        patch: operations["update_primary_contact_api_companies__company_id__primary_contact_patch"];
+        trace?: never;
+    };
+    "/api/people/{person_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Person Stage */
+        patch: operations["update_person_stage_api_people__person_id__stage_patch"];
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -409,6 +443,8 @@ export interface components {
             /** Sample Roles */
             sample_roles?: string[];
             profile?: components["schemas"]["CompanyProfile"] | null;
+            /** Primary Contact Id */
+            primary_contact_id?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -432,6 +468,9 @@ export interface components {
             research_run_count: number;
             /** Recent Research Runs */
             recent_research_runs?: components["schemas"]["ResearchRunSummary"][];
+            /** People */
+            people?: components["schemas"]["PersonOut"][];
+            primary_contact?: components["schemas"]["PersonOut"] | null;
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -441,6 +480,7 @@ export interface components {
             news?: components["schemas"]["NewsResult"] | null;
             hiring?: components["schemas"]["HiringResult"] | null;
             linkedin?: components["schemas"]["LinkedInCompanyResult"] | null;
+            people?: components["schemas"]["PeopleResult"] | null;
             profile?: components["schemas"]["CompanyProfile"] | null;
             /**
              * Errors
@@ -506,6 +546,8 @@ export interface components {
             /** Sample Roles */
             sample_roles?: string[];
             profile?: components["schemas"]["CompanyProfile"] | null;
+            /** Primary Contact Id */
+            primary_contact_id?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -743,6 +785,89 @@ export interface components {
             contacted_within_prior_window: number;
             /** Companies By Week */
             companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
+        };
+        /** PeopleResult */
+        PeopleResult: {
+            /** People */
+            people?: components["schemas"]["Person"][];
+        };
+        /**
+         * Person
+         * @description One named person found at the company. `email`/`linkedin_url` are
+         *     only ever what a source actually published next to their name - never
+         *     guessed or constructed.
+         */
+        Person: {
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Email */
+            email?: string | null;
+            /**
+             * Source
+             * @description team-page | linkedin-search
+             */
+            source: string;
+        };
+        /** PersonOut */
+        PersonOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Source */
+            source?: string | null;
+            stage: components["schemas"]["PersonStage"];
+            /** Contacted At */
+            contacted_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * PersonRole
+         * @enum {string}
+         */
+        PersonRole: "founder" | "co_founder" | "executive" | "hr" | "recruiter" | "employee";
+        /**
+         * PersonStage
+         * @enum {string}
+         */
+        PersonStage: "found" | "contacted" | "replied" | "closed";
+        /** PersonStageUpdate */
+        PersonStageUpdate: {
+            stage: components["schemas"]["PersonStage"];
+        };
+        /** PrimaryContactUpdate */
+        PrimaryContactUpdate: {
+            /** Person Id */
+            person_id?: string | null;
         };
         /** ProfileOut */
         ProfileOut: {
@@ -1295,6 +1420,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_primary_contact_api_companies__company_id__primary_contact_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrimaryContactUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_person_stage_api_people__person_id__stage_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonStageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
                 };
             };
             /** @description Validation Error */

@@ -8,8 +8,10 @@ import type {
   CompanyListResponse,
   CompanySort,
   OverviewStats,
+  Person,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
+import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];
@@ -194,6 +196,42 @@ export async function updateCompanyStage(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+}
+
+/** Who the user has picked as the outreach target for this company. `null`
+ * clears it. Rejects an id that isn't one of this company's own people. */
+export async function setPrimaryContact(
+  companyId: string,
+  personId: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const result = await client.PATCH("/api/companies/{company_id}/primary-contact", {
+    params: { path: { company_id: companyId } },
+    body: { person_id: personId },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+}
+
+/** A first move into "contacted" also stamps contacted_at, same rule as
+ * updateCompanyStage - render the row this returns, not just the stage. */
+export async function updatePersonStage(
+  personId: string,
+  stage: PersonStage,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.PATCH("/api/people/{person_id}/stage", {
+    params: { path: { person_id: personId } },
+    body: { stage },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as Person;
 }
 
 /** Aggregates for the Overview page. */
