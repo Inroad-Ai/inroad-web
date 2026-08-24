@@ -26,6 +26,18 @@ export function ChevronIcon({ isFlipped }: { isFlipped: boolean }) {
   );
 }
 
+/** Points down when closed ("click to reveal what's below"), flips to
+ * point up when open - the accordion-disclosure convention, distinct from
+ * ChevronIcon's left/right pointing, which is for things that move
+ * sideways (the collapse toggle). */
+export function ChevronDownIcon({ open }: { open: boolean }) {
+  return (
+    <Icon className={`transition-transform ${open ? "rotate-180" : ""}`}>
+      <path d="M3.5 6 8 10.5 12.5 6" strokeLinecap="round" strokeLinejoin="round" />
+    </Icon>
+  );
+}
+
 export function GridIcon() {
   return (
     <Icon>

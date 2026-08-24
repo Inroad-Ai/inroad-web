@@ -6,14 +6,14 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 export default function ContactProfilePage({ params }: { params: { id: string } }) {
   return (
     <PageShell
-      title="Contact"
+      title="Person"
       description="Everything found about this person, and their outreach progress."
       action={
         <Link
           href="/contacts"
           className="text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
         >
-          Back to contacts
+          Back to people
         </Link>
       }
     >

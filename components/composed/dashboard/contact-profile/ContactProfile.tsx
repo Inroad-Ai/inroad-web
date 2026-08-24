@@ -84,7 +84,7 @@ export function ContactProfile({ personId }: { personId: string }) {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <Section
-        title="Contact"
+        title="Person"
         meta={
           <Menu
             label={`Move ${detail.name} to another stage`}
