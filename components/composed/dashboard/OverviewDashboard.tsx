@@ -88,7 +88,7 @@ export function OverviewDashboard() {
       <div className="mt-6 rounded-md border border-line bg-surface">
         <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
           <EmptyState>
-            Nothing to show yet. Your overview fills in once you've researched and saved a
+            Nothing to show yet. Your overview fills in once you&apos;ve researched and saved a
             company.
           </EmptyState>
           <Button href="/research">Research a company</Button>
