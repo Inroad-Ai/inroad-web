@@ -11,6 +11,7 @@ import {
   GridIcon,
   SearchIcon,
   SlidersIcon,
+  UserIcon,
 } from "@/components/ui/Icons";
 import { Logo } from "@/components/ui/Logo";
 
@@ -37,6 +38,7 @@ const NAV: NavEntry[] = [
       { href: "/companies/pipeline", label: "Pipeline", icon: BoardIcon },
     ],
   },
+  { href: "/contacts", label: "Contacts", icon: UserIcon },
   { href: "/settings", label: "Settings", icon: SlidersIcon },
 ];
 

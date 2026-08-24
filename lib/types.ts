@@ -150,6 +150,26 @@ export interface Person {
   updated_at: string;
 }
 
+/** GET /api/people - one row per person, across every company, for the
+ * contacts board's columns. */
+export interface PersonListItem extends Person {
+  company_domain: string;
+}
+
+export interface PersonListResponse {
+  items: PersonListItem[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+/** GET /api/people/{id} - a person's own row plus enough about their
+ * company to show context and link back to it. */
+export interface PersonDetail extends Person {
+  company_domain: string;
+  company_homepage_title: string | null;
+}
+
 /** A saved company row. CompanyDossier above is a live, not necessarily saved, result. */
 export interface Company {
   id: string;

@@ -58,6 +58,15 @@ export function BuildingIcon() {
   );
 }
 
+export function UserIcon() {
+  return (
+    <Icon>
+      <circle cx="8" cy="5.25" r="2.75" />
+      <path d="M2.75 13.25c0-2.9 2.35-5.25 5.25-5.25s5.25 2.35 5.25 5.25" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
 export function BoardIcon() {
   return (
     <Icon>
