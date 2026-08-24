@@ -11,15 +11,21 @@ export interface FlyoutItem {
 
 /**
  * A second, full-height sidebar column that docks flush against the rail
- * and overlays the page (backdrop-blurred, not reflowed) - not a floating
- * dropdown. This is the reusable piece: any rail item that groups more
- * than one page renders one of these with its own items, rather than each
- * one growing its own bespoke panel.
+ * and overlays the page (not reflowed) - not a floating dropdown. This is
+ * the reusable piece: any rail item that groups more than one page renders
+ * one of these with its own items, rather than each one growing its own
+ * bespoke panel.
  *
  * `leftOffsetClassName` positions it flush against whatever the rail's
  * current rendered width is - passed in rather than computed here, since
  * that width itself depends on the collapsed/responsive state the rail
  * already owns.
+ *
+ * The backdrop only blurs at `lg` and up: below that, the rail is already
+ * forced icon-only (see globals.css's `.sidebar-desktop` override) and the
+ * flyout is the primary way to reach a group's pages at all on a narrow
+ * screen, not a secondary desktop convenience - blurring the page behind
+ * something that's core navigation there reads as heavier than it should.
  */
 export function SidebarFlyout({
   open,
@@ -43,7 +49,7 @@ export function SidebarFlyout({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="fixed inset-0 z-30 bg-ink/10 backdrop-blur-sm"
+        className="fixed inset-0 z-30 bg-ink/10 lg:backdrop-blur-sm"
       />
       <div
         role="menu"
