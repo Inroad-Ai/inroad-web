@@ -163,9 +163,9 @@ export function ContactProfile({ personId }: { personId: string }) {
         <div className="mt-6 flex items-center gap-3">
           <Button
             variant="primary"
+            size="sm"
             disabled
             title="Outreach isn't built yet - what this does is still being decided."
-            className="px-5 py-2.5"
           >
             Outreach
           </Button>

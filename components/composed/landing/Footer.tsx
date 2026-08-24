@@ -107,7 +107,7 @@ export function Footer() {
               Skip the job board. Find companies that fit, research them properly, and send
               outreach that sounds like a real person did the homework.
             </p>
-            <Button href="/signup" className="px-5 py-3">
+            <Button href="/signup" size="sm">
               Get started
             </Button>
           </div>

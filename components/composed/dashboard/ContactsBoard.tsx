@@ -264,9 +264,10 @@ function ContactsColumn({
       {column.status === "ready" && hasMore ? (
         <Button
           variant="quiet"
+          size="sm"
           onClick={onLoadMore}
           disabled={column.loadingMore}
-          className="mt-2 w-full px-4 py-2 text-sm"
+          className="mt-2 w-full"
         >
           {column.loadingMore ? "Loading..." : `Show more (${column.total - column.items.length} left)`}
         </Button>
