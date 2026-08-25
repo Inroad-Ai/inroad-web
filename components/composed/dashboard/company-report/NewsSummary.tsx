@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 export function NewsSummary({ news }: { news: NewsResult | null }) {
   return (
     <div>
-      <p className="utility-label text-text-secondary/70">News</p>
+      <p className="utility-label font-sans-semibold text-text-secondary">News</p>
       {news === null ? (
         <EmptyState className="mt-2">The news check did not answer on the last run.</EmptyState>
       ) : news.items.length === 0 ? (
