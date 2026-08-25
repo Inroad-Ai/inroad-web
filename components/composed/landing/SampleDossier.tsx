@@ -26,7 +26,6 @@ const SAMPLE: CompanyDossier = {
     body_text: null,
     linkedin_url: null,
     logo_url: null,
-    detected_technologies: [],
   },
   news: {
     query: "stripe.com",
@@ -64,6 +63,7 @@ const SAMPLE: CompanyDossier = {
       "Technical Writer, Developer Docs",
     ],
     additional_sources: [],
+    sample_role_descriptions: [],
   },
   linkedin: null,
   people: null,

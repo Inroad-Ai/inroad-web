@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Section } from "@/components/ui/Section";
 
-import { HomepageSummary } from "./HomepageSummary";
 import { NewsSummary } from "./NewsSummary";
 import { PartialRunNotice } from "./PartialRunNotice";
 
@@ -39,8 +38,7 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
           than letting the empty fields below read as "nothing to report". */}
       {research.partial ? <PartialRunNotice errors={research.errors} /> : null}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <HomepageSummary homepage={research.homepage} />
+      <div className="grid gap-8">
         <NewsSummary news={research.news} />
       </div>
     </Section>

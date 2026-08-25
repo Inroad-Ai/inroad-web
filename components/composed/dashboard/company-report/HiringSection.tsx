@@ -46,7 +46,7 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
       </dl>
 
       <div className="mt-6">
-        <p className="utility-label text-text-secondary/70">Open roles</p>
+        <p className="utility-label font-sans-semibold text-text-secondary">Open roles</p>
         {detail.sample_roles.length === 0 ? (
           <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
         ) : (
@@ -62,7 +62,7 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
 
       {additionalSources.length > 0 ? (
         <div className="mt-6">
-          <p className="utility-label text-text-secondary/70">Also listed on</p>
+          <p className="utility-label font-sans-semibold text-text-secondary">Also listed on</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {additionalSources.map((source) => (
               <Badge key={source} tone="neutral">

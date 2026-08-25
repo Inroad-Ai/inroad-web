@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 export function DataField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="utility-label text-text-secondary/70">{label}</dt>
+      <dt className="utility-label font-sans-semibold text-text-secondary">{label}</dt>
       <dd className="mt-1 font-sans text-sm text-ink">{children}</dd>
     </div>
   );
