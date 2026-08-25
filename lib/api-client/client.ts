@@ -283,6 +283,23 @@ export async function fetchPerson(
   return unwrap(result, PEOPLE_UNREACHABLE) as PersonDetail;
 }
 
+/** Fills email/linkedin_url from the caller's own connected Apollo account -
+ * only ever fills a gap, never overwrites what's already there. Render the
+ * row this returns: it may come back unchanged if Apollo had nothing new. */
+export async function enrichPersonWithApollo(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.POST("/api/people/{person_id}/enrich", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as Person;
+}
+
 /** A first move into "contacted" also stamps contacted_at, same rule as
  * updateCompanyStage - render the row this returns, not just the stage. */
 export async function updatePersonStage(

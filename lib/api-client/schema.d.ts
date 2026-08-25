@@ -196,6 +196,23 @@ export interface paths {
         patch: operations["update_person_stage_api_people__person_id__stage_patch"];
         trace?: never;
     };
+    "/api/people/{person_id}/enrich": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enrich Person */
+        post: operations["enrich_person_api_people__person_id__enrich_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -941,7 +958,10 @@ export interface components {
          * Person
          * @description One named person found at the company. `email`/`linkedin_url` are
          *     only ever what a source actually published next to their name - never
-         *     guessed or constructed.
+         *     guessed or constructed - except a deliberate, tagged exception: Apollo
+         *     enrichment (services/apollo_enrichment.py) fills email for people the
+         *     linkedin-search tier found none for, from a third-party lookup rather
+         *     than the page itself, marked by the "+apollo" source suffix.
          */
         Person: {
             /** Name */
@@ -955,7 +975,7 @@ export interface components {
             email?: string | null;
             /**
              * Source
-             * @description team-page | linkedin-search
+             * @description team-page | linkedin-search, possibly suffixed +apollo
              */
             source: string;
         };
@@ -1796,6 +1816,39 @@ export interface operations {
                 "application/json": components["schemas"]["PersonStageUpdate"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enrich_person_api_people__person_id__enrich_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
