@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { ConnectorCard } from "@/components/composed/dashboard/ConnectorCard";
+import { ConnectorCard } from "@/components/composed/dashboard/integrations/ConnectorCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useConnections } from "@/hooks/useConnections";
