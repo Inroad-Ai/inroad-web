@@ -712,6 +712,8 @@ export interface components {
             role_postings?: components["schemas"]["RolePosting"][];
             /** Additional Sources */
             additional_sources?: string[];
+            /** Sample Role Descriptions */
+            sample_role_descriptions?: string[];
         };
         /** HomepageResult */
         HomepageResult: {
@@ -750,8 +752,6 @@ export interface components {
              * @description apple-touch-icon / favicon / og:image, in that preference order
              */
             logo_url?: string | null;
-            /** Detected Technologies */
-            detected_technologies?: string[];
         };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {

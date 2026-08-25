@@ -20,9 +20,6 @@ export interface HomepageResult {
   linkedin_url: string | null;
   /** apple-touch-icon / favicon / og:image, in that preference order. */
   logo_url: string | null;
-  /** Best-effort brand fingerprints (script src, meta generator). Synthesis
-   * input, not a real dependency scan. */
-  detected_technologies: string[];
 }
 
 export interface NewsItem {
@@ -53,6 +50,9 @@ export interface HiringResult {
   /** Platforms beyond `source` that also confirmed hiring: "indeed" |
    * "linkedin-jobs". Presence signal only, no role titles. */
   additional_sources: string[];
+  /** "<title>: <excerpt>" for sampled postings that published a body.
+   * Synthesis input for tech_stack, not rendered anywhere. */
+  sample_role_descriptions: string[];
 }
 
 export interface LinkedInCompanyResult {

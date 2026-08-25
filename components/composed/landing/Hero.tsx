@@ -21,7 +21,6 @@ const PREVIEW: CompanyDossier = {
     body_text: null,
     linkedin_url: null,
     logo_url: null,
-    detected_technologies: [],
   },
   news: {
     query: "stripe.com",
@@ -52,6 +51,7 @@ const PREVIEW: CompanyDossier = {
       "Account Executive, Mid-Market",
     ],
     additional_sources: [],
+    sample_role_descriptions: [],
   },
   linkedin: null,
   people: null,
