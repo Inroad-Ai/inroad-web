@@ -13,14 +13,15 @@ const KNOWN_PROVIDERS = [
     provider: "apollo",
     label: "Apollo.io",
     description: "Fills in missing emails for people found via LinkedIn search.",
+    logoSrc: "/logos/apollo.svg",
   },
 ] as const;
 
 function IntegrationsSkeleton() {
   return (
-    <div className="mt-8 flex flex-col gap-4">
+    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {KNOWN_PROVIDERS.map((entry) => (
-        <Skeleton key={entry.provider} className="h-32 rounded-md" />
+        <Skeleton key={entry.provider} className="h-44 rounded-md" />
       ))}
     </div>
   );
@@ -44,13 +45,14 @@ export function IntegrationsBoard() {
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-4">
+    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {KNOWN_PROVIDERS.map((entry) => (
         <ConnectorCard
           key={entry.provider}
           provider={entry.provider}
           label={entry.label}
           description={entry.description}
+          logoSrc={entry.logoSrc}
           connection={connections.find((c) => c.provider === entry.provider) ?? null}
           onConnected={handleConnected}
           onDisconnected={handleDisconnected}
