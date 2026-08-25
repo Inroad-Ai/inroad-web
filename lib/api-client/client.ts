@@ -489,3 +489,18 @@ export async function deleteConnection(
 
   if (result.response.status !== 204) unwrap(result, CONNECTIONS_UNREACHABLE);
 }
+
+/** Returns the URL to send the browser to - a full page navigation, not a
+ * fetch: Apollo's own login redirect can't be followed by an XHR, same
+ * reasoning as googleSignInUrl. The caller does `window.location.href = ...`. */
+export async function startApolloOAuth(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const result = await client.POST("/api/connections/apollo/oauth/start", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE).authorize_url;
+}

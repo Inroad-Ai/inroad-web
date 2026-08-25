@@ -462,6 +462,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connections/apollo/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Apollo Oauth
+         * @description Authenticated (unlike the callback below): only an already-signed-in
+         *     Inroad user can start a connect. Returns the URL rather than redirecting
+         *     itself, since the caller is a fetch, not a browser navigation - the
+         *     frontend does the actual navigation once it has this.
+         */
+        post: operations["start_apollo_oauth_api_connections_apollo_oauth_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/apollo/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Apollo Oauth Callback
+         * @description No Authorization header on this request - it's Apollo redirecting the
+         *     user's browser, not a fetch - so state is what says which Inroad user
+         *     this is for (see apollo_oauth.create_connect_state).
+         */
+        get: operations["apollo_oauth_callback_api_connections_apollo_oauth_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -864,6 +909,11 @@ export interface components {
             count: number;
             /** Items */
             items?: components["schemas"]["NewsItem"][];
+        };
+        /** OAuthStartOut */
+        OAuthStartOut: {
+            /** Authorize Url */
+            authorize_url: string;
         };
         /** OverviewStats */
         OverviewStats: {
@@ -2303,6 +2353,70 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_apollo_oauth_api_connections_apollo_oauth_start_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthStartOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    apollo_oauth_callback_api_connections_apollo_oauth_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
             };
             /** @description Validation Error */
             422: {
