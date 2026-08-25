@@ -109,6 +109,16 @@ export function ExternalLinkIcon() {
   );
 }
 
+export function PlugIcon() {
+  return (
+    <Icon>
+      <path d="M5.5 1.75v3M10.5 1.75v3" strokeLinecap="round" />
+      <path d="M3.75 4.75h8.5v2.5a4.25 4.25 0 0 1-4.25 4.25 4.25 4.25 0 0 1-4.25-4.25v-2.5Z" strokeLinejoin="round" />
+      <path d="M8 11.5v2.75" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
 export function SignOutIcon() {
   return (
     <Icon>

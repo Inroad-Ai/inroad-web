@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { fetchPerson, updatePersonStage } from "@/lib/api-client/client";
+import { ApiError, enrichPerson, fetchPerson, updatePersonStage } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { formatTimestamp } from "@/lib/format";
 import { PERSON_ROLE_LABEL, type PersonDetail } from "@/lib/types";
@@ -17,6 +17,20 @@ import { Section } from "@/components/ui/Section";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this contact.";
 
+const PROVIDER_LABEL: Record<string, string> = {
+  apollo: "Apollo.io",
+  hunter: "Hunter.io",
+};
+
+/** enrich_person tags `source` with "+<provider>" for whichever connector
+ * actually found the match (see people_records.enrich_person) - this reads
+ * that back out for display rather than the backend returning it as a
+ * separate field. */
+function providerLabelFromSource(source: string | null | undefined): string | null {
+  const tag = source?.split("+").pop();
+  return tag ? (PROVIDER_LABEL[tag] ?? null) : null;
+}
+
 type LoadState = "loading" | "error" | "ready";
 
 export function ContactProfile({ personId }: { personId: string }) {
@@ -25,6 +39,10 @@ export function ContactProfile({ personId }: { personId: string }) {
   const [loadError, setLoadError] = useState("");
   const [moving, setMoving] = useState(false);
   const [moveError, setMoveError] = useState("");
+  const [enriching, setEnriching] = useState(false);
+  const [enrichMessage, setEnrichMessage] = useState<{ text: string; isError: boolean } | null>(
+    null,
+  );
 
   const accessToken = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -62,6 +80,36 @@ export function ContactProfile({ personId }: { personId: string }) {
       setMoveError(err instanceof Error ? err.message : "Could not update this contact's stage.");
     } finally {
       setMoving(false);
+    }
+  }
+
+  async function enrichContact() {
+    if (!detail) return;
+    setEnriching(true);
+    setEnrichMessage(null);
+    try {
+      const before = detail;
+      const updated = await enrichPerson(detail.id, await accessToken());
+      setDetail((current) => (current === null ? current : { ...current, ...updated }));
+      const foundSomething =
+        (!before.email && updated.email) || (!before.linkedin_url && updated.linkedin_url);
+      const providerLabel = foundSomething ? providerLabelFromSource(updated.source) : null;
+      setEnrichMessage({
+        text: foundSomething
+          ? `Found new info${providerLabel ? ` via ${providerLabel}` : ""}.`
+          : "No connected provider had anything new for this person.",
+        isError: false,
+      });
+    } catch (err) {
+      const text =
+        err instanceof ApiError && err.code === "no_enrichment_provider_connected"
+          ? "Connect an enrichment connector on the Integrations page first."
+          : err instanceof Error
+            ? err.message
+            : "Could not reach any connected provider.";
+      setEnrichMessage({ text, isError: true });
+    } finally {
+      setEnriching(false);
     }
   }
 
@@ -160,7 +208,7 @@ export function ContactProfile({ personId }: { personId: string }) {
           </DataField>
         </dl>
 
-        <div className="mt-6 flex items-center gap-3">
+        <div className="mt-6 flex flex-wrap items-center gap-3">
           <Button
             variant="primary"
             size="sm"
@@ -172,6 +220,30 @@ export function ContactProfile({ personId }: { personId: string }) {
           <span className="text-xs text-text-secondary/70">
             Not wired up yet - what this button does is still being decided.
           </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Button
+            variant="quiet"
+            size="sm"
+            type="button"
+            onClick={enrichContact}
+            disabled={enriching || (Boolean(detail.email) && Boolean(detail.linkedin_url))}
+          >
+            {enriching ? "Looking up..." : "Find contact info"}
+          </Button>
+          {enrichMessage ? (
+            <p
+              className={`text-xs ${enrichMessage.isError ? "text-muted-rose" : "text-text-secondary"}`}
+              role={enrichMessage.isError ? "alert" : undefined}
+            >
+              {enrichMessage.text}
+            </p>
+          ) : Boolean(detail.email) && Boolean(detail.linkedin_url) ? (
+            <span className="text-xs text-text-secondary/70">
+              Already has both an email and a LinkedIn profile.
+            </span>
+          ) : null}
         </div>
       </Section>
     </div>

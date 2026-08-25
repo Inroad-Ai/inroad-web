@@ -20,6 +20,11 @@ export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
 export type Profile = components["schemas"]["ProfileOut"];
 export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
+export type Connection = components["schemas"]["ConnectionOut"];
+// Mirrors schemas/connection.py's ConnectionProvider literal - widens on its
+// own the next time schema.d.ts is regenerated after a new provider ships.
+export type ConnectionProvider =
+  paths["/api/connections/{provider}"]["put"]["parameters"]["path"]["provider"];
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
@@ -278,6 +283,26 @@ export async function fetchPerson(
   return unwrap(result, PEOPLE_UNREACHABLE) as PersonDetail;
 }
 
+/** Fills email/linkedin_url from whichever enrichment connector the caller
+ * has connected (tried in a fixed priority order server-side) - only ever
+ * fills a gap, never overwrites what's already there. Render the row this
+ * returns: it may come back unchanged if nothing connected had anything
+ * new. `source` on the response is suffixed with whichever provider found
+ * it, e.g. "linkedin-search+hunter". */
+export async function enrichPerson(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.POST("/api/people/{person_id}/enrich", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as Person;
+}
+
 /** A first move into "contacted" also stamps contacted_at, same rule as
  * updateCompanyStage - render the row this returns, not just the stage. */
 export async function updatePersonStage(
@@ -434,4 +459,68 @@ export async function saveProfile(
   });
 
   return unwrap(result, PROFILE_UNREACHABLE);
+}
+
+// --- connections ---
+
+const CONNECTIONS_UNREACHABLE = "Could not reach the connections service.";
+
+/** Every provider the caller has ever saved a key for. Empty on first visit. */
+export async function fetchConnections(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection[]> {
+  const result = await client.GET("/api/connections", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+/** Validates the key against the provider before saving - a rejected key
+ * comes back as a 422 with code "connection_invalid", nothing is persisted. */
+export async function saveConnection(
+  provider: ConnectionProvider,
+  apiKey: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection> {
+  const result = await client.PUT("/api/connections/{provider}", {
+    params: { path: { provider } },
+    body: { api_key: apiKey },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+export async function deleteConnection(
+  provider: ConnectionProvider,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const result = await client.DELETE("/api/connections/{provider}", {
+    params: { path: { provider } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  if (result.response.status !== 204) unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+/** Returns the URL to send the browser to - a full page navigation, not a
+ * fetch: Apollo's own login redirect can't be followed by an XHR, same
+ * reasoning as googleSignInUrl. The caller does `window.location.href = ...`. */
+export async function startApolloOAuth(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const result = await client.POST("/api/connections/apollo/oauth/start", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE).authorize_url;
 }
