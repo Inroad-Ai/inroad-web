@@ -283,10 +283,13 @@ export async function fetchPerson(
   return unwrap(result, PEOPLE_UNREACHABLE) as PersonDetail;
 }
 
-/** Fills email/linkedin_url from the caller's own connected Apollo account -
- * only ever fills a gap, never overwrites what's already there. Render the
- * row this returns: it may come back unchanged if Apollo had nothing new. */
-export async function enrichPersonWithApollo(
+/** Fills email/linkedin_url from whichever enrichment connector the caller
+ * has connected (tried in a fixed priority order server-side) - only ever
+ * fills a gap, never overwrites what's already there. Render the row this
+ * returns: it may come back unchanged if nothing connected had anything
+ * new. `source` on the response is suffixed with whichever provider found
+ * it, e.g. "linkedin-search+hunter". */
+export async function enrichPerson(
   personId: string,
   accessToken: string,
   signal?: AbortSignal,

@@ -23,6 +23,15 @@ const KNOWN_PROVIDERS = [
     logoSrc: "/logos/apollo.svg",
     authMode: "oauth",
   },
+  {
+    provider: "hunter",
+    label: "Hunter.io",
+    description:
+      "Fills in missing emails for people found via LinkedIn search. Free plan includes " +
+      "50 lookups/month with no card required - a good fallback when Apollo doesn't have a match.",
+    logoSrc: "/logos/hunter.png",
+    authMode: "api_key",
+  },
 ] as const;
 
 function IntegrationsSkeleton() {

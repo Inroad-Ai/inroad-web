@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-import { ApiError, enrichPersonWithApollo, fetchPerson, updatePersonStage } from "@/lib/api-client/client";
+import { ApiError, enrichPerson, fetchPerson, updatePersonStage } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { formatTimestamp } from "@/lib/format";
 import { PERSON_ROLE_LABEL, type PersonDetail } from "@/lib/types";
@@ -16,6 +16,20 @@ import { PERSON_STAGES, PersonStageBadge } from "@/components/ui/PersonStageBadg
 import { Section } from "@/components/ui/Section";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this contact.";
+
+const PROVIDER_LABEL: Record<string, string> = {
+  apollo: "Apollo.io",
+  hunter: "Hunter.io",
+};
+
+/** enrich_person tags `source` with "+<provider>" for whichever connector
+ * actually found the match (see people_records.enrich_person) - this reads
+ * that back out for display rather than the backend returning it as a
+ * separate field. */
+function providerLabelFromSource(source: string | null | undefined): string | null {
+  const tag = source?.split("+").pop();
+  return tag ? (PROVIDER_LABEL[tag] ?? null) : null;
+}
 
 type LoadState = "loading" | "error" | "ready";
 
@@ -69,27 +83,30 @@ export function ContactProfile({ personId }: { personId: string }) {
     }
   }
 
-  async function enrichWithApollo() {
+  async function enrichContact() {
     if (!detail) return;
     setEnriching(true);
     setEnrichMessage(null);
     try {
       const before = detail;
-      const updated = await enrichPersonWithApollo(detail.id, await accessToken());
+      const updated = await enrichPerson(detail.id, await accessToken());
       setDetail((current) => (current === null ? current : { ...current, ...updated }));
       const foundSomething =
         (!before.email && updated.email) || (!before.linkedin_url && updated.linkedin_url);
+      const providerLabel = foundSomething ? providerLabelFromSource(updated.source) : null;
       setEnrichMessage({
-        text: foundSomething ? "Found new info from Apollo." : "Apollo had nothing new for this person.",
+        text: foundSomething
+          ? `Found new info${providerLabel ? ` via ${providerLabel}` : ""}.`
+          : "No connected provider had anything new for this person.",
         isError: false,
       });
     } catch (err) {
       const text =
-        err instanceof ApiError && err.code === "apollo_not_connected"
-          ? "Connect your Apollo account on the Integrations page first."
+        err instanceof ApiError && err.code === "no_enrichment_provider_connected"
+          ? "Connect an enrichment connector on the Integrations page first."
           : err instanceof Error
             ? err.message
-            : "Could not reach Apollo.";
+            : "Could not reach any connected provider.";
       setEnrichMessage({ text, isError: true });
     } finally {
       setEnriching(false);
@@ -210,10 +227,10 @@ export function ContactProfile({ personId }: { personId: string }) {
             variant="quiet"
             size="sm"
             type="button"
-            onClick={enrichWithApollo}
+            onClick={enrichContact}
             disabled={enriching || (Boolean(detail.email) && Boolean(detail.linkedin_url))}
           >
-            {enriching ? "Looking up..." : "Find with Apollo"}
+            {enriching ? "Looking up..." : "Find contact info"}
           </Button>
           {enrichMessage ? (
             <p

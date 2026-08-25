@@ -2357,7 +2357,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo";
+                provider: "apollo" | "hunter";
             };
             cookie?: never;
         };
@@ -2394,7 +2394,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo";
+                provider: "apollo" | "hunter";
             };
             cookie?: never;
         };
