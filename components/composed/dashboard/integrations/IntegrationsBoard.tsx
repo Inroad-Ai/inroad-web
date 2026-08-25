@@ -16,7 +16,10 @@ const KNOWN_PROVIDERS = [
   {
     provider: "apollo",
     label: "Apollo.io",
-    description: "Fills in missing emails for people found via LinkedIn search.",
+    description:
+      "Fills in missing emails for people found via LinkedIn search. Requires an Apollo " +
+      "plan with API access to People Enrichment - Apollo gates raw API calls above its " +
+      "lower tiers, separate from its no-code Zapier/CRM integrations.",
     logoSrc: "/logos/apollo.svg",
     authMode: "oauth",
   },
