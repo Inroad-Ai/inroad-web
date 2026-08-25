@@ -57,11 +57,11 @@ export function Nav() {
         </div>
 
         {signedIn ? (
-          <Button href="/research" className="px-4 py-2 text-sm">
+          <Button href="/research" size="sm">
             Dashboard
           </Button>
         ) : (
-          <Button href="/signup" className="px-4 py-2 text-sm">
+          <Button href="/signup" size="sm">
             Get started
           </Button>
         )}

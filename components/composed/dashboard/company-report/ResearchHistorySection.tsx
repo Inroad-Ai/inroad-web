@@ -42,8 +42,9 @@ export function ResearchHistorySection({ detail }: { detail: CompanyDetail }) {
           {collapsible ? (
             <Button
               variant="quiet"
+              size="sm"
               onClick={() => setExpanded((value) => !value)}
-              className="mt-4 px-5 py-2.5"
+              className="mt-4"
             >
               {expanded ? "Show fewer" : `Show all ${runs.length} recent runs`}
             </Button>

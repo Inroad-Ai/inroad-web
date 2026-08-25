@@ -69,7 +69,7 @@ export function NotesSection({
         placeholder="Who you spoke to, what you sent, what to follow up on."
       />
       <div className="mt-3 flex items-center gap-4">
-        <Button variant="quiet" onClick={save} disabled={saving || !dirty} className="px-5 py-2.5">
+        <Button variant="quiet" size="sm" onClick={save} disabled={saving || !dirty}>
           {saving ? "Saving..." : "Save notes"}
         </Button>
         <span className="text-xs text-text-secondary/70">

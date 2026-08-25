@@ -8,8 +8,12 @@ import type {
   CompanyListResponse,
   CompanySort,
   OverviewStats,
+  Person,
+  PersonDetail,
+  PersonListResponse,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
+import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];
@@ -196,6 +200,24 @@ export async function updateCompanyStage(
   return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
+/** Who the user has picked as the outreach target for this company. `null`
+ * clears it. Rejects an id that isn't one of this company's own people. */
+export async function setPrimaryContact(
+  companyId: string,
+  personId: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const result = await client.PATCH("/api/companies/{company_id}/primary-contact", {
+    params: { path: { company_id: companyId } },
+    body: { person_id: personId },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+}
+
 /** Aggregates for the Overview page. */
 export async function fetchOverviewStats(
   accessToken: string,
@@ -209,6 +231,69 @@ export async function fetchOverviewStats(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as OverviewStats;
+}
+
+// --- people ---
+
+const PEOPLE_UNREACHABLE =
+  "Could not reach the people service. Check that it is running and that this origin is allowed.";
+
+export interface FetchPeopleParams {
+  stage?: PersonStage;
+  page?: number;
+  pageSize?: number;
+}
+
+/** One row per person, across every company - what the contacts board's
+ * columns page through. */
+export async function fetchPeople(
+  params: FetchPeopleParams,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PersonListResponse> {
+  const result = await client.GET("/api/people", {
+    params: {
+      query: { stage: params.stage, page: params.page, page_size: params.pageSize },
+    },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as PersonListResponse;
+}
+
+/** A person's own row plus enough about their company to show context and
+ * link back to it. */
+export async function fetchPerson(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PersonDetail> {
+  const result = await client.GET("/api/people/{person_id}", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as PersonDetail;
+}
+
+/** A first move into "contacted" also stamps contacted_at, same rule as
+ * updateCompanyStage - render the row this returns, not just the stage. */
+export async function updatePersonStage(
+  personId: string,
+  stage: PersonStage,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.PATCH("/api/people/{person_id}/stage", {
+    params: { path: { person_id: personId } },
+    body: { stage },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as Person;
 }
 
 // --- auth ---

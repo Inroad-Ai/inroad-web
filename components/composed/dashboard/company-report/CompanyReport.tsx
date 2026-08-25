@@ -12,6 +12,7 @@ import { HiringSection } from "./HiringSection";
 import { IdentityHeader } from "./IdentityHeader";
 import { LatestResearchSection } from "./LatestResearchSection";
 import { NotesSection } from "./NotesSection";
+import { PeopleSection } from "./PeopleSection";
 import { ProfileSection } from "./ProfileSection";
 import { ResearchHistorySection } from "./ResearchHistorySection";
 
@@ -68,6 +69,7 @@ export function CompanyReport({ companyId }: { companyId: string }) {
       <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
       <ProfileSection detail={detail} />
       <HiringSection detail={detail} />
+      <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
       <LatestResearchSection detail={detail} />
       <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
       <ResearchHistorySection detail={detail} />

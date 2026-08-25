@@ -114,7 +114,7 @@ export function IdentityHeader({
               }))}
             />
           </div>
-          <Button onClick={rerunResearch} disabled={rerunning} className="px-5 py-2.5">
+          <Button size="sm" onClick={rerunResearch} disabled={rerunning}>
             {rerunning ? "Checking again..." : "Run research again"}
           </Button>
           <p className="utility-label text-text-secondary/70">

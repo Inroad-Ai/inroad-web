@@ -5,6 +5,7 @@
  */
 
 import type { PipelineStage } from "@/components/ui/StatusBadge";
+import type { PersonStage } from "@/components/ui/PersonStageBadge";
 
 export interface HomepageResult {
   url: string;
@@ -73,12 +74,49 @@ export interface CompanyProfile {
   why_reach_out_now: string | null;
 }
 
+/** Mirrors the `people.role_category` CHECK constraint; update both together. */
+export const PERSON_ROLES = [
+  "founder",
+  "co_founder",
+  "executive",
+  "hr",
+  "recruiter",
+  "employee",
+] as const;
+export type PersonRole = (typeof PERSON_ROLES)[number];
+
+export const PERSON_ROLE_LABEL: Record<PersonRole, string> = {
+  founder: "Founder",
+  co_founder: "Co-Founder",
+  executive: "Executive",
+  hr: "HR",
+  recruiter: "Recruiter",
+  employee: "Employee",
+};
+
+/** Mirrors app/schemas/dossier.py Person - one research run's raw find, no
+ * id and no pipeline stage. See `Person` below for the persisted row. */
+export interface DossierPerson {
+  name: string;
+  role_category: PersonRole;
+  title: string | null;
+  linkedin_url: string | null;
+  email: string | null;
+  /** "team-page" | "linkedin-search" */
+  source: string;
+}
+
+export interface PeopleResult {
+  people: DossierPerson[];
+}
+
 export interface CompanyDossier {
   domain: string;
   homepage: HomepageResult | null;
   news: NewsResult | null;
   hiring: HiringResult | null;
   linkedin: LinkedInCompanyResult | null;
+  people: PeopleResult | null;
   profile: CompanyProfile | null;
   /** Source name -> reason. Only contains entries for sources that failed. */
   errors: Record<string, string>;
@@ -93,6 +131,44 @@ export interface CompanyDossier {
  * mockup (Hero, SampleDossier) still renders this layout. */
 export const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
 export type SourceKey = (typeof SOURCE_KEYS)[number];
+
+/** Mirrors app/schemas/people.py PersonOut - a person's row as it persists
+ * across research runs, with its own pipeline stage. See `DossierPerson`
+ * above for one run's raw, unpersisted find. */
+export interface Person {
+  id: string;
+  company_id: string;
+  name: string;
+  role_category: PersonRole;
+  title: string | null;
+  email: string | null;
+  linkedin_url: string | null;
+  source: string | null;
+  stage: PersonStage;
+  contacted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** GET /api/people - one row per person, across every company, for the
+ * contacts board's columns. */
+export interface PersonListItem extends Person {
+  company_domain: string;
+}
+
+export interface PersonListResponse {
+  items: PersonListItem[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+/** GET /api/people/{id} - a person's own row plus enough about their
+ * company to show context and link back to it. */
+export interface PersonDetail extends Person {
+  company_domain: string;
+  company_homepage_title: string | null;
+}
 
 /** A saved company row. CompanyDossier above is a live, not necessarily saved, result. */
 export interface Company {
@@ -113,6 +189,7 @@ export interface Company {
   company_careers_url: string | null;
   sample_roles: string[];
   profile: CompanyProfile | null;
+  primary_contact_id: string | null;
   stage: PipelineStage;
   contacted_at: string | null;
   notes: string | null;
@@ -136,6 +213,8 @@ export interface CompanyDetail extends Company {
   research_run_count: number;
   /** Newest first, capped by the backend, so this can be shorter than the count. */
   recent_research_runs: ResearchRunSummary[];
+  people: Person[];
+  primary_contact: Person | null;
 }
 
 export const COMPANY_SORTS = [
