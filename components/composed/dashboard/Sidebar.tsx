@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   ChevronIcon,
   GridIcon,
+  PlugIcon,
   SearchIcon,
   SlidersIcon,
   UserIcon,
@@ -45,6 +46,7 @@ const NAV: NavEntry[] = [
       { href: "/contacts", label: "People", icon: UserIcon },
     ],
   },
+  { href: "/integrations", label: "Integrations", icon: PlugIcon },
   { href: "/settings", label: "Settings", icon: SlidersIcon },
 ];
 

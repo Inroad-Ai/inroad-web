@@ -20,6 +20,11 @@ export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
 export type Profile = components["schemas"]["ProfileOut"];
 export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
+export type Connection = components["schemas"]["ConnectionOut"];
+// Mirrors schemas/connection.py's ConnectionProvider literal - widens on its
+// own the next time schema.d.ts is regenerated after a new provider ships.
+export type ConnectionProvider =
+  paths["/api/connections/{provider}"]["put"]["parameters"]["path"]["provider"];
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
@@ -434,4 +439,53 @@ export async function saveProfile(
   });
 
   return unwrap(result, PROFILE_UNREACHABLE);
+}
+
+// --- connections ---
+
+const CONNECTIONS_UNREACHABLE = "Could not reach the connections service.";
+
+/** Every provider the caller has ever saved a key for. Empty on first visit. */
+export async function fetchConnections(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection[]> {
+  const result = await client.GET("/api/connections", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+/** Validates the key against the provider before saving - a rejected key
+ * comes back as a 422 with code "connection_invalid", nothing is persisted. */
+export async function saveConnection(
+  provider: ConnectionProvider,
+  apiKey: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection> {
+  const result = await client.PUT("/api/connections/{provider}", {
+    params: { path: { provider } },
+    body: { api_key: apiKey },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+export async function deleteConnection(
+  provider: ConnectionProvider,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const result = await client.DELETE("/api/connections/{provider}", {
+    params: { path: { provider } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  if (result.response.status !== 204) unwrap(result, CONNECTIONS_UNREACHABLE);
 }
