@@ -14,6 +14,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Menu } from "@/components/ui/Menu";
 import { PERSON_STAGES, PersonStageBadge } from "@/components/ui/PersonStageBadge";
 import { Section } from "@/components/ui/Section";
+import { useOutreachDrafts } from "@/hooks/useOutreachDrafts";
+import { OutreachDrafts } from "./OutreachDrafts";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this contact.";
 
@@ -43,6 +45,8 @@ export function ContactProfile({ personId }: { personId: string }) {
   const [enrichMessage, setEnrichMessage] = useState<{ text: string; isError: boolean } | null>(
     null,
   );
+
+  const outreach = useOutreachDrafts(personId);
 
   const accessToken = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -212,14 +216,27 @@ export function ContactProfile({ personId }: { personId: string }) {
           <Button
             variant="primary"
             size="sm"
-            disabled
-            title="Outreach isn't built yet - what this does is still being decided."
+            type="button"
+            onClick={outreach.draft}
+            disabled={outreach.drafting || outreach.loading}
           >
-            Outreach
+            {outreach.drafting
+              ? "Drafting..."
+              : outreach.drafts.length > 0
+                ? "Draft again"
+                : "Outreach"}
           </Button>
-          <span className="text-xs text-text-secondary/70">
-            Not wired up yet - what this button does is still being decided.
-          </span>
+          {outreach.error ? (
+            <p className="text-xs text-muted-rose" role="alert">
+              {outreach.error}
+            </p>
+          ) : (
+            <span className="text-xs text-text-secondary/70">
+              {outreach.drafts.length > 0
+                ? "Drafting again replaces both drafts below, edits included."
+                : "Writes an email and a LinkedIn message from this company's research and your profile."}
+            </span>
+          )}
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -246,6 +263,14 @@ export function ContactProfile({ personId }: { personId: string }) {
           ) : null}
         </div>
       </Section>
+
+      <OutreachDrafts
+        drafts={outreach.drafts}
+        personId={detail.id}
+        personEmail={detail.email}
+        personLinkedinUrl={detail.linkedin_url}
+        onSaved={outreach.replaceDraft}
+      />
     </div>
   );
 }

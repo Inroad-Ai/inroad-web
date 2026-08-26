@@ -26,6 +26,8 @@ export type Connection = components["schemas"]["ConnectionOut"];
 export type ConnectionProvider =
   paths["/api/connections/{provider}"]["put"]["parameters"]["path"]["provider"];
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
+export type OutreachDraft = components["schemas"]["OutreachDraftOut"];
+export type OutreachChannel = components["schemas"]["OutreachChannel"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -319,6 +321,60 @@ export async function updatePersonStage(
   });
 
   return unwrap(result, PEOPLE_UNREACHABLE) as Person;
+}
+
+// --- outreach ---
+
+const OUTREACH_UNREACHABLE = "Could not reach the outreach service.";
+
+/** Both channels or neither: the backend drafts email and LinkedIn in one
+ * call and saves them together, so a response with one row means a bug, not
+ * a half-finished draft to render. */
+export async function fetchOutreachDrafts(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft[]> {
+  const result = await client.GET("/api/people/{person_id}/outreach", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+}
+
+/** Replaces whatever was there, saved edits included - asking for a new
+ * draft is asking for the old one to go. */
+export async function draftOutreach(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft[]> {
+  const result = await client.POST("/api/people/{person_id}/outreach", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+}
+
+export async function saveOutreachDraft(
+  personId: string,
+  channel: OutreachChannel,
+  draft: { subject: string | null; body: string },
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft> {
+  const result = await client.PATCH("/api/people/{person_id}/outreach/{channel}", {
+    params: { path: { person_id: personId, channel } },
+    body: draft,
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft;
 }
 
 // --- auth ---

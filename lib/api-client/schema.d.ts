@@ -213,6 +213,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/people/{person_id}/outreach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Outreach Drafts
+         * @description Unpaginated, unlike every other list route: a unique constraint on
+         *     (person_id, channel) caps this at one row per channel.
+         */
+        get: operations["list_outreach_drafts_api_people__person_id__outreach_get"];
+        put?: never;
+        /** Draft Outreach */
+        post: operations["draft_outreach_api_people__person_id__outreach_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/{channel}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save Outreach Draft */
+        patch: operations["save_outreach_draft_api_people__person_id__outreach__channel__patch"];
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -931,6 +970,46 @@ export interface components {
         OAuthStartOut: {
             /** Authorize Url */
             authorize_url: string;
+        };
+        /**
+         * OutreachChannel
+         * @enum {string}
+         */
+        OutreachChannel: "email" | "linkedin";
+        /** OutreachDraftEdit */
+        OutreachDraftEdit: {
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+        };
+        /** OutreachDraftOut */
+        OutreachDraftOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            channel: components["schemas"]["OutreachChannel"];
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** OverviewStats */
         OverviewStats: {
@@ -1857,6 +1936,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_outreach_drafts_api_people__person_id__outreach_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_outreach_api_people__person_id__outreach_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_outreach_draft_api_people__person_id__outreach__channel__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+                channel: components["schemas"]["OutreachChannel"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutreachDraftEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"];
                 };
             };
             /** @description Validation Error */
