@@ -46,6 +46,7 @@ export function OutreachDrafts({
             key={draft.id}
             draft={draft}
             personId={personId}
+            recipientEmail={personEmail}
             title={TITLES[channel]}
             hint={hint(channel, personEmail, personLinkedinUrl)}
             onSaved={onSaved}

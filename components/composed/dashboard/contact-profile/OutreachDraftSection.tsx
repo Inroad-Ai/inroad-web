@@ -8,18 +8,21 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Section } from "@/components/ui/Section";
 import { Textarea } from "@/components/ui/Textarea";
+import { GmailDraftButton } from "./GmailDraftButton";
 
 const BODY_ROWS = 10;
 
 export function OutreachDraftSection({
   draft,
   personId,
+  recipientEmail,
   title,
   hint,
   onSaved,
 }: {
   draft: OutreachDraft;
   personId: string;
+  recipientEmail: string | null;
   title: string;
   hint: string;
   onSaved: (draft: OutreachDraft) => void;
@@ -39,7 +42,10 @@ export function OutreachDraftSection({
 
   const edited = subject !== (draft.subject ?? "") || body !== draft.body;
 
-  async function save() {
+  /** True when the server row matches what's on screen, either because it
+   * already did or because this call just made it so. */
+  async function persist(): Promise<boolean> {
+    if (!edited) return true;
     setSaving(true);
     setStatus(null);
     try {
@@ -54,11 +60,13 @@ export function OutreachDraftSection({
         ),
       );
       setStatus({ text: "Saved.", isError: false });
+      return true;
     } catch (caught) {
       setStatus({
         text: caught instanceof Error ? caught.message : "Could not save this draft.",
         isError: true,
       });
+      return false;
     } finally {
       setSaving(false);
     }
@@ -113,11 +121,18 @@ export function OutreachDraftSection({
           variant="quiet"
           size="sm"
           type="button"
-          onClick={save}
+          onClick={persist}
           disabled={saving || !edited || body.trim().length === 0}
         >
           {saving ? "Saving..." : "Save"}
         </Button>
+        {draft.channel === "email" ? (
+          <GmailDraftButton
+            personId={personId}
+            recipientEmail={recipientEmail}
+            onEnsureSaved={persist}
+          />
+        ) : null}
         <span className="text-xs text-text-secondary/70">{body.length} characters</span>
         {status ? (
           <p

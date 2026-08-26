@@ -28,6 +28,11 @@ export type ConnectionProvider =
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
 export type OutreachDraft = components["schemas"]["OutreachDraftOut"];
 export type OutreachChannel = components["schemas"]["OutreachChannel"];
+export type GmailDraft = components["schemas"]["GmailDraftOut"];
+/** The providers that connect by redirect rather than a pasted key -
+ * narrower than ConnectionProvider, and read off the route the same way. */
+export type OAuthProvider =
+  paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["path"]["provider"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -377,6 +382,24 @@ export async function saveOutreachDraft(
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft;
 }
 
+/** Puts the saved email draft into the sender's own Gmail Drafts, addressed
+ * to the person. Never sends, and never moves the contact's stage. Throws
+ * ApiError with code "gmail_not_connected" when there's no connection yet -
+ * the caller points at /integrations rather than showing the raw message. */
+export async function createGmailDraft(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<GmailDraft> {
+  const result = await client.POST("/api/people/{person_id}/outreach/gmail-draft", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as GmailDraft;
+}
+
 // --- auth ---
 
 /** No session comes back: the account isn't usable until the emailed
@@ -567,13 +590,15 @@ export async function deleteConnection(
 }
 
 /** Returns the URL to send the browser to - a full page navigation, not a
- * fetch: Apollo's own login redirect can't be followed by an XHR, same
+ * fetch: a provider's own login redirect can't be followed by an XHR, same
  * reasoning as googleSignInUrl. The caller does `window.location.href = ...`. */
-export async function startApolloOAuth(
+export async function startOAuth(
+  provider: OAuthProvider,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<string> {
-  const result = await client.POST("/api/connections/apollo/oauth/start", {
+  const result = await client.POST("/api/connections/{provider}/oauth/start", {
+    params: { path: { provider } },
     headers: authHeaders(accessToken),
     signal,
   });

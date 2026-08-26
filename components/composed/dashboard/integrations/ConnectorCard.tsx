@@ -6,9 +6,10 @@ import {
   ApiError,
   deleteConnection,
   saveConnection,
-  startApolloOAuth,
+  startOAuth,
   type Connection,
   type ConnectionProvider,
+  type OAuthProvider,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { Badge } from "@/components/ui/Badge";
@@ -88,7 +89,9 @@ export function ConnectorCard({
         setBusy(false);
         return;
       }
-      const authorizeUrl = await startApolloOAuth(token);
+      // authMode is what says this provider has an OAuth flow, and the
+      // route's own literal is narrower than ConnectionProvider.
+      const authorizeUrl = await startOAuth(provider as OAuthProvider, token);
       window.location.href = authorizeUrl;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not start the connection.");

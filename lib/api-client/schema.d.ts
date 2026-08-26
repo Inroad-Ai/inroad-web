@@ -252,6 +252,23 @@ export interface paths {
         patch: operations["save_outreach_draft_api_people__person_id__outreach__channel__patch"];
         trace?: never;
     };
+    "/api/people/{person_id}/outreach/gmail-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Gmail Draft */
+        post: operations["create_gmail_draft_api_people__person_id__outreach_gmail_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -518,7 +535,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/connections/apollo/oauth/start": {
+    "/api/connections/{provider}/oauth/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -528,20 +545,19 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start Apollo Oauth
-         * @description Authenticated (unlike the callback below): only an already-signed-in
-         *     Inroad user can start a connect. Returns the URL rather than redirecting
-         *     itself, since the caller is a fetch, not a browser navigation - the
-         *     frontend does the actual navigation once it has this.
+         * Start Oauth
+         * @description Authenticated, unlike the callback below. Returns the URL rather than
+         *     redirecting itself, since the caller is a fetch, not a browser
+         *     navigation - the frontend does the navigation once it has this.
          */
-        post: operations["start_apollo_oauth_api_connections_apollo_oauth_start_post"];
+        post: operations["start_oauth_api_connections__provider__oauth_start_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/connections/apollo/oauth/callback": {
+    "/api/connections/{provider}/oauth/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -549,12 +565,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Apollo Oauth Callback
-         * @description No Authorization header on this request - it's Apollo redirecting the
-         *     user's browser, not a fetch - so state is what says which Inroad user
-         *     this is for (see apollo_oauth.create_connect_state).
+         * Oauth Callback
+         * @description No Authorization header on this request - it's the provider
+         *     redirecting the user's browser, not a fetch - so state is what says
+         *     which Inroad user this is for (see services/connectors/oauth.py).
          */
-        get: operations["apollo_oauth_callback_api_connections_apollo_oauth_callback_get"];
+        get: operations["oauth_callback_api_connections__provider__oauth_callback_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -834,6 +850,15 @@ export interface components {
              * Format: email
              */
             email: string;
+        };
+        /** GmailDraftOut */
+        GmailDraftOut: {
+            /** Draft Id */
+            draft_id: string;
+            /** Message Id */
+            message_id: string;
+            /** Url */
+            url: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2053,6 +2078,39 @@ export interface operations {
             };
         };
     };
+    create_gmail_draft_api_people__person_id__outreach_gmail_draft_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     signup_api_auth_signup_post: {
         parameters: {
             query?: never;
@@ -2540,7 +2598,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "hunter";
+                provider: "apollo" | "gmail" | "hunter";
             };
             cookie?: never;
         };
@@ -2577,7 +2635,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "hunter";
+                provider: "apollo" | "gmail" | "hunter";
             };
             cookie?: never;
         };
@@ -2601,13 +2659,15 @@ export interface operations {
             };
         };
     };
-    start_apollo_oauth_api_connections_apollo_oauth_start_post: {
+    start_oauth_api_connections__provider__oauth_start_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
-            path?: never;
+            path: {
+                provider: "apollo" | "gmail";
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -2632,7 +2692,7 @@ export interface operations {
             };
         };
     };
-    apollo_oauth_callback_api_connections_apollo_oauth_callback_get: {
+    oauth_callback_api_connections__provider__oauth_callback_get: {
         parameters: {
             query?: {
                 code?: string | null;
@@ -2640,7 +2700,9 @@ export interface operations {
                 error?: string | null;
             };
             header?: never;
-            path?: never;
+            path: {
+                provider: "apollo" | "gmail";
+            };
             cookie?: never;
         };
         requestBody?: never;

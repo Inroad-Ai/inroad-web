@@ -14,6 +14,16 @@ import type { Connection } from "@/lib/api-client/client";
 // schemas/connection.py's ConnectionProvider literal on the API side.
 const KNOWN_PROVIDERS = [
   {
+    provider: "gmail",
+    label: "Gmail",
+    description:
+      "Puts a drafted outreach email into your own Gmail Drafts, addressed to the contact. " +
+      "You review and send it from Gmail. Inroad never sends on your behalf and cannot read " +
+      "your existing mail.",
+    logoSrc: "/logos/gmail.svg",
+    authMode: "oauth",
+  },
+  {
     provider: "apollo",
     label: "Apollo.io",
     description:
@@ -44,20 +54,25 @@ function IntegrationsSkeleton() {
   );
 }
 
-/** Reads apollo_connected / apollo_error off the URL after the OAuth
- * redirect lands back here, shows a one-line banner, then strips the query
- * string so a refresh doesn't repeat it. */
+function labelFor(provider: string | null): string {
+  return KNOWN_PROVIDERS.find((entry) => entry.provider === provider)?.label ?? "That provider";
+}
+
+/** Reads connected / connect_error off the URL after the OAuth redirect
+ * lands back here, shows a one-line banner, then strips the query string so
+ * a refresh doesn't repeat it. */
 function useOAuthRedirectNotice(): string | null {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    const error = searchParams.get("apollo_error");
-    const connected = searchParams.get("apollo_connected");
+    const error = searchParams.get("connect_error");
+    const connected = searchParams.get("connected");
     if (!error && !connected) return;
 
-    setNotice(error ? "Could not connect Apollo. Try again." : "Apollo connected.");
+    const label = labelFor(error ? searchParams.get("provider") : connected);
+    setNotice(error ? `Could not connect ${label}. Try again.` : `${label} connected.`);
     router.replace("/integrations");
     // Only ever runs once per landing: router.replace above changes the URL,
     // which would otherwise re-trigger this on the params it just cleared.
