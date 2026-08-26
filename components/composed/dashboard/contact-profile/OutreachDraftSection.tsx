@@ -55,6 +55,13 @@ export function OutreachDraftSection({
    * already did or because this call just made it so. */
   async function persist(): Promise<boolean> {
     if (!edited) return true;
+    // Save is disabled for a blank body, but Send and Create Gmail draft
+    // both come through here too, and neither should put an empty email in
+    // front of a real recipient.
+    if (!body.trim()) {
+      setStatus({ text: "Write something before saving this draft.", isError: true });
+      return false;
+    }
     setSaving(true);
     setStatus(null);
     try {

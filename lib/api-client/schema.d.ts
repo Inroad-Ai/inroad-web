@@ -1029,7 +1029,12 @@ export interface components {
          * @enum {string}
          */
         OutreachChannel: "email" | "linkedin";
-        /** OutreachDraftEdit */
+        /**
+         * OutreachDraftEdit
+         * @description A PATCH body. `subject` omitted and `subject: null` mean different
+         *     things - the first leaves the stored subject alone, the second clears it -
+         *     so the service reads `model_fields_set` rather than the value.
+         */
         OutreachDraftEdit: {
             /** Subject */
             subject?: string | null;
