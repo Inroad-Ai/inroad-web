@@ -1,20 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { ApiError, sendOutreachEmail } from "@/lib/api-client/client";
+import { ApiError, sendOutreachEmail, type OutreachDraft } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 
 export function SendOutreachButton({
   personId,
+  draft,
   recipientEmail,
   subject,
   onEnsureSaved,
 }: {
   personId: string;
+  draft: OutreachDraft;
   recipientEmail: string | null;
   subject: string;
   /** Gmail sends the saved row, not what's in the textarea, so an unsaved
@@ -24,7 +26,17 @@ export function SendOutreachButton({
 }) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  // Local state covers this session; draft.sent_at is what survives a
+  // reload, and the backend refuses a second send regardless.
+  const [justSent, setJustSent] = useState(false);
+  const sent = justSent || Boolean(draft.sent_at);
+
+  // An edit or a redraft clears sent_at server-side, which re-arms Send.
+  // Without this the in-session flag would keep it disabled on a draft the
+  // backend would now accept.
+  useEffect(() => {
+    if (!draft.sent_at) setJustSent(false);
+  }, [draft.updated_at, draft.sent_at]);
   const [error, setError] = useState<string | null>(null);
   const [notConnected, setNotConnected] = useState(false);
 
@@ -37,7 +49,7 @@ export function SendOutreachButton({
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again.");
       await sendOutreachEmail(personId, token);
-      setSent(true);
+      setJustSent(true);
       setConfirming(false);
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === "gmail_not_connected") {

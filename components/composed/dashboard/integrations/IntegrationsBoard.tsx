@@ -17,9 +17,9 @@ const KNOWN_PROVIDERS = [
     provider: "gmail",
     label: "Gmail",
     description:
-      "Puts a drafted outreach email into your own Gmail Drafts, addressed to the contact. " +
-      "You review and send it from Gmail. Inroad never sends on your behalf and cannot read " +
-      "your existing mail.",
+      "Puts a drafted outreach email into your own Gmail Drafts, or sends it from your " +
+      "account after you confirm the recipient. Every send is one you asked for; nothing " +
+      "goes out on its own, and Inroad cannot read your existing mail.",
     logoSrc: "/logos/gmail.svg",
     authMode: "oauth",
   },

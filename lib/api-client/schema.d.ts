@@ -1053,6 +1053,8 @@ export interface components {
             subject?: string | null;
             /** Body */
             body: string;
+            /** Sent At */
+            sent_at?: string | null;
             /**
              * Created At
              * Format: date-time

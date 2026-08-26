@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { saveOutreachDraft, type OutreachDraft } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -33,11 +33,19 @@ export function OutreachDraftSection({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ text: string; isError: boolean } | null>(null);
 
+  // A save is the other reason this row changes, and it must not wipe the
+  // confirmation it just produced.
+  const savedItself = useRef(false);
+
   // Re-drafting replaces the row underneath these fields, so they follow it
   // rather than holding the superseded text the user asked to replace.
   useEffect(() => {
     setSubject(draft.subject ?? "");
     setBody(draft.body);
+    if (savedItself.current) {
+      savedItself.current = false;
+      return;
+    }
     setStatus(null);
   }, [draft.updated_at, draft.subject, draft.body]);
 
@@ -52,6 +60,7 @@ export function OutreachDraftSection({
     try {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again.");
+      savedItself.current = true;
       onSaved(
         await saveOutreachDraft(
           personId,
@@ -131,6 +140,7 @@ export function OutreachDraftSection({
           <>
             <SendOutreachButton
               personId={personId}
+              draft={draft}
               recipientEmail={recipientEmail}
               subject={subject}
               onEnsureSaved={persist}
