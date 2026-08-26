@@ -269,6 +269,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/people/{person_id}/outreach/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Outreach Email
+         * @description Irreversible: Gmail has no unsend. The confirm step is on the client,
+         *     deliberately - a second server round trip would not make it any safer.
+         */
+        post: operations["send_outreach_email_api_people__person_id__outreach_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -859,6 +880,13 @@ export interface components {
             message_id: string;
             /** Url */
             url: string;
+        };
+        /** GmailSendOut */
+        GmailSendOut: {
+            /** Message Id */
+            message_id: string;
+            /** Thread Id */
+            thread_id: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2098,6 +2126,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GmailDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_outreach_email_api_people__person_id__outreach_send_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailSendOut"];
                 };
             };
             /** @description Validation Error */

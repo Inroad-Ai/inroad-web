@@ -29,6 +29,7 @@ export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
 export type OutreachDraft = components["schemas"]["OutreachDraftOut"];
 export type OutreachChannel = components["schemas"]["OutreachChannel"];
 export type GmailDraft = components["schemas"]["GmailDraftOut"];
+export type GmailSend = components["schemas"]["GmailSendOut"];
 /** The providers that connect by redirect rather than a pasted key -
  * narrower than ConnectionProvider, and read off the route the same way. */
 export type OAuthProvider =
@@ -398,6 +399,23 @@ export async function createGmailDraft(
   });
 
   return unwrap(result, OUTREACH_UNREACHABLE) as GmailDraft;
+}
+
+/** Sends the saved email draft as the user, from their own Gmail. There is
+ * no unsend: Gmail's own is a delay in its web client, not a server
+ * feature, so the caller confirms before calling this. */
+export async function sendOutreachEmail(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<GmailSend> {
+  const result = await client.POST("/api/people/{person_id}/outreach/send", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as GmailSend;
 }
 
 // --- auth ---

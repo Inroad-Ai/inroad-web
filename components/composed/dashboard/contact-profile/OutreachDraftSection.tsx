@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Section } from "@/components/ui/Section";
 import { Textarea } from "@/components/ui/Textarea";
 import { GmailDraftButton } from "./GmailDraftButton";
+import { SendOutreachButton } from "./SendOutreachButton";
 
 const BODY_ROWS = 10;
 
@@ -127,11 +128,19 @@ export function OutreachDraftSection({
           {saving ? "Saving..." : "Save"}
         </Button>
         {draft.channel === "email" ? (
-          <GmailDraftButton
-            personId={personId}
-            recipientEmail={recipientEmail}
-            onEnsureSaved={persist}
-          />
+          <>
+            <SendOutreachButton
+              personId={personId}
+              recipientEmail={recipientEmail}
+              subject={subject}
+              onEnsureSaved={persist}
+            />
+            <GmailDraftButton
+              personId={personId}
+              recipientEmail={recipientEmail}
+              onEnsureSaved={persist}
+            />
+          </>
         ) : null}
         <span className="text-xs text-text-secondary/70">{body.length} characters</span>
         {status ? (
