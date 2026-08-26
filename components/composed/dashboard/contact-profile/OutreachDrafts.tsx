@@ -15,7 +15,7 @@ const CHANNEL_ORDER: OutreachChannel[] = ["email", "linkedin"];
 function hint(channel: OutreachChannel, email: string | null, linkedinUrl: string | null): string {
   if (channel === "email") {
     return email
-      ? `Goes to ${email}. Sending from Inroad isn't wired up yet, so copy it into your mail client.`
+      ? `Goes to ${email}. Inroad puts it in your Gmail drafts; you send it from there.`
       : "No email found for this person yet. Try Find contact info above.";
   }
   return linkedinUrl
