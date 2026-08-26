@@ -213,6 +213,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/people/{person_id}/outreach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Outreach Drafts
+         * @description Unpaginated, unlike every other list route: a unique constraint on
+         *     (person_id, channel) caps this at one row per channel.
+         */
+        get: operations["list_outreach_drafts_api_people__person_id__outreach_get"];
+        put?: never;
+        /** Draft Outreach */
+        post: operations["draft_outreach_api_people__person_id__outreach_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/{channel}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save Outreach Draft */
+        patch: operations["save_outreach_draft_api_people__person_id__outreach__channel__patch"];
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/gmail-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Gmail Draft */
+        post: operations["create_gmail_draft_api_people__person_id__outreach_gmail_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Outreach Email
+         * @description Irreversible: Gmail has no unsend. The confirm step is on the client,
+         *     deliberately - a second server round trip would not make it any safer.
+         */
+        post: operations["send_outreach_email_api_people__person_id__outreach_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -479,7 +556,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/connections/apollo/oauth/start": {
+    "/api/connections/{provider}/oauth/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -489,20 +566,19 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start Apollo Oauth
-         * @description Authenticated (unlike the callback below): only an already-signed-in
-         *     Inroad user can start a connect. Returns the URL rather than redirecting
-         *     itself, since the caller is a fetch, not a browser navigation - the
-         *     frontend does the actual navigation once it has this.
+         * Start Oauth
+         * @description Authenticated, unlike the callback below. Returns the URL rather than
+         *     redirecting itself, since the caller is a fetch, not a browser
+         *     navigation - the frontend does the navigation once it has this.
          */
-        post: operations["start_apollo_oauth_api_connections_apollo_oauth_start_post"];
+        post: operations["start_oauth_api_connections__provider__oauth_start_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/connections/apollo/oauth/callback": {
+    "/api/connections/{provider}/oauth/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -510,12 +586,12 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Apollo Oauth Callback
-         * @description No Authorization header on this request - it's Apollo redirecting the
-         *     user's browser, not a fetch - so state is what says which Inroad user
-         *     this is for (see apollo_oauth.create_connect_state).
+         * Oauth Callback
+         * @description No Authorization header on this request - it's the provider
+         *     redirecting the user's browser, not a fetch - so state is what says
+         *     which Inroad user this is for (see services/connectors/oauth.py).
          */
-        get: operations["apollo_oauth_callback_api_connections_apollo_oauth_callback_get"];
+        get: operations["oauth_callback_api_connections__provider__oauth_callback_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -796,6 +872,22 @@ export interface components {
              */
             email: string;
         };
+        /** GmailDraftOut */
+        GmailDraftOut: {
+            /** Draft Id */
+            draft_id: string;
+            /** Message Id */
+            message_id: string;
+            /** Url */
+            url: string;
+        };
+        /** GmailSendOut */
+        GmailSendOut: {
+            /** Message Id */
+            message_id: string;
+            /** Thread Id */
+            thread_id: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -931,6 +1023,53 @@ export interface components {
         OAuthStartOut: {
             /** Authorize Url */
             authorize_url: string;
+        };
+        /**
+         * OutreachChannel
+         * @enum {string}
+         */
+        OutreachChannel: "email" | "linkedin";
+        /**
+         * OutreachDraftEdit
+         * @description A PATCH body. `subject` omitted and `subject: null` mean different
+         *     things - the first leaves the stored subject alone, the second clears it -
+         *     so the service reads `model_fields_set` rather than the value.
+         */
+        OutreachDraftEdit: {
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+        };
+        /** OutreachDraftOut */
+        OutreachDraftOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            channel: components["schemas"]["OutreachChannel"];
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** OverviewStats */
         OverviewStats: {
@@ -1870,6 +2009,176 @@ export interface operations {
             };
         };
     };
+    list_outreach_drafts_api_people__person_id__outreach_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_outreach_api_people__person_id__outreach_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_outreach_draft_api_people__person_id__outreach__channel__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+                channel: components["schemas"]["OutreachChannel"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutreachDraftEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_gmail_draft_api_people__person_id__outreach_gmail_draft_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_outreach_email_api_people__person_id__outreach_send_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailSendOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     signup_api_auth_signup_post: {
         parameters: {
             query?: never;
@@ -2357,7 +2666,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "hunter";
+                provider: "apollo" | "gmail" | "hunter";
             };
             cookie?: never;
         };
@@ -2394,7 +2703,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "hunter";
+                provider: "apollo" | "gmail" | "hunter";
             };
             cookie?: never;
         };
@@ -2418,13 +2727,15 @@ export interface operations {
             };
         };
     };
-    start_apollo_oauth_api_connections_apollo_oauth_start_post: {
+    start_oauth_api_connections__provider__oauth_start_post: {
         parameters: {
             query?: never;
             header?: {
                 authorization?: string | null;
             };
-            path?: never;
+            path: {
+                provider: "apollo" | "gmail";
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -2449,7 +2760,7 @@ export interface operations {
             };
         };
     };
-    apollo_oauth_callback_api_connections_apollo_oauth_callback_get: {
+    oauth_callback_api_connections__provider__oauth_callback_get: {
         parameters: {
             query?: {
                 code?: string | null;
@@ -2457,7 +2768,9 @@ export interface operations {
                 error?: string | null;
             };
             header?: never;
-            path?: never;
+            path: {
+                provider: "apollo" | "gmail";
+            };
             cookie?: never;
         };
         requestBody?: never;
