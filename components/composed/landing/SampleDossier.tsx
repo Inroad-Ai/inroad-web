@@ -1,5 +1,5 @@
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
-import { totalTimeSeconds } from "@/lib/api";
+import { totalTimeSeconds } from "@/lib/format";
 import { SOURCE_KEYS, type CompanyDossier } from "@/lib/types";
 
 /**
@@ -25,7 +25,7 @@ const SAMPLE: CompanyDossier = {
     word_count: 1284,
     body_text: null,
     linkedin_url: null,
-    detected_technologies: [],
+    logo_url: null,
   },
   news: {
     query: "stripe.com",
@@ -56,14 +56,17 @@ const SAMPLE: CompanyDossier = {
     open_roles: 548,
     source: "greenhouse",
     careers_url: "https://stripe.com/jobs/search",
+    company_careers_url: "https://stripe.com/jobs/search",
     sample_roles: [
       "Staff Engineer, Payments Infrastructure",
       "Account Executive, Mid-Market",
       "Technical Writer, Developer Docs",
     ],
     additional_sources: [],
+    sample_role_descriptions: [],
   },
   linkedin: null,
+  people: null,
   profile: null,
   errors: {},
   partial: false,

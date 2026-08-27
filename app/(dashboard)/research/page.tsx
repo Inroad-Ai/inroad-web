@@ -8,22 +8,10 @@ import { SearchBar } from "@/components/composed/dashboard/SearchBar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatusDot } from "@/components/ui/StatusDot";
-import {
-  ApiError,
-  getMatchRun,
-  researchCompanyDomain,
-  startMatchRun,
-} from "@/lib/api-client/client";
+import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
 import type { CardState, PipelineRunStatus } from "@/lib/types";
-
-interface Run {
-  id: number;
-  domain: string;
-  state: CardState;
-  companyId: string | null;
-  error: string | null;
-}
 
 interface MatchRun {
   id: string;
@@ -35,8 +23,6 @@ interface MatchRun {
   timedOut: boolean;
 }
 
-let nextRunId = 0;
-
 const MATCH_POLL_INTERVAL_MS = 3000;
 // ~2 minutes: comfortably above the 17-38s a real match run has taken, but
 // short enough that a dead worker doesn't leave this polling silently
@@ -45,45 +31,17 @@ const MATCH_POLL_MAX_ATTEMPTS = 40;
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [runs, setRuns] = useState<Run[]>([]);
+  const { runs, startResearch } = useResearchRuns();
+  // One at a time in this box, same as before - startResearch itself has no
+  // such limit, this is just the input's own UX.
+  const busy = runs.some((r) => r.state === "pending");
 
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
-  async function run(next: string) {
+  function run(next: string) {
     setDomain(next);
-    setBusy(true);
-
-    const id = nextRunId++;
-    setRuns((prev) => [
-      { id, domain: next, state: "pending", companyId: null, error: null },
-      ...prev,
-    ]);
-
-    function settle(update: Partial<Run>) {
-      setRuns((prev) => prev.map((r) => (r.id === id ? { ...r, ...update } : r)));
-    }
-
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) {
-        settle({ state: "failed", error: "Your session expired. Sign in again to run this." });
-        return;
-      }
-      const company = await researchCompanyDomain(next, token);
-      settle({ state: "done", companyId: company.id });
-    } catch (error) {
-      settle({
-        state: "failed",
-        error:
-          error instanceof ApiError
-            ? error.message
-            : "Something went wrong before the check could run.",
-      });
-    } finally {
-      setBusy(false);
-    }
+    startResearch(next);
   }
 
   function settleMatch(runId: string, update: Partial<MatchRun>) {
@@ -109,8 +67,7 @@ export default function ResearchPage() {
     } catch (error) {
       settleMatch(runId, {
         status: "failed",
-        error:
-          error instanceof ApiError ? error.message : "Lost track of this run's progress.",
+        error: error instanceof ApiError ? error.message : "Lost track of this run's progress.",
       });
     }
   }
@@ -241,7 +198,7 @@ export default function ResearchPage() {
   );
 }
 
-function RunRow({ run }: { run: Run }) {
+function RunRow({ run }: { run: ResearchRun }) {
   const body = (
     <div className="flex w-full flex-wrap items-center justify-between gap-3 px-6 py-4 text-left">
       <span className="flex items-center gap-3">
@@ -303,11 +260,7 @@ function MatchRunRow({ run, onRetry }: { run: MatchRun; onRetry: (runId: string)
           <p className="text-sm text-text-secondary">
             This is taking longer than expected. The background worker may not be running.
           </p>
-          <Button
-            variant="quiet"
-            onClick={() => onRetry(run.id)}
-            className="px-4 py-2 text-xs"
-          >
+          <Button variant="quiet" onClick={() => onRetry(run.id)} className="px-4 py-2 text-xs">
             Check again
           </Button>
         </div>

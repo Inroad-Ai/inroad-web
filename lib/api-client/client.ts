@@ -9,16 +9,33 @@ import type {
   CompanySort,
   MatchRunResult,
   OverviewStats,
+  Person,
+  PersonDetail,
+  PersonListResponse,
   PipelineRunOut,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
+import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
 export type Profile = components["schemas"]["ProfileOut"];
 export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
+export type Connection = components["schemas"]["ConnectionOut"];
+// Mirrors schemas/connection.py's ConnectionProvider literal - widens on its
+// own the next time schema.d.ts is regenerated after a new provider ships.
+export type ConnectionProvider =
+  paths["/api/connections/{provider}"]["put"]["parameters"]["path"]["provider"];
 export type ResumeParseResult = components["schemas"]["ResumeParseResult"];
+export type OutreachDraft = components["schemas"]["OutreachDraftOut"];
+export type OutreachChannel = components["schemas"]["OutreachChannel"];
+export type GmailDraft = components["schemas"]["GmailDraftOut"];
+export type GmailSend = components["schemas"]["GmailSendOut"];
+/** The providers that connect by redirect rather than a pasted key -
+ * narrower than ConnectionProvider, and read off the route the same way. */
+export type OAuthProvider =
+  paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["path"]["provider"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -228,6 +245,24 @@ export async function updateCompanyStage(
   return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
+/** Who the user has picked as the outreach target for this company. `null`
+ * clears it. Rejects an id that isn't one of this company's own people. */
+export async function setPrimaryContact(
+  companyId: string,
+  personId: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Company> {
+  const result = await client.PATCH("/api/companies/{company_id}/primary-contact", {
+    params: { path: { company_id: companyId } },
+    body: { person_id: personId },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+}
+
 /** Aggregates for the Overview page. */
 export async function fetchOverviewStats(
   accessToken: string,
@@ -241,6 +276,178 @@ export async function fetchOverviewStats(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as OverviewStats;
+}
+
+// --- people ---
+
+const PEOPLE_UNREACHABLE =
+  "Could not reach the people service. Check that it is running and that this origin is allowed.";
+
+export interface FetchPeopleParams {
+  stage?: PersonStage;
+  page?: number;
+  pageSize?: number;
+}
+
+/** One row per person, across every company - what the contacts board's
+ * columns page through. */
+export async function fetchPeople(
+  params: FetchPeopleParams,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PersonListResponse> {
+  const result = await client.GET("/api/people", {
+    params: {
+      query: { stage: params.stage, page: params.page, page_size: params.pageSize },
+    },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as PersonListResponse;
+}
+
+/** A person's own row plus enough about their company to show context and
+ * link back to it. */
+export async function fetchPerson(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PersonDetail> {
+  const result = await client.GET("/api/people/{person_id}", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as PersonDetail;
+}
+
+/** Fills email/linkedin_url from whichever enrichment connector the caller
+ * has connected (tried in a fixed priority order server-side) - only ever
+ * fills a gap, never overwrites what's already there. Render the row this
+ * returns: it may come back unchanged if nothing connected had anything
+ * new. `source` on the response is suffixed with whichever provider found
+ * it, e.g. "linkedin-search+hunter". */
+export async function enrichPerson(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.POST("/api/people/{person_id}/enrich", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as Person;
+}
+
+/** A first move into "contacted" also stamps contacted_at, same rule as
+ * updateCompanyStage - render the row this returns, not just the stage. */
+export async function updatePersonStage(
+  personId: string,
+  stage: PersonStage,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Person> {
+  const result = await client.PATCH("/api/people/{person_id}/stage", {
+    params: { path: { person_id: personId } },
+    body: { stage },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, PEOPLE_UNREACHABLE) as Person;
+}
+
+// --- outreach ---
+
+const OUTREACH_UNREACHABLE = "Could not reach the outreach service.";
+
+/** Both channels or neither: the backend drafts email and LinkedIn in one
+ * call and saves them together, so a response with one row means a bug, not
+ * a half-finished draft to render. */
+export async function fetchOutreachDrafts(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft[]> {
+  const result = await client.GET("/api/people/{person_id}/outreach", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+}
+
+/** Replaces whatever was there, saved edits included - asking for a new
+ * draft is asking for the old one to go. */
+export async function draftOutreach(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft[]> {
+  const result = await client.POST("/api/people/{person_id}/outreach", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+}
+
+export async function saveOutreachDraft(
+  personId: string,
+  channel: OutreachChannel,
+  draft: { subject: string | null; body: string },
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraft> {
+  const result = await client.PATCH("/api/people/{person_id}/outreach/{channel}", {
+    params: { path: { person_id: personId, channel } },
+    body: draft,
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft;
+}
+
+/** Puts the saved email draft into the sender's own Gmail Drafts, addressed
+ * to the person. Never sends, and never moves the contact's stage. Throws
+ * ApiError with code "gmail_not_connected" when there's no connection yet -
+ * the caller points at /integrations rather than showing the raw message. */
+export async function createGmailDraft(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<GmailDraft> {
+  const result = await client.POST("/api/people/{person_id}/outreach/gmail-draft", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as GmailDraft;
+}
+
+/** Sends the saved email draft as the user, from their own Gmail. There is
+ * no unsend: Gmail's own is a delay in its web client, not a server
+ * feature, so the caller confirms before calling this. */
+export async function sendOutreachEmail(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<GmailSend> {
+  const result = await client.POST("/api/people/{person_id}/outreach/send", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as GmailSend;
 }
 
 // --- auth ---
@@ -381,4 +588,70 @@ export async function saveProfile(
   });
 
   return unwrap(result, PROFILE_UNREACHABLE);
+}
+
+// --- connections ---
+
+const CONNECTIONS_UNREACHABLE = "Could not reach the connections service.";
+
+/** Every provider the caller has ever saved a key for. Empty on first visit. */
+export async function fetchConnections(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection[]> {
+  const result = await client.GET("/api/connections", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+/** Validates the key against the provider before saving - a rejected key
+ * comes back as a 422 with code "connection_invalid", nothing is persisted. */
+export async function saveConnection(
+  provider: ConnectionProvider,
+  apiKey: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<Connection> {
+  const result = await client.PUT("/api/connections/{provider}", {
+    params: { path: { provider } },
+    body: { api_key: apiKey },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+export async function deleteConnection(
+  provider: ConnectionProvider,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const result = await client.DELETE("/api/connections/{provider}", {
+    params: { path: { provider } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  if (result.response.status !== 204) unwrap(result, CONNECTIONS_UNREACHABLE);
+}
+
+/** Returns the URL to send the browser to - a full page navigation, not a
+ * fetch: a provider's own login redirect can't be followed by an XHR, same
+ * reasoning as googleSignInUrl. The caller does `window.location.href = ...`. */
+export async function startOAuth(
+  provider: OAuthProvider,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const result = await client.POST("/api/connections/{provider}/oauth/start", {
+    params: { path: { provider } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CONNECTIONS_UNREACHABLE).authorize_url;
 }

@@ -168,6 +168,168 @@ export interface paths {
         patch: operations["update_company_stage_api_companies__company_id__stage_patch"];
         trace?: never;
     };
+    "/api/companies/{company_id}/primary-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Primary Contact */
+        patch: operations["update_primary_contact_api_companies__company_id__primary_contact_patch"];
+        trace?: never;
+    };
+    "/api/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List People */
+        get: operations["list_people_api_people_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Person */
+        get: operations["get_person_api_people__person_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Person Stage */
+        patch: operations["update_person_stage_api_people__person_id__stage_patch"];
+        trace?: never;
+    };
+    "/api/people/{person_id}/enrich": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enrich Person */
+        post: operations["enrich_person_api_people__person_id__enrich_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Outreach Drafts
+         * @description Unpaginated, unlike every other list route: a unique constraint on
+         *     (person_id, channel) caps this at one row per channel.
+         */
+        get: operations["list_outreach_drafts_api_people__person_id__outreach_get"];
+        put?: never;
+        /** Draft Outreach */
+        post: operations["draft_outreach_api_people__person_id__outreach_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/{channel}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Save Outreach Draft */
+        patch: operations["save_outreach_draft_api_people__person_id__outreach__channel__patch"];
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/gmail-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Gmail Draft */
+        post: operations["create_gmail_draft_api_people__person_id__outreach_gmail_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Outreach Email
+         * @description Irreversible: Gmail has no unsend. The confirm step is on the client,
+         *     deliberately - a second server round trip would not make it any safer.
+         */
+        post: operations["send_outreach_email_api_people__person_id__outreach_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/signup": {
         parameters: {
             query?: never;
@@ -399,10 +561,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Connections */
+        get: operations["list_connections_api_connections_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Connection */
+        put: operations["put_connection_api_connections__provider__put"];
+        post?: never;
+        /** Delete Connection */
+        delete: operations["delete_connection_api_connections__provider__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{provider}/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Oauth
+         * @description Authenticated, unlike the callback below. Returns the URL rather than
+         *     redirecting itself, since the caller is a fetch, not a browser
+         *     navigation - the frontend does the navigation once it has this.
+         */
+        post: operations["start_oauth_api_connections__provider__oauth_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{provider}/oauth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Oauth Callback
+         * @description No Authorization header on this request - it's the provider
+         *     redirecting the user's browser, not a fetch - so state is what says
+         *     which Inroad user this is for (see services/connectors/oauth.py).
+         */
+        get: operations["oauth_callback_api_connections__provider__oauth_callback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApplyUrlState
+         * @description How far a posting's apply link has been shown to work.
+         *
+         *     `board` is the common good case: the posting's board was sampled and
+         *     served a real posting, so its links are taken at their word.
+         *     `verified` is this exact url having been fetched. `fallback` means no
+         *     per-role link can be trusted and the company careers page is the
+         *     honest target. `unverified` is a check that could not be made, which
+         *     is not the same as one that failed.
+         * @enum {string}
+         */
+        ApplyUrlState: "verified" | "board" | "fallback" | "unverified";
         /** Body_parse_resume_api_resume_parse_post */
         Body_parse_resume_api_resume_parse_post: {
             /** File */
@@ -423,6 +677,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -434,6 +690,14 @@ export interface components {
             /** Sample Roles */
             sample_roles?: string[];
             profile?: components["schemas"]["CompanyProfile"] | null;
+            /** Primary Contact Id */
+            primary_contact_id?: string | null;
+            /** Matched Role Title */
+            matched_role_title?: string | null;
+            /** Matched Role Url */
+            matched_role_url?: string | null;
+            /** Matched Posted Text */
+            matched_posted_text?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -457,6 +721,9 @@ export interface components {
             research_run_count: number;
             /** Recent Research Runs */
             recent_research_runs?: components["schemas"]["ResearchRunSummary"][];
+            /** People */
+            people?: components["schemas"]["PersonOut"][];
+            primary_contact?: components["schemas"]["PersonOut"] | null;
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -466,6 +733,7 @@ export interface components {
             news?: components["schemas"]["NewsResult"] | null;
             hiring?: components["schemas"]["HiringResult"] | null;
             linkedin?: components["schemas"]["LinkedInCompanyResult"] | null;
+            people?: components["schemas"]["PeopleResult"] | null;
             profile?: components["schemas"]["CompanyProfile"] | null;
             /**
              * Errors
@@ -518,6 +786,8 @@ export interface components {
             homepage_title?: string | null;
             /** Homepage Description */
             homepage_description?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
             /** Is Hiring */
             is_hiring?: boolean | null;
             /** Open Roles */
@@ -529,6 +799,14 @@ export interface components {
             /** Sample Roles */
             sample_roles?: string[];
             profile?: components["schemas"]["CompanyProfile"] | null;
+            /** Primary Contact Id */
+            primary_contact_id?: string | null;
+            /** Matched Role Title */
+            matched_role_title?: string | null;
+            /** Matched Role Url */
+            matched_role_url?: string | null;
+            /** Matched Posted Text */
+            matched_posted_text?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -588,6 +866,33 @@ export interface components {
             /** Notes */
             notes?: string | null;
         };
+        /** ConnectionOut */
+        ConnectionOut: {
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "connected" | "invalid";
+            /** Last Validated At */
+            last_validated_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ConnectionUpsert */
+        ConnectionUpsert: {
+            /** Api Key */
+            api_key: string;
+        };
         /** CurrentUser */
         CurrentUser: {
             /**
@@ -619,6 +924,22 @@ export interface components {
              */
             email: string;
         };
+        /** GmailDraftOut */
+        GmailDraftOut: {
+            /** Draft Id */
+            draft_id: string;
+            /** Message Id */
+            message_id: string;
+            /** Url */
+            url: string;
+        };
+        /** GmailSendOut */
+        GmailSendOut: {
+            /** Message Id */
+            message_id: string;
+            /** Thread Id */
+            thread_id: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -640,6 +961,8 @@ export interface components {
              * @default false
              */
             is_hiring: boolean;
+            /** Company Name */
+            company_name?: string | null;
             /** Open Roles */
             open_roles?: number | null;
             /**
@@ -649,10 +972,16 @@ export interface components {
             source?: string | null;
             /** Careers Url */
             careers_url?: string | null;
+            /** Company Careers Url */
+            company_careers_url?: string | null;
             /** Sample Roles */
             sample_roles?: string[];
+            /** Role Postings */
+            role_postings?: components["schemas"]["RolePosting"][];
             /** Additional Sources */
             additional_sources?: string[];
+            /** Sample Role Descriptions */
+            sample_role_descriptions?: string[];
         };
         /** HomepageResult */
         HomepageResult: {
@@ -686,8 +1015,11 @@ export interface components {
              * @description Company LinkedIn page, if linked from the footer/nav
              */
             linkedin_url?: string | null;
-            /** Detected Technologies */
-            detected_technologies?: string[];
+            /**
+             * Logo Url
+             * @description apple-touch-icon / favicon / og:image, in that preference order
+             */
+            logo_url?: string | null;
         };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {
@@ -761,6 +1093,58 @@ export interface components {
             /** Items */
             items?: components["schemas"]["NewsItem"][];
         };
+        /** OAuthStartOut */
+        OAuthStartOut: {
+            /** Authorize Url */
+            authorize_url: string;
+        };
+        /**
+         * OutreachChannel
+         * @enum {string}
+         */
+        OutreachChannel: "email" | "linkedin";
+        /**
+         * OutreachDraftEdit
+         * @description A PATCH body. `subject` omitted and `subject: null` mean different
+         *     things - the first leaves the stored subject alone, the second clears it -
+         *     so the service reads `model_fields_set` rather than the value.
+         */
+        OutreachDraftEdit: {
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+        };
+        /** OutreachDraftOut */
+        OutreachDraftOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            channel: components["schemas"]["OutreachChannel"];
+            /** Subject */
+            subject?: string | null;
+            /** Body */
+            body: string;
+            /** Sent At */
+            sent_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** OverviewStats */
         OverviewStats: {
             /** Total Companies */
@@ -777,6 +1161,183 @@ export interface components {
             contacted_within_prior_window: number;
             /** Companies By Week */
             companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
+        };
+        /** PeopleResult */
+        PeopleResult: {
+            /** People */
+            people?: components["schemas"]["Person"][];
+        };
+        /**
+         * Person
+         * @description One named person found at the company. `email`/`linkedin_url` are
+         *     only ever what a source actually published next to their name - never
+         *     guessed or constructed - except a deliberate, tagged exception: Apollo
+         *     enrichment (services/apollo_enrichment.py) fills email for people the
+         *     linkedin-search tier found none for, from a third-party lookup rather
+         *     than the page itself, marked by the "+apollo" source suffix.
+         */
+        Person: {
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Email */
+            email?: string | null;
+            /**
+             * Source
+             * @description team-page | linkedin-search, possibly suffixed +apollo
+             */
+            source: string;
+        };
+        /** PersonDetail */
+        PersonDetail: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Source */
+            source?: string | null;
+            stage: components["schemas"]["PersonStage"];
+            /** Contacted At */
+            contacted_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Company Domain */
+            company_domain: string;
+            /** Company Homepage Title */
+            company_homepage_title?: string | null;
+        };
+        /**
+         * PersonListItem
+         * @description PersonOut plus which company this row belongs to - the contacts
+         *     board spans every company, so each card needs to say whose person this
+         *     is without a second request per row.
+         */
+        PersonListItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Source */
+            source?: string | null;
+            stage: components["schemas"]["PersonStage"];
+            /** Contacted At */
+            contacted_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Company Domain */
+            company_domain: string;
+        };
+        /** PersonListResponse */
+        PersonListResponse: {
+            /** Items */
+            items: components["schemas"]["PersonListItem"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** PersonOut */
+        PersonOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Name */
+            name: string;
+            role_category: components["schemas"]["PersonRole"];
+            /** Title */
+            title?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Linkedin Url */
+            linkedin_url?: string | null;
+            /** Source */
+            source?: string | null;
+            stage: components["schemas"]["PersonStage"];
+            /** Contacted At */
+            contacted_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * PersonRole
+         * @enum {string}
+         */
+        PersonRole: "founder" | "co_founder" | "executive" | "hr" | "recruiter" | "employee";
+        /**
+         * PersonStage
+         * @enum {string}
+         */
+        PersonStage: "found" | "contacted" | "replied" | "closed";
+        /** PersonStageUpdate */
+        PersonStageUpdate: {
+            stage: components["schemas"]["PersonStage"];
         };
         /** PipelineRunOut */
         PipelineRunOut: {
@@ -803,6 +1364,11 @@ export interface components {
          * @enum {string}
          */
         PipelineRunStatus: "pending" | "running" | "completed" | "failed";
+        /** PrimaryContactUpdate */
+        PrimaryContactUpdate: {
+            /** Person Id */
+            person_id?: string | null;
+        };
         /** ProfileOut */
         ProfileOut: {
             /**
@@ -992,6 +1558,36 @@ export interface components {
             education?: components["schemas"]["EducationEntry"][];
             /** Projects */
             projects?: components["schemas"]["ProjectEntry"][];
+        };
+        /**
+         * RolePosting
+         * @description One open role with its own application link, when the source hands
+         *     one back. careers-page extraction only sees titles in scraped markdown,
+         *     so url stays None there - callers fall back to careers_url instead.
+         *
+         *     Every field below title is optional because sources differ in what they
+         *     publish: an ATS returns structured detail, a scraped careers page returns
+         *     a line of text.
+         */
+        RolePosting: {
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Location */
+            location?: string | null;
+            /** Remote */
+            remote?: boolean | null;
+            /** Department */
+            department?: string | null;
+            /** Employment Type */
+            employment_type?: string | null;
+            /** Posted At */
+            posted_at?: string | null;
+            /** @default unverified */
+            apply_url_state: components["schemas"]["ApplyUrlState"];
         };
         /** SignupRequest */
         SignupRequest: {
@@ -1388,6 +1984,351 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_primary_contact_api_companies__company_id__primary_contact_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrimaryContactUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_people_api_people_get: {
+        parameters: {
+            query?: {
+                stage?: components["schemas"]["PersonStage"] | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_person_api_people__person_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_person_stage_api_people__person_id__stage_patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonStageUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    enrich_person_api_people__person_id__enrich_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_outreach_drafts_api_people__person_id__outreach_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_outreach_api_people__person_id__outreach_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_outreach_draft_api_people__person_id__outreach__channel__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+                channel: components["schemas"]["OutreachChannel"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OutreachDraftEdit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_gmail_draft_api_people__person_id__outreach_gmail_draft_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailDraftOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_outreach_email_api_people__person_id__outreach_send_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GmailSendOut"];
                 };
             };
             /** @description Validation Error */
@@ -1837,6 +2778,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumeParseResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_connections_api_connections_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_connection_api_connections__provider__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                provider: "apollo" | "gmail" | "hunter";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_connection_api_connections__provider__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                provider: "apollo" | "gmail" | "hunter";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_oauth_api_connections__provider__oauth_start_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                provider: "apollo" | "gmail";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OAuthStartOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    oauth_callback_api_connections__provider__oauth_callback_get: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path: {
+                provider: "apollo" | "gmail";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
