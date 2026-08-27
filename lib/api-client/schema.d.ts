@@ -93,6 +93,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Match
+         * @description No domain: this searches for companies matching the caller's own
+         *     profile instead. Pre-checks a profile exists so a caller who hasn't
+         *     finished onboarding gets a clear 404 instead of a job that will just
+         *     fail once picked up.
+         */
+        post: operations["start_match_api_companies_match_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/match/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Match */
+        get: operations["get_match_api_companies_match__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/{company_id}": {
         parameters: {
             query?: never;
@@ -652,6 +692,12 @@ export interface components {
             profile?: components["schemas"]["CompanyProfile"] | null;
             /** Primary Contact Id */
             primary_contact_id?: string | null;
+            /** Matched Role Title */
+            matched_role_title?: string | null;
+            /** Matched Role Url */
+            matched_role_url?: string | null;
+            /** Matched Posted Text */
+            matched_posted_text?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -755,6 +801,12 @@ export interface components {
             profile?: components["schemas"]["CompanyProfile"] | null;
             /** Primary Contact Id */
             primary_contact_id?: string | null;
+            /** Matched Role Title */
+            matched_role_title?: string | null;
+            /** Matched Role Url */
+            matched_role_url?: string | null;
+            /** Matched Posted Text */
+            matched_posted_text?: string | null;
             stage: components["schemas"]["CompanyStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -990,6 +1042,28 @@ export interface components {
         LogoutRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /** MatchRunResult */
+        MatchRunResult: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["PipelineRunStatus"];
+            /** Error */
+            error?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Matched Company Ids */
+            matched_company_ids?: string[];
         };
         /** MessageResponse */
         MessageResponse: {
@@ -1265,6 +1339,31 @@ export interface components {
         PersonStageUpdate: {
             stage: components["schemas"]["PersonStage"];
         };
+        /** PipelineRunOut */
+        PipelineRunOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["PipelineRunStatus"];
+            /** Error */
+            error?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+        };
+        /**
+         * PipelineRunStatus
+         * @enum {string}
+         */
+        PipelineRunStatus: "pending" | "running" | "completed" | "failed";
         /** PrimaryContactUpdate */
         PrimaryContactUpdate: {
             /** Person Id */
@@ -1714,6 +1813,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_match_api_companies_match_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_match_api_companies_match__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchRunResult"];
                 };
             };
             /** @description Validation Error */

@@ -7,10 +7,12 @@ import type {
   CompanyDetail,
   CompanyListResponse,
   CompanySort,
+  MatchRunResult,
   OverviewStats,
   Person,
   PersonDetail,
   PersonListResponse,
+  PipelineRunOut,
 } from "@/lib/types";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
 import type { PersonStage } from "@/components/ui/PersonStageBadge";
@@ -175,6 +177,36 @@ export async function researchCompanyDomain(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+}
+
+/** No domain: searches for companies matching the caller's own profile.
+ * Returns immediately with a pending run - poll getMatchRun for the
+ * result. Reuses an active run instead of starting a second one if one is
+ * already in flight. */
+export async function startMatchRun(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PipelineRunOut> {
+  const result = await client.POST("/api/companies/match", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as PipelineRunOut;
+}
+
+export async function getMatchRun(
+  runId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<MatchRunResult> {
+  const result = await client.GET("/api/companies/match/{run_id}", {
+    params: { path: { run_id: runId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as MatchRunResult;
 }
 
 /** Notes only. Stage goes through updateCompanyStage, which the backend
