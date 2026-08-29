@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/Button";
 
 export function GmailDraftButton({
   personId,
+  sequenceIndex,
   recipientEmail,
   onEnsureSaved,
 }: {
   personId: string;
+  sequenceIndex: number;
   recipientEmail: string | null;
   /** Gmail gets the saved row, not what's in the textarea, so an unsaved
    * edit is written first. False means that save failed and the section is
@@ -32,7 +34,7 @@ export function GmailDraftButton({
       if (!(await onEnsureSaved())) return;
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again.");
-      setCreated(await createGmailDraft(personId, token));
+      setCreated(await createGmailDraft(personId, sequenceIndex, token));
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === "gmail_not_connected") {
         setNotConnected(true);

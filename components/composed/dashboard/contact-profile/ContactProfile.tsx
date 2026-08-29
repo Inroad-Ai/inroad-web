@@ -217,7 +217,7 @@ export function ContactProfile({ personId }: { personId: string }) {
             variant="primary"
             size="sm"
             type="button"
-            onClick={outreach.draft}
+            onClick={() => outreach.draft(0)}
             disabled={outreach.drafting || outreach.loading}
           >
             {outreach.drafting
@@ -269,6 +269,8 @@ export function ContactProfile({ personId }: { personId: string }) {
         personId={detail.id}
         personEmail={detail.email}
         personLinkedinUrl={detail.linkedin_url}
+        drafting={outreach.drafting}
+        onDraftFollowUp={outreach.draft}
         onSaved={outreach.replaceDraft}
       />
     </div>

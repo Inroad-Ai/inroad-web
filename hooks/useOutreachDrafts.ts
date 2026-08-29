@@ -29,10 +29,23 @@ interface UseOutreachDraftsResult {
   loading: boolean;
   drafting: boolean;
   error: string | null;
-  draft: () => Promise<void>;
+  /** sequenceIndex 0 (the default) is the initial message; higher drafts a
+   * follow-up, which the backend requires the previous one to exist for. */
+  draft: (sequenceIndex?: number) => Promise<void>;
   /** A saved edit returns the new row, so this updates without a refetch -
    * same convention as useConnections' setConnections. */
   replaceDraft: (draft: OutreachDraft) => void;
+}
+
+/** Drafting one sequence position returns just that position's two rows,
+ * not the whole set, so the response replaces only the rows it covers and
+ * leaves every other sequence position where it was. */
+function mergeDrafts(current: OutreachDraft[], updated: OutreachDraft[]): OutreachDraft[] {
+  const isReplaced = (draft: OutreachDraft) =>
+    updated.some(
+      (next) => next.channel === draft.channel && next.sequence_index === draft.sequence_index,
+    );
+  return [...current.filter((draft) => !isReplaced(draft)), ...updated];
 }
 
 export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
@@ -64,19 +77,23 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
     return () => controller.abort();
   }, [personId]);
 
-  const draft = useCallback(async () => {
-    setDrafting(true);
-    setError(null);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(SESSION_EXPIRED);
-      setDrafts(await draftOutreach(personId, token));
-    } catch (caught) {
-      setError(describe(caught));
-    } finally {
-      setDrafting(false);
-    }
-  }, [personId]);
+  const draft = useCallback(
+    async (sequenceIndex = 0) => {
+      setDrafting(true);
+      setError(null);
+      try {
+        const token = await ensureValidAccessToken();
+        if (!token) throw new Error(SESSION_EXPIRED);
+        const updated = await draftOutreach(personId, sequenceIndex, token);
+        setDrafts((current) => mergeDrafts(current, updated));
+      } catch (caught) {
+        setError(describe(caught));
+      } finally {
+        setDrafting(false);
+      }
+    },
+    [personId],
+  );
 
   const replaceDraft = useCallback((updated: OutreachDraft) => {
     setDrafts((current) =>
