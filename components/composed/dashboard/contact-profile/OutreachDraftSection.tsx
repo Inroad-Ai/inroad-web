@@ -72,6 +72,7 @@ export function OutreachDraftSection({
         await saveOutreachDraft(
           personId,
           draft.channel,
+          draft.sequence_index,
           { subject: draft.channel === "email" ? subject : null, body },
           token,
         ),
@@ -154,6 +155,7 @@ export function OutreachDraftSection({
             />
             <GmailDraftButton
               personId={personId}
+              sequenceIndex={draft.sequence_index}
               recipientEmail={recipientEmail}
               onEnsureSaved={persist}
             />

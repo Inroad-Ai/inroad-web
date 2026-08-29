@@ -262,20 +262,41 @@ export interface paths {
         };
         /**
          * List Outreach Drafts
-         * @description Unpaginated, unlike every other list route: a unique constraint on
-         *     (person_id, channel) caps this at one row per channel.
+         * @description Unpaginated, unlike every other list route: capped at one row per
+         *     channel per sequence position, and a sequence position is capped in
+         *     turn by the user's follow-up cadence.
          */
         get: operations["list_outreach_drafts_api_people__person_id__outreach_get"];
         put?: never;
-        /** Draft Outreach */
-        post: operations["draft_outreach_api_people__person_id__outreach_post"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/people/{person_id}/outreach/{channel}": {
+    "/api/people/{person_id}/outreach/{sequence_index}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Draft Outreach
+         * @description sequence_index 0 is the initial message; higher is a follow-up,
+         *     drafted with the earlier steps in the sequence as context.
+         */
+        post: operations["draft_outreach_api_people__person_id__outreach__sequence_index__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/{channel}/{sequence_index}": {
         parameters: {
             query?: never;
             header?: never;
@@ -289,10 +310,10 @@ export interface paths {
         options?: never;
         head?: never;
         /** Save Outreach Draft */
-        patch: operations["save_outreach_draft_api_people__person_id__outreach__channel__patch"];
+        patch: operations["save_outreach_draft_api_people__person_id__outreach__channel___sequence_index__patch"];
         trace?: never;
     };
-    "/api/people/{person_id}/outreach/gmail-draft": {
+    "/api/people/{person_id}/outreach/gmail-draft/{sequence_index}": {
         parameters: {
             query?: never;
             header?: never;
@@ -302,14 +323,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create Gmail Draft */
-        post: operations["create_gmail_draft_api_people__person_id__outreach_gmail_draft_post"];
+        post: operations["create_gmail_draft_api_people__person_id__outreach_gmail_draft__sequence_index__post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/people/{person_id}/outreach/send": {
+    "/api/people/{person_id}/outreach/send/{sequence_index}": {
         parameters: {
             query?: never;
             header?: never;
@@ -323,7 +344,7 @@ export interface paths {
          * @description Irreversible: Gmail has no unsend. The confirm step is on the client,
          *     deliberately - a second server round trip would not make it any safer.
          */
-        post: operations["send_outreach_email_api_people__person_id__outreach_send_post"];
+        post: operations["send_outreach_email_api_people__person_id__outreach_send__sequence_index__post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -640,6 +661,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Settings */
+        get: operations["get_settings_api_settings_get"];
+        /** Put Settings */
+        put: operations["put_settings_api_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -916,6 +955,11 @@ export interface components {
             /** End Date */
             end_date?: string | null;
         };
+        /**
+         * FollowUpCadence
+         * @enum {string}
+         */
+        FollowUpCadence: "light" | "standard" | "aggressive";
         /** ForgotPasswordRequest */
         ForgotPasswordRequest: {
             /**
@@ -1128,6 +1172,11 @@ export interface components {
              */
             person_id: string;
             channel: components["schemas"]["OutreachChannel"];
+            /**
+             * Sequence Index
+             * @default 0
+             */
+            sequence_index: number;
             /** Subject */
             subject?: string | null;
             /** Body */
@@ -1614,6 +1663,16 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /** UserSettingsOut */
+        UserSettingsOut: {
+            follow_up_cadence: components["schemas"]["FollowUpCadence"];
+            /** Max Sequence Index */
+            max_sequence_index: number;
+        };
+        /** UserSettingsUpdate */
+        UserSettingsUpdate: {
+            follow_up_cadence: components["schemas"]["FollowUpCadence"];
         };
         /** ValidationError */
         ValidationError: {
@@ -2205,7 +2264,7 @@ export interface operations {
             };
         };
     };
-    draft_outreach_api_people__person_id__outreach_post: {
+    draft_outreach_api_people__person_id__outreach__sequence_index__post: {
         parameters: {
             query?: never;
             header?: {
@@ -2213,6 +2272,7 @@ export interface operations {
             };
             path: {
                 person_id: string;
+                sequence_index: number;
             };
             cookie?: never;
         };
@@ -2238,7 +2298,7 @@ export interface operations {
             };
         };
     };
-    save_outreach_draft_api_people__person_id__outreach__channel__patch: {
+    save_outreach_draft_api_people__person_id__outreach__channel___sequence_index__patch: {
         parameters: {
             query?: never;
             header?: {
@@ -2247,6 +2307,7 @@ export interface operations {
             path: {
                 person_id: string;
                 channel: components["schemas"]["OutreachChannel"];
+                sequence_index: number;
             };
             cookie?: never;
         };
@@ -2276,7 +2337,7 @@ export interface operations {
             };
         };
     };
-    create_gmail_draft_api_people__person_id__outreach_gmail_draft_post: {
+    create_gmail_draft_api_people__person_id__outreach_gmail_draft__sequence_index__post: {
         parameters: {
             query?: never;
             header?: {
@@ -2284,6 +2345,7 @@ export interface operations {
             };
             path: {
                 person_id: string;
+                sequence_index: number;
             };
             cookie?: never;
         };
@@ -2309,7 +2371,7 @@ export interface operations {
             };
         };
     };
-    send_outreach_email_api_people__person_id__outreach_send_post: {
+    send_outreach_email_api_people__person_id__outreach_send__sequence_index__post: {
         parameters: {
             query?: never;
             header?: {
@@ -2317,6 +2379,7 @@ export interface operations {
             };
             path: {
                 person_id: string;
+                sequence_index: number;
             };
             cookie?: never;
         };
@@ -2945,6 +3008,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_api_settings_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSettingsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_settings_api_settings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSettingsOut"];
                 };
             };
             /** @description Validation Error */

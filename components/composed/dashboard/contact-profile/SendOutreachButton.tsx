@@ -48,7 +48,7 @@ export function SendOutreachButton({
       if (!(await onEnsureSaved())) return;
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again.");
-      await sendOutreachEmail(personId, token);
+      await sendOutreachEmail(personId, draft.sequence_index, token);
       setJustSent(true);
       setConfirming(false);
     } catch (caught) {

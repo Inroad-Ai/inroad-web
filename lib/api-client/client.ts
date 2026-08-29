@@ -32,6 +32,8 @@ export type OutreachDraft = components["schemas"]["OutreachDraftOut"];
 export type OutreachChannel = components["schemas"]["OutreachChannel"];
 export type GmailDraft = components["schemas"]["GmailDraftOut"];
 export type GmailSend = components["schemas"]["GmailSendOut"];
+export type UserSettings = components["schemas"]["UserSettingsOut"];
+export type FollowUpCadence = components["schemas"]["FollowUpCadence"];
 /** The providers that connect by redirect rather than a pasted key -
  * narrower than ConnectionProvider, and read off the route the same way. */
 export type OAuthProvider =
@@ -382,15 +384,18 @@ export async function fetchOutreachDrafts(
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
 }
 
-/** Replaces whatever was there, saved edits included - asking for a new
- * draft is asking for the old one to go. */
+/** Replaces whatever was at this sequence position, saved edits included -
+ * asking for a new draft is asking for the old one to go. sequenceIndex 0
+ * is the initial message; higher is a follow-up, drafted with the earlier
+ * steps in the sequence as context. */
 export async function draftOutreach(
   personId: string,
+  sequenceIndex: number,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<OutreachDraft[]> {
-  const result = await client.POST("/api/people/{person_id}/outreach", {
-    params: { path: { person_id: personId } },
+  const result = await client.POST("/api/people/{person_id}/outreach/{sequence_index}", {
+    params: { path: { person_id: personId, sequence_index: sequenceIndex } },
     headers: authHeaders(accessToken),
     signal,
   });
@@ -401,16 +406,20 @@ export async function draftOutreach(
 export async function saveOutreachDraft(
   personId: string,
   channel: OutreachChannel,
+  sequenceIndex: number,
   draft: { subject: string | null; body: string },
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<OutreachDraft> {
-  const result = await client.PATCH("/api/people/{person_id}/outreach/{channel}", {
-    params: { path: { person_id: personId, channel } },
-    body: draft,
-    headers: authHeaders(accessToken),
-    signal,
-  });
+  const result = await client.PATCH(
+    "/api/people/{person_id}/outreach/{channel}/{sequence_index}",
+    {
+      params: { path: { person_id: personId, channel, sequence_index: sequenceIndex } },
+      body: draft,
+      headers: authHeaders(accessToken),
+      signal,
+    },
+  );
 
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft;
 }
@@ -421,11 +430,12 @@ export async function saveOutreachDraft(
  * the caller points at /integrations rather than showing the raw message. */
 export async function createGmailDraft(
   personId: string,
+  sequenceIndex: number,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<GmailDraft> {
-  const result = await client.POST("/api/people/{person_id}/outreach/gmail-draft", {
-    params: { path: { person_id: personId } },
+  const result = await client.POST("/api/people/{person_id}/outreach/gmail-draft/{sequence_index}", {
+    params: { path: { person_id: personId, sequence_index: sequenceIndex } },
     headers: authHeaders(accessToken),
     signal,
   });
@@ -438,16 +448,49 @@ export async function createGmailDraft(
  * feature, so the caller confirms before calling this. */
 export async function sendOutreachEmail(
   personId: string,
+  sequenceIndex: number,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<GmailSend> {
-  const result = await client.POST("/api/people/{person_id}/outreach/send", {
-    params: { path: { person_id: personId } },
+  const result = await client.POST("/api/people/{person_id}/outreach/send/{sequence_index}", {
+    params: { path: { person_id: personId, sequence_index: sequenceIndex } },
     headers: authHeaders(accessToken),
     signal,
   });
 
   return unwrap(result, OUTREACH_UNREACHABLE) as GmailSend;
+}
+
+// --- settings ---
+
+const SETTINGS_UNREACHABLE = "Could not reach the settings service.";
+
+/** Always returns a row, even for an account that never saved one - the
+ * backend reads that as the default cadence rather than a 404. */
+export async function fetchSettings(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<UserSettings> {
+  const result = await client.GET("/api/settings", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+export async function updateSettings(
+  followUpCadence: FollowUpCadence,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<UserSettings> {
+  const result = await client.PUT("/api/settings", {
+    body: { follow_up_cadence: followUpCadence },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
 }
 
 // --- auth ---
