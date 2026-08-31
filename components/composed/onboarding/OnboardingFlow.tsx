@@ -44,6 +44,26 @@ type StepId = (typeof STEP_IDS)[number];
 
 const TOTAL_STEPS = STEP_IDS.length;
 
+// Named sections for the progress indicator, in the order they actually
+// happen - resume comes before the contact fields on purpose (see the
+// comment above STEP_IDS), so the phase list follows that, not the order
+// someone might describe the flow in casual conversation.
+const PHASES = ["Resume", "Contact", "Preferences", "Review"] as const;
+
+// -1 means no phase has started yet - only true for welcome, which is an
+// intro screen, not part of any section.
+const STEP_PHASE_INDEX: Record<StepId, number> = {
+  welcome: -1,
+  resume: 0,
+  name: 1,
+  email: 1,
+  contact: 1,
+  links: 1,
+  workPreference: 2,
+  targetRole: 2,
+  summary: 3,
+};
+
 const DOCUMENT_ACCEPT =
   ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -279,8 +299,15 @@ export function OnboardingFlow() {
   const onBack = stepIndex > 0 ? back : undefined;
 
   return (
-    <ScreenShell key={step} step={stepNumber} total={TOTAL_STEPS} onBack={onBack}>
-      {step === "welcome" ? <WelcomeScreen onStart={next} /> : null}
+    <ScreenShell
+      key={step}
+      step={stepNumber}
+      total={TOTAL_STEPS}
+      phases={PHASES}
+      currentPhaseIndex={STEP_PHASE_INDEX[step]}
+      onBack={onBack}
+    >
+      {step === "welcome" ? <WelcomeScreen phases={PHASES} onStart={next} /> : null}
 
       {step === "resume" ? (
         <UploadScreen
