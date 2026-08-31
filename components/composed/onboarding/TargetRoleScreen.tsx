@@ -40,12 +40,13 @@ export function TargetRoleScreen({
         more specific, the better the matches.
       </p>
       <div className="mt-6 flex flex-wrap gap-2">
-        {COMMON_TARGET_ROLES.map((role) => {
+        {COMMON_TARGET_ROLES.map((role, index) => {
           const selected = targetRoles.includes(role);
           return (
             <button
               key={role}
               type="button"
+              autoFocus={index === 0}
               onClick={() => toggleRole(role)}
               aria-pressed={selected}
               className={
@@ -61,12 +62,7 @@ export function TargetRoleScreen({
         })}
       </div>
       <div className="mt-4">
-        <TagInput
-          value={targetRoles}
-          onChange={onChange}
-          placeholder="Or type your own"
-          autoFocus
-        />
+        <TagInput value={targetRoles} onChange={onChange} placeholder="Or type your own" />
       </div>
       {touched && !valid ? (
         <p className="mt-3 text-sm text-error" role="alert">

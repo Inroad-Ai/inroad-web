@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ScreenShell } from "@/components/composed/onboarding/ScreenShell";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { WelcomeScreen } from "@/components/composed/onboarding/WelcomeScreen";
 import { NameScreen } from "@/components/composed/onboarding/NameScreen";
 import { EmailScreen } from "@/components/composed/onboarding/EmailScreen";
@@ -282,10 +283,16 @@ export function OnboardingFlow() {
 
       setForm((prev) => {
         // "" means the parse didn't find that field, not that it did - only
-        // mark a field as resume-sourced when there's an actual value in it.
+        // overwrite a field the user may have already filled in by hand when
+        // this parse actually found something for it, same rule the
+        // fieldSource marking below already follows.
         const fieldSource = { ...prev.fieldSource };
+        const resumeFields: Partial<Record<(typeof RESUME_FILLABLE_FIELDS)[number], string>> = {};
         for (const key of RESUME_FILLABLE_FIELDS) {
-          if (fields[key]) fieldSource[key] = "resume";
+          if (fields[key]) {
+            resumeFields[key] = fields[key];
+            fieldSource[key] = "resume";
+          }
         }
         // Email follows the same signed-in-beats-resume rule as the value
         // itself below, so it's only "resume" when the resume's address is
@@ -294,7 +301,14 @@ export function OnboardingFlow() {
 
         return {
           ...prev,
-          ...fields,
+          ...resumeFields,
+          // Not user-editable anywhere in this flow, so the latest parse
+          // simply wins, there's no manual value to protect here.
+          summary: fields.summary,
+          skills: fields.skills,
+          workHistory: fields.workHistory,
+          education: fields.education,
+          projects: fields.projects,
           // The signed-in address beats whatever the resume prints; that one is
           // confirmed and this one is a document that may be years old.
           email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
@@ -370,139 +384,153 @@ export function OnboardingFlow() {
       currentPhaseIndex={STEP_PHASE_INDEX[step]}
       onBack={onBack}
     >
-      {step === "welcome" ? <WelcomeScreen phases={PHASES} onStart={next} /> : null}
+      {!hydrated ? (
+        // A saved draft, if there is one, only shows up after fetchMe and
+        // loadDraft resolve - rendering the real, interactive step before
+        // then risks the draft landing on top of something the user just
+        // typed and silently overwriting it.
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+        </div>
+      ) : (
+        <>
+          {step === "welcome" ? <WelcomeScreen phases={PHASES} onStart={next} /> : null}
 
-      {step === "resume" ? (
-        <UploadScreen
-          heading="Start with your resume"
-          helperText="PDF or DOCX. We read it, fill in what we can, and never keep the file."
-          accept={DOCUMENT_ACCEPT}
-          optional={false}
-          fileName={resume.fileName}
-          state={resume.state}
-          progress={null}
-          statusLabel="Reading your resume"
-          errorMessage={resume.error}
-          onSelect={handleResumeSelect}
-          onRemove={() => setResume(INITIAL_RESUME)}
-          onNext={next}
-          // Only offered once a parse has actually failed. Skipping outright
-          // isn't the point of this step; not being stuck on it is.
-          onSkip={resume.state === "error" ? next : undefined}
-          autoFocus
-        />
-      ) : null}
+          {step === "resume" ? (
+            <UploadScreen
+              heading="Start with your resume"
+              helperText="PDF or DOCX. We read it, fill in what we can, and never keep the file."
+              accept={DOCUMENT_ACCEPT}
+              optional={false}
+              fileName={resume.fileName}
+              state={resume.state}
+              progress={null}
+              statusLabel="Reading your resume"
+              errorMessage={resume.error}
+              onSelect={handleResumeSelect}
+              onRemove={() => setResume(INITIAL_RESUME)}
+              onNext={next}
+              // Only offered once a parse has actually failed. Skipping outright
+              // isn't the point of this step; not being stuck on it is.
+              onSkip={resume.state === "error" ? next : undefined}
+              autoFocus
+            />
+          ) : null}
 
-      {step === "name" ? (
-        <NameScreen
-          firstName={form.firstName}
-          lastName={form.lastName}
-          onChange={(firstName, lastName) =>
-            setForm((prev) => ({
-              ...prev,
-              firstName,
-              lastName,
-              fieldSource: withManualSource(prev, { firstName, lastName }),
-            }))
-          }
-          onNext={next}
-        />
-      ) : null}
+          {step === "name" ? (
+            <NameScreen
+              firstName={form.firstName}
+              lastName={form.lastName}
+              onChange={(firstName, lastName) =>
+                setForm((prev) => ({
+                  ...prev,
+                  firstName,
+                  lastName,
+                  fieldSource: withManualSource(prev, { firstName, lastName }),
+                }))
+              }
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "email" ? (
-        <EmailScreen
-          email={form.email}
-          prefilled={form.emailPrefilled}
-          onChange={(email) =>
-            setForm((prev) => ({
-              ...prev,
-              email,
-              emailPrefilled: false,
-              fieldSource: withManualSource(prev, { email }),
-            }))
-          }
-          onNext={next}
-        />
-      ) : null}
+          {step === "email" ? (
+            <EmailScreen
+              email={form.email}
+              prefilled={form.emailPrefilled}
+              onChange={(email) =>
+                setForm((prev) => ({
+                  ...prev,
+                  email,
+                  emailPrefilled: false,
+                  fieldSource: withManualSource(prev, { email }),
+                }))
+              }
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "contact" ? (
-        <ContactDetailsScreen
-          phone={form.phone}
-          location={form.location}
-          onChange={(phone, location) =>
-            setForm((prev) => ({
-              ...prev,
-              phone,
-              location,
-              fieldSource: withManualSource(prev, { phone, location }),
-            }))
-          }
-          onNext={next}
-        />
-      ) : null}
+          {step === "contact" ? (
+            <ContactDetailsScreen
+              phone={form.phone}
+              location={form.location}
+              onChange={(phone, location) =>
+                setForm((prev) => ({
+                  ...prev,
+                  phone,
+                  location,
+                  fieldSource: withManualSource(prev, { phone, location }),
+                }))
+              }
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "links" ? (
-        <LinksScreen
-          links={{
-            linkedinUrl: form.linkedinUrl,
-            githubUrl: form.githubUrl,
-            portfolioUrl: form.portfolioUrl,
-          }}
-          onChange={(links) =>
-            setForm((prev) => ({
-              ...prev,
-              ...links,
-              fieldSource: withManualSource(prev, links),
-            }))
-          }
-          onNext={next}
-        />
-      ) : null}
+          {step === "links" ? (
+            <LinksScreen
+              links={{
+                linkedinUrl: form.linkedinUrl,
+                githubUrl: form.githubUrl,
+                portfolioUrl: form.portfolioUrl,
+              }}
+              onChange={(links) =>
+                setForm((prev) => ({
+                  ...prev,
+                  ...links,
+                  fieldSource: withManualSource(prev, links),
+                }))
+              }
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "workPreference" ? (
-        <WorkPreferenceScreen
-          selected={form.workPreference}
-          onChange={(workPreference) => setForm((prev) => ({ ...prev, workPreference }))}
-          onNext={next}
-        />
-      ) : null}
+          {step === "workPreference" ? (
+            <WorkPreferenceScreen
+              selected={form.workPreference}
+              onChange={(workPreference) => setForm((prev) => ({ ...prev, workPreference }))}
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "targetRole" ? (
-        <TargetRoleScreen
-          targetRoles={form.targetRoles}
-          onChange={(targetRoles) => setForm((prev) => ({ ...prev, targetRoles }))}
-          onNext={next}
-        />
-      ) : null}
+          {step === "targetRole" ? (
+            <TargetRoleScreen
+              targetRoles={form.targetRoles}
+              onChange={(targetRoles) => setForm((prev) => ({ ...prev, targetRoles }))}
+              onNext={next}
+            />
+          ) : null}
 
-      {step === "summary" ? (
-        <SummaryScreen
-          firstName={form.firstName}
-          lastName={form.lastName}
-          email={form.email}
-          phone={form.phone}
-          location={form.location}
-          linkedinUrl={form.linkedinUrl}
-          githubUrl={form.githubUrl}
-          portfolioUrl={form.portfolioUrl}
-          skills={form.skills}
-          resumeFileName={resume.state === "done" ? resume.fileName : null}
-          workPreference={form.workPreference}
-          targetRoles={form.targetRoles}
-          fieldSource={form.fieldSource}
-          onEditName={() => editFromSummary("name")}
-          onEditEmail={() => editFromSummary("email")}
-          onEditPhone={() => editFromSummary("contact")}
-          onEditLocation={() => editFromSummary("contact")}
-          onEditLinks={() => editFromSummary("links")}
-          onEditResume={() => editFromSummary("resume")}
-          onEditWorkPreference={() => editFromSummary("workPreference")}
-          onEditTargetRole={() => editFromSummary("targetRole")}
-          onSubmit={handleSubmit}
-          submitting={submitting}
-          submitError={submitError}
-        />
-      ) : null}
+          {step === "summary" ? (
+            <SummaryScreen
+              firstName={form.firstName}
+              lastName={form.lastName}
+              email={form.email}
+              phone={form.phone}
+              location={form.location}
+              linkedinUrl={form.linkedinUrl}
+              githubUrl={form.githubUrl}
+              portfolioUrl={form.portfolioUrl}
+              skills={form.skills}
+              resumeFileName={resume.state === "done" ? resume.fileName : null}
+              workPreference={form.workPreference}
+              targetRoles={form.targetRoles}
+              fieldSource={form.fieldSource}
+              onEditName={() => editFromSummary("name")}
+              onEditEmail={() => editFromSummary("email")}
+              onEditPhone={() => editFromSummary("contact")}
+              onEditLocation={() => editFromSummary("contact")}
+              onEditLinks={() => editFromSummary("links")}
+              onEditResume={() => editFromSummary("resume")}
+              onEditWorkPreference={() => editFromSummary("workPreference")}
+              onEditTargetRole={() => editFromSummary("targetRole")}
+              onSubmit={handleSubmit}
+              submitting={submitting}
+              submitError={submitError}
+            />
+          ) : null}
+        </>
+      )}
     </ScreenShell>
   );
 }

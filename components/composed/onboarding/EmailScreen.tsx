@@ -22,6 +22,7 @@ export function EmailScreen({
 
   return (
     <form
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
         setTouched(true);

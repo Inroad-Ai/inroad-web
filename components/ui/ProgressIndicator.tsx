@@ -21,9 +21,10 @@ export function ProgressIndicator({
         {phases.map((phase, index) => (
           <span key={phase} className="flex items-center gap-1.5">
             <span
+              aria-current={index === currentPhaseIndex ? "step" : undefined}
               className={`utility-label ${
                 index === currentPhaseIndex
-                  ? "text-signal-teal"
+                  ? "font-semibold text-signal-teal"
                   : index < currentPhaseIndex
                     ? "text-text-secondary"
                     : "text-text-secondary/40"

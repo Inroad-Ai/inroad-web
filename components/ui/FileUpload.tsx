@@ -42,7 +42,7 @@ export function FileUpload({
         type="file"
         accept={accept}
         autoFocus={autoFocus}
-        className="sr-only"
+        className="peer sr-only"
         onChange={(event) => {
           const file = event.target.files?.[0];
           if (file) onSelect(file);
@@ -53,7 +53,7 @@ export function FileUpload({
       {showPicker ? (
         <label
           htmlFor={inputId}
-          className="flex cursor-pointer flex-col items-center gap-2 py-8 text-center"
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-md py-8 text-center peer-focus-visible:ring-2 peer-focus-visible:ring-signal-teal peer-focus-visible:ring-offset-2"
         >
           <span className="utility-label text-signal-teal">Choose a file</span>
           <span className="text-xs text-text-secondary">PDF or DOCX, up to 10MB</span>

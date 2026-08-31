@@ -24,6 +24,7 @@ export function LinksScreen({
 
   return (
     <form
+      noValidate
       onSubmit={(event) => {
         event.preventDefault();
         setTouched({ linkedinUrl: true, githubUrl: true, portfolioUrl: true });
