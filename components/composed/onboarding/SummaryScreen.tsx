@@ -185,7 +185,7 @@ export function SummaryScreen({
       </div>
 
       {submitError ? (
-        <div className="mt-6 rounded-md border border-error/40 bg-error-subtle p-4">
+        <div className="mt-6 rounded-md border border-error/40 bg-error-subtle p-4" role="alert">
           <Badge tone="rose">Could not save</Badge>
           <p className="mt-2 text-sm text-text-primary">{submitError}</p>
           <p className="mt-1 text-xs text-text-secondary">

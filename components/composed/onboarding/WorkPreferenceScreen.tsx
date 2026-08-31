@@ -48,7 +48,9 @@ export function WorkPreferenceScreen({
       </div>
 
       {touched && !valid ? (
-        <p className="mt-3 text-sm text-error">Pick at least one.</p>
+        <p className="mt-3 text-sm text-error" role="alert">
+          Pick at least one.
+        </p>
       ) : null}
 
       <Button

@@ -43,13 +43,19 @@ export function NameScreen({
             id="first-name"
             autoFocus
             value={firstName}
+            aria-invalid={firstNameError ? true : undefined}
+            aria-describedby={firstNameError ? "first-name-error" : undefined}
             onChange={(event) => {
               onChange(event.target.value, lastName);
               setTouched((prev) => ({ ...prev, firstName: true }));
             }}
             className="mt-2"
           />
-          {firstNameError ? <p className="mt-2 text-sm text-error">{firstNameError}</p> : null}
+          {firstNameError ? (
+            <p id="first-name-error" className="mt-2 text-sm text-error" aria-live="polite">
+              {firstNameError}
+            </p>
+          ) : null}
         </div>
         <div>
           <label htmlFor="last-name" className="utility-label text-text-secondary">
@@ -58,13 +64,19 @@ export function NameScreen({
           <Input
             id="last-name"
             value={lastName}
+            aria-invalid={lastNameError ? true : undefined}
+            aria-describedby={lastNameError ? "last-name-error" : undefined}
             onChange={(event) => {
               onChange(firstName, event.target.value);
               setTouched((prev) => ({ ...prev, lastName: true }));
             }}
             className="mt-2"
           />
-          {lastNameError ? <p className="mt-2 text-sm text-error">{lastNameError}</p> : null}
+          {lastNameError ? (
+            <p id="last-name-error" className="mt-2 text-sm text-error" aria-live="polite">
+              {lastNameError}
+            </p>
+          ) : null}
         </div>
       </div>
       <Button type="submit" className="mt-8">

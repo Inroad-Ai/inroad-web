@@ -69,7 +69,9 @@ export function TargetRoleScreen({
         />
       </div>
       {touched && !valid ? (
-        <p className="mt-3 text-sm text-error">Add at least one role.</p>
+        <p className="mt-3 text-sm text-error" role="alert">
+          Add at least one role.
+        </p>
       ) : null}
       <Button type="submit" className="mt-8">
         Continue

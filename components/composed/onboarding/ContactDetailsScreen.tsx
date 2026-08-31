@@ -44,6 +44,8 @@ export function ContactDetailsScreen({
             type="tel"
             autoFocus
             value={phone}
+            aria-invalid={phoneError ? true : undefined}
+            aria-describedby={phoneError ? "phone-error" : undefined}
             onChange={(event) => {
               onChange(event.target.value, location);
               setTouched((prev) => ({ ...prev, phone: true }));
@@ -51,7 +53,11 @@ export function ContactDetailsScreen({
             placeholder="(555) 123-4567"
             className="mt-2"
           />
-          {phoneError ? <p className="mt-2 text-sm text-error">{phoneError}</p> : null}
+          {phoneError ? (
+            <p id="phone-error" className="mt-2 text-sm text-error" aria-live="polite">
+              {phoneError}
+            </p>
+          ) : null}
         </div>
         <div>
           <label htmlFor="location" className="utility-label text-text-secondary">
@@ -63,6 +69,8 @@ export function ContactDetailsScreen({
           <Input
             id="location"
             value={location}
+            aria-invalid={locationError ? true : undefined}
+            aria-describedby={locationError ? "location-error" : undefined}
             onChange={(event) => {
               onChange(phone, event.target.value);
               setTouched((prev) => ({ ...prev, location: true }));
@@ -70,7 +78,11 @@ export function ContactDetailsScreen({
             placeholder="Berlin, Germany"
             className="mt-2"
           />
-          {locationError ? <p className="mt-2 text-sm text-error">{locationError}</p> : null}
+          {locationError ? (
+            <p id="location-error" className="mt-2 text-sm text-error" aria-live="polite">
+              {locationError}
+            </p>
+          ) : null}
         </div>
       </div>
       <Button type="submit" className="mt-8">

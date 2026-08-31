@@ -41,6 +41,8 @@ export function EmailScreen({
         type="email"
         autoFocus
         value={email}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "email-error" : undefined}
         onChange={(event) => {
           onChange(event.target.value);
           // Once the user has started typing, feedback stays live on every
@@ -50,7 +52,11 @@ export function EmailScreen({
         placeholder="you@example.com"
         className="mt-6"
       />
-      {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
+      {error ? (
+        <p id="email-error" className="mt-3 text-sm text-error" aria-live="polite">
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" className="mt-8">
         Continue
       </Button>
