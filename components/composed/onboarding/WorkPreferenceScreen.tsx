@@ -28,8 +28,10 @@ export function WorkPreferenceScreen({
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-text-primary">What work arrangement fits?</h1>
-      <p className="mt-2 text-sm text-text-secondary">Pick as many as apply.</p>
+      <h1 className="font-display text-2xl text-text-primary">How do you want to work?</h1>
+      <p className="mt-2 text-sm text-text-secondary">
+        This narrows which companies we search for. Pick as many as apply.
+      </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {WORK_PREFERENCE_OPTIONS.map((option) => (
@@ -38,7 +40,8 @@ export function WorkPreferenceScreen({
             selected={selected.includes(option.value)}
             onClick={() => toggle(option.value)}
           >
-            {option.label}
+            <p className="font-display font-semibold text-text-primary">{option.label}</p>
+            <p className="mt-1 text-sm text-text-secondary">{option.description}</p>
           </SelectableCard>
         ))}
       </div>

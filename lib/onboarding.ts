@@ -3,11 +3,19 @@
 
 export type WorkPreferenceOption = "remote" | "hybrid" | "onsite" | "relocation";
 
-export const WORK_PREFERENCE_OPTIONS: { value: WorkPreferenceOption; label: string }[] = [
-  { value: "remote", label: "Remote" },
-  { value: "hybrid", label: "Hybrid" },
-  { value: "onsite", label: "Onsite" },
-  { value: "relocation", label: "Open to relocation" },
+export const WORK_PREFERENCE_OPTIONS: {
+  value: WorkPreferenceOption;
+  label: string;
+  description: string;
+}[] = [
+  { value: "remote", label: "Remote", description: "Work from anywhere, no office required." },
+  { value: "hybrid", label: "Hybrid", description: "Split time between home and an office." },
+  { value: "onsite", label: "Onsite", description: "Based at a company's office full-time." },
+  {
+    value: "relocation",
+    label: "Open to relocation",
+    description: "Willing to move for the right opportunity.",
+  },
 ];
 
 export type UploadState = "idle" | "uploading" | "done" | "error";
