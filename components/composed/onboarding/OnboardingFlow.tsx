@@ -133,6 +133,43 @@ interface ResumeState {
 
 const INITIAL_RESUME: ResumeState = { fileName: null, state: "idle", error: null };
 
+// Scoped per user, not global, so a shared machine can't resume one
+// account's half-finished onboarding into a different account's session.
+const DRAFT_KEY_PREFIX = "inroad-onboarding-draft:";
+
+interface OnboardingDraft {
+  form: FormState;
+  stepIndex: number;
+  resume: ResumeState;
+}
+
+function loadDraft(userId: string): OnboardingDraft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY_PREFIX + userId);
+    return raw ? (JSON.parse(raw) as OnboardingDraft) : null;
+  } catch {
+    // Corrupted or inaccessible storage just means starting fresh, not a
+    // broken flow.
+    return null;
+  }
+}
+
+function saveDraft(userId: string, draft: OnboardingDraft): void {
+  try {
+    localStorage.setItem(DRAFT_KEY_PREFIX + userId, JSON.stringify(draft));
+  } catch {
+    // Full or blocked storage (private browsing) - best effort only.
+  }
+}
+
+function clearDraft(userId: string): void {
+  try {
+    localStorage.removeItem(DRAFT_KEY_PREFIX + userId);
+  } catch {
+    // Same as above.
+  }
+}
+
 export function OnboardingFlow() {
   const router = useRouter();
 
@@ -146,6 +183,11 @@ export function OnboardingFlow() {
   const [resume, setResume] = useState<ResumeState>(INITIAL_RESUME);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  // Guards the save effect below from firing before the restore attempt
+  // finishes - otherwise the empty initial state would write over a real
+  // draft the instant this component mounts.
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -154,18 +196,43 @@ export function OnboardingFlow() {
       .then((token) => (token ? fetchMe(token) : null))
       .then((user) => {
         if (cancelled || !user) return;
+        setUserId(user.id);
+
+        const draft = loadDraft(user.id);
+        if (draft) {
+          setForm(draft.form);
+          setStepIndex(draft.stepIndex);
+          // An interrupted upload has no file left to resume, only a
+          // spinner with nothing behind it - only "done" or "error" are
+          // meaningful to bring back.
+          setResume(
+            draft.resume.state === "done" || draft.resume.state === "error"
+              ? draft.resume
+              : INITIAL_RESUME,
+          );
+          return;
+        }
+
         setForm((prev) =>
           prev.email ? prev : { ...prev, email: user.email, emailPrefilled: true },
         );
       })
       .catch(() => {
-        // No prefill; the email step still asks for one.
+        // No prefill, no draft; the flow still works from scratch.
+      })
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
       });
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    saveDraft(userId, { form, stepIndex, resume });
+  }, [hydrated, userId, form, stepIndex, resume]);
 
   const step = STEP_IDS[stepIndex];
 
@@ -280,6 +347,7 @@ export function OnboardingFlow() {
         },
         token,
       );
+      if (userId) clearDraft(userId);
       router.push("/research");
     } catch (error) {
       setSubmitError(
