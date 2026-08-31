@@ -299,6 +299,7 @@ export function OnboardingFlow() {
           // Only offered once a parse has actually failed. Skipping outright
           // isn't the point of this step; not being stuck on it is.
           onSkip={resume.state === "error" ? next : undefined}
+          autoFocus
         />
       ) : null}
 

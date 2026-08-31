@@ -34,11 +34,12 @@ export function WorkPreferenceScreen({
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {WORK_PREFERENCE_OPTIONS.map((option) => (
+        {WORK_PREFERENCE_OPTIONS.map((option, index) => (
           <SelectableCard
             key={option.value}
             selected={selected.includes(option.value)}
             onClick={() => toggle(option.value)}
+            autoFocus={index === 0}
           >
             <p className="font-display font-semibold text-text-primary">{option.label}</p>
             <p className="mt-1 text-sm text-text-secondary">{option.description}</p>

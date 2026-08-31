@@ -18,6 +18,7 @@ interface FileUploadProps {
   errorMessage?: string | null;
   onSelect: (file: File) => void;
   onRemove?: () => void;
+  autoFocus?: boolean;
 }
 
 export function FileUpload({
@@ -29,6 +30,7 @@ export function FileUpload({
   errorMessage,
   onSelect,
   onRemove,
+  autoFocus,
 }: FileUploadProps) {
   const inputId = useId();
   const showPicker = !fileName || state === "error";
@@ -39,6 +41,7 @@ export function FileUpload({
         id={inputId}
         type="file"
         accept={accept}
+        autoFocus={autoFocus}
         className="sr-only"
         onChange={(event) => {
           const file = event.target.files?.[0];

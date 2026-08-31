@@ -61,7 +61,12 @@ export function TargetRoleScreen({
         })}
       </div>
       <div className="mt-4">
-        <TagInput value={targetRoles} onChange={onChange} placeholder="Or type your own" />
+        <TagInput
+          value={targetRoles}
+          onChange={onChange}
+          placeholder="Or type your own"
+          autoFocus
+        />
       </div>
       {touched && !valid ? (
         <p className="mt-3 text-sm text-error">Add at least one role.</p>
