@@ -113,6 +113,11 @@ export function OnboardingFlow() {
   const router = useRouter();
 
   const [stepIndex, setStepIndex] = useState(0);
+  // True while the current screen was reached via an "Edit" tap from the
+  // summary screen, rather than by walking the flow in order. Continue and
+  // Back both return straight to summary in that case, instead of resuming
+  // the normal step sequence from wherever this screen happens to sit in it.
+  const [editingFromSummary, setEditingFromSummary] = useState(false);
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
   const [resume, setResume] = useState<ResumeState>(INITIAL_RESUME);
   const [submitting, setSubmitting] = useState(false);
@@ -144,11 +149,26 @@ export function OnboardingFlow() {
     setStepIndex(STEP_IDS.indexOf(id));
   }
 
+  function editFromSummary(id: StepId) {
+    setEditingFromSummary(true);
+    goTo(id);
+  }
+
   function next() {
+    if (editingFromSummary) {
+      setEditingFromSummary(false);
+      goTo("summary");
+      return;
+    }
     setStepIndex((index) => Math.min(index + 1, STEP_IDS.length - 1));
   }
 
   function back() {
+    if (editingFromSummary) {
+      setEditingFromSummary(false);
+      goTo("summary");
+      return;
+    }
     setStepIndex((index) => Math.max(index - 1, 0));
   }
 
@@ -379,14 +399,14 @@ export function OnboardingFlow() {
           workPreference={form.workPreference}
           targetRoles={form.targetRoles}
           fieldSource={form.fieldSource}
-          onEditName={() => goTo("name")}
-          onEditEmail={() => goTo("email")}
-          onEditPhone={() => goTo("contact")}
-          onEditLocation={() => goTo("contact")}
-          onEditLinks={() => goTo("links")}
-          onEditResume={() => goTo("resume")}
-          onEditWorkPreference={() => goTo("workPreference")}
-          onEditTargetRole={() => goTo("targetRole")}
+          onEditName={() => editFromSummary("name")}
+          onEditEmail={() => editFromSummary("email")}
+          onEditPhone={() => editFromSummary("contact")}
+          onEditLocation={() => editFromSummary("contact")}
+          onEditLinks={() => editFromSummary("links")}
+          onEditResume={() => editFromSummary("resume")}
+          onEditWorkPreference={() => editFromSummary("workPreference")}
+          onEditTargetRole={() => editFromSummary("targetRole")}
           onSubmit={handleSubmit}
           submitting={submitting}
           submitError={submitError}

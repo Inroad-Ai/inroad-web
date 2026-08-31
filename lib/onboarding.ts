@@ -16,8 +16,20 @@ export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-/** Permissive on purpose - accepts spaces, dashes, parens, an optional leading +. */
-export function isValidPhone(value: string): boolean {
-  const digits = value.replace(/[^0-9]/g, "");
-  return digits.length >= 7 && digits.length <= 15 && /^[0-9+()\-.\s]+$/.test(value.trim());
-}
+// A starting point for the target-role picker, not the full list - anything
+// not here is still just a type-and-Enter away in that screen's tag input.
+export const COMMON_TARGET_ROLES = [
+  "Software Engineer",
+  "Backend Engineer",
+  "Frontend Engineer",
+  "Full Stack Engineer",
+  "Mobile Engineer",
+  "DevOps Engineer",
+  "Data Engineer",
+  "Data Scientist",
+  "Data Analyst",
+  "Machine Learning Engineer",
+  "Product Manager",
+  "UX/UI Designer",
+  "QA Engineer",
+] as const;

@@ -26,8 +26,8 @@ export function validateEmail(value: string): string | null {
   return validate(emailSchema, value);
 }
 
-// Same digit-count and character-set rule lib/onboarding.ts's isValidPhone
-// used, now shared instead of ad hoc per screen.
+// Digit-count and character-set rule shared across every screen that asks
+// for a phone number, rather than each one doing its own ad hoc check.
 export const phoneSchema = z
   .string()
   .trim()
