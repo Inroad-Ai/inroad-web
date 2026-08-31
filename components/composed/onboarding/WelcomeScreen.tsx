@@ -1,26 +1,5 @@
 import { Button } from "@/components/ui/Button";
-
-interface ValueProp {
-  title: string;
-  description: string;
-}
-
-const VALUE_PROPS: ValueProp[] = [
-  {
-    title: "Real matches",
-    description:
-      "Companies that actually fit what you're looking for, not a keyword-matched board.",
-  },
-  {
-    title: "Real research",
-    description:
-      "Funding, team, and tech stack pulled together into something worth reading first.",
-  },
-  {
-    title: "Real outreach",
-    description: "A drafted message to someone who can actually hire you, not a form letter.",
-  },
-];
+import { VALUE_PROPS } from "@/lib/onboarding";
 
 export function WelcomeScreen({
   phases,

@@ -23,7 +23,11 @@ import {
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { toFormFields } from "@/lib/resume";
-import { type UploadState, type WorkPreferenceOption } from "@/lib/onboarding";
+import {
+  RESUME_FILLABLE_FIELDS,
+  type UploadState,
+  type WorkPreferenceOption,
+} from "@/lib/onboarding";
 import type { FieldSourceKey, FieldSourceMap } from "@/lib/types";
 
 // Resume first, so every screen after it can be answered by correcting a
@@ -212,17 +216,8 @@ export function OnboardingFlow() {
       setForm((prev) => {
         // "" means the parse didn't find that field, not that it did - only
         // mark a field as resume-sourced when there's an actual value in it.
-        const RESUME_FILLABLE = [
-          "firstName",
-          "lastName",
-          "phone",
-          "location",
-          "linkedinUrl",
-          "githubUrl",
-          "portfolioUrl",
-        ] as const;
         const fieldSource = { ...prev.fieldSource };
-        for (const key of RESUME_FILLABLE) {
+        for (const key of RESUME_FILLABLE_FIELDS) {
           if (fields[key]) fieldSource[key] = "resume";
         }
         // Email follows the same signed-in-beats-resume rule as the value

@@ -4,19 +4,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { LINK_FIELDS, type ProfileLinks } from "@/lib/onboarding";
 import { validateUrl } from "@/lib/onboarding-schema";
-
-export interface ProfileLinks {
-  linkedinUrl: string;
-  githubUrl: string;
-  portfolioUrl: string;
-}
-
-const FIELDS: { key: keyof ProfileLinks; label: string; placeholder: string }[] = [
-  { key: "linkedinUrl", label: "LinkedIn", placeholder: "https://linkedin.com/in/you" },
-  { key: "githubUrl", label: "GitHub", placeholder: "https://github.com/you" },
-  { key: "portfolioUrl", label: "Portfolio or site", placeholder: "https://yoursite.com" },
-];
 
 export function LinksScreen({
   links,
@@ -38,7 +27,7 @@ export function LinksScreen({
       onSubmit={(event) => {
         event.preventDefault();
         setTouched({ linkedinUrl: true, githubUrl: true, portfolioUrl: true });
-        const hasError = FIELDS.some((field) => validateUrl(links[field.key]));
+        const hasError = LINK_FIELDS.some((field) => validateUrl(links[field.key]));
         if (!hasError) onNext();
       }}
     >
@@ -47,7 +36,7 @@ export function LinksScreen({
         All optional. Anything your resume listed is already filled in.
       </p>
       <div className="mt-6 space-y-4">
-        {FIELDS.map((field, index) => (
+        {LINK_FIELDS.map((field, index) => (
           <div key={field.key}>
             <label htmlFor={field.key} className="utility-label text-text-secondary">
               {field.label}
@@ -57,6 +46,8 @@ export function LinksScreen({
               type="url"
               autoFocus={index === 0}
               value={links[field.key]}
+              aria-invalid={errorFor(field.key) ? true : undefined}
+              aria-describedby={errorFor(field.key) ? `${field.key}-error` : undefined}
               onChange={(event) => {
                 onChange({ ...links, [field.key]: event.target.value });
                 setTouched((prev) => ({ ...prev, [field.key]: true }));
@@ -65,7 +56,9 @@ export function LinksScreen({
               className="mt-2"
             />
             {errorFor(field.key) ? (
-              <p className="mt-2 text-sm text-error">{errorFor(field.key)}</p>
+              <p id={`${field.key}-error`} className="mt-2 text-sm text-error" aria-live="polite">
+                {errorFor(field.key)}
+              </p>
             ) : null}
           </div>
         ))}
