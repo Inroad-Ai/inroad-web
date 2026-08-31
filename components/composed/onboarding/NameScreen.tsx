@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { validateName } from "@/lib/onboarding-schema";
 
 export function NameScreen({
   firstName,
@@ -16,15 +17,17 @@ export function NameScreen({
   onChange: (firstName: string, lastName: string) => void;
   onNext: () => void;
 }) {
-  const [touched, setTouched] = useState(false);
-  const valid = firstName.trim().length > 0 && lastName.trim().length > 0;
+  const [touched, setTouched] = useState({ firstName: false, lastName: false });
+
+  const firstNameError = touched.firstName ? validateName(firstName) : null;
+  const lastNameError = touched.lastName ? validateName(lastName) : null;
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        setTouched(true);
-        if (valid) onNext();
+        setTouched({ firstName: true, lastName: true });
+        if (!validateName(firstName) && !validateName(lastName)) onNext();
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">What&apos;s your name?</h1>
@@ -37,9 +40,13 @@ export function NameScreen({
             id="first-name"
             autoFocus
             value={firstName}
-            onChange={(event) => onChange(event.target.value, lastName)}
+            onChange={(event) => {
+              onChange(event.target.value, lastName);
+              setTouched((prev) => ({ ...prev, firstName: true }));
+            }}
             className="mt-2"
           />
+          {firstNameError ? <p className="mt-2 text-sm text-error">{firstNameError}</p> : null}
         </div>
         <div>
           <label htmlFor="last-name" className="utility-label text-text-secondary">
@@ -48,14 +55,15 @@ export function NameScreen({
           <Input
             id="last-name"
             value={lastName}
-            onChange={(event) => onChange(firstName, event.target.value)}
+            onChange={(event) => {
+              onChange(firstName, event.target.value);
+              setTouched((prev) => ({ ...prev, lastName: true }));
+            }}
             className="mt-2"
           />
+          {lastNameError ? <p className="mt-2 text-sm text-error">{lastNameError}</p> : null}
         </div>
       </div>
-      {touched && !valid ? (
-        <p className="mt-3 text-sm text-error">Both names are needed to continue.</p>
-      ) : null}
       <Button type="submit" className="mt-8">
         Continue
       </Button>
