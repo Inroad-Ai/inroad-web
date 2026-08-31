@@ -26,6 +26,7 @@ import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { CAREER_ARC_PARSING_UNAVAILABLE } from "@/lib/profile";
 import { toFormFields } from "@/lib/resume";
 import { type UploadState, type WorkPreferenceOption } from "@/lib/onboarding";
+import type { FieldSourceKey, FieldSourceMap } from "@/lib/types";
 
 // Resume first, so every screen after it can be answered by correcting a
 // parsed value instead of typing from nothing.
@@ -67,6 +68,7 @@ interface FormState {
   projects: ProjectEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
+  fieldSource: FieldSourceMap;
 }
 
 const INITIAL_STATE: FormState = {
@@ -86,7 +88,22 @@ const INITIAL_STATE: FormState = {
   projects: [],
   workPreference: [],
   targetRoles: [],
+  fieldSource: {},
 };
+
+// A field only flips to "manual" when its value actually changes - the name
+// screen's onChange fires with both first and last name on every keystroke,
+// even though only one of them moved.
+function withManualSource<K extends FieldSourceKey>(
+  prev: FormState,
+  changes: Record<K, string>,
+): FieldSourceMap {
+  const next = { ...prev.fieldSource };
+  for (const key of Object.keys(changes) as K[]) {
+    if (changes[key] !== prev[key]) next[key] = "manual";
+  }
+  return next;
+}
 
 interface ResumeState {
   fileName: string | null;
@@ -156,13 +173,36 @@ export function OnboardingFlow() {
       const parsed = await parseResume(file, token);
       const fields = toFormFields(parsed);
 
-      setForm((prev) => ({
-        ...prev,
-        ...fields,
-        // The signed-in address beats whatever the resume prints; that one is
-        // confirmed and this one is a document that may be years old.
-        email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
-      }));
+      setForm((prev) => {
+        // "" means the parse didn't find that field, not that it did - only
+        // mark a field as resume-sourced when there's an actual value in it.
+        const RESUME_FILLABLE = [
+          "firstName",
+          "lastName",
+          "phone",
+          "location",
+          "linkedinUrl",
+          "githubUrl",
+          "portfolioUrl",
+        ] as const;
+        const fieldSource = { ...prev.fieldSource };
+        for (const key of RESUME_FILLABLE) {
+          if (fields[key]) fieldSource[key] = "resume";
+        }
+        // Email follows the same signed-in-beats-resume rule as the value
+        // itself below, so it's only "resume" when the resume's address is
+        // the one that actually won.
+        if (!prev.emailPrefilled && fields.email) fieldSource.email = "resume";
+
+        return {
+          ...prev,
+          ...fields,
+          // The signed-in address beats whatever the resume prints; that one is
+          // confirmed and this one is a document that may be years old.
+          email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
+          fieldSource,
+        };
+      });
       setResume({ fileName: file.name, state: "done", error: null });
     } catch (error) {
       setResume({
@@ -250,7 +290,14 @@ export function OnboardingFlow() {
         <NameScreen
           firstName={form.firstName}
           lastName={form.lastName}
-          onChange={(firstName, lastName) => setForm((prev) => ({ ...prev, firstName, lastName }))}
+          onChange={(firstName, lastName) =>
+            setForm((prev) => ({
+              ...prev,
+              firstName,
+              lastName,
+              fieldSource: withManualSource(prev, { firstName, lastName }),
+            }))
+          }
           onNext={next}
         />
       ) : null}
@@ -259,7 +306,14 @@ export function OnboardingFlow() {
         <EmailScreen
           email={form.email}
           prefilled={form.emailPrefilled}
-          onChange={(email) => setForm((prev) => ({ ...prev, email, emailPrefilled: false }))}
+          onChange={(email) =>
+            setForm((prev) => ({
+              ...prev,
+              email,
+              emailPrefilled: false,
+              fieldSource: withManualSource(prev, { email }),
+            }))
+          }
           onNext={next}
         />
       ) : null}
@@ -267,7 +321,9 @@ export function OnboardingFlow() {
       {step === "phone" ? (
         <PhoneScreen
           phone={form.phone}
-          onChange={(phone) => setForm((prev) => ({ ...prev, phone }))}
+          onChange={(phone) =>
+            setForm((prev) => ({ ...prev, phone, fieldSource: withManualSource(prev, { phone }) }))
+          }
           onNext={next}
         />
       ) : null}
@@ -275,7 +331,13 @@ export function OnboardingFlow() {
       {step === "location" ? (
         <LocationScreen
           location={form.location}
-          onChange={(location) => setForm((prev) => ({ ...prev, location }))}
+          onChange={(location) =>
+            setForm((prev) => ({
+              ...prev,
+              location,
+              fieldSource: withManualSource(prev, { location }),
+            }))
+          }
           onNext={next}
         />
       ) : null}
@@ -287,7 +349,13 @@ export function OnboardingFlow() {
             githubUrl: form.githubUrl,
             portfolioUrl: form.portfolioUrl,
           }}
-          onChange={(links) => setForm((prev) => ({ ...prev, ...links }))}
+          onChange={(links) =>
+            setForm((prev) => ({
+              ...prev,
+              ...links,
+              fieldSource: withManualSource(prev, links),
+            }))
+          }
           onNext={next}
         />
       ) : null}
@@ -341,6 +409,7 @@ export function OnboardingFlow() {
           careerArcFileName={null}
           workPreference={form.workPreference}
           targetRoles={form.targetRoles}
+          fieldSource={form.fieldSource}
           onEditName={() => goTo("name")}
           onEditEmail={() => goTo("email")}
           onEditPhone={() => goTo("phone")}

@@ -280,3 +280,21 @@ export interface OverviewStats {
  * names — none of them appear on screen as written.
  */
 export type CardState = "idle" | "pending" | "done" | "failed";
+
+/** Onboarding fields the summary screen can badge as "from your resume" vs
+ * "you typed this" - only the fields that show up as their own editable row
+ * there, not summary/skills/workHistory/education/projects. Internal state
+ * only, mirrors nothing on the backend. */
+export type FieldSourceKey =
+  | "firstName"
+  | "lastName"
+  | "email"
+  | "phone"
+  | "location"
+  | "linkedinUrl"
+  | "githubUrl"
+  | "portfolioUrl";
+
+export type FieldSource = "resume" | "manual";
+
+export type FieldSourceMap = Partial<Record<FieldSourceKey, FieldSource>>;
