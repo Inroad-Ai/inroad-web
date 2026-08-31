@@ -7,8 +7,7 @@ import { ScreenShell } from "@/components/composed/onboarding/ScreenShell";
 import { WelcomeScreen } from "@/components/composed/onboarding/WelcomeScreen";
 import { NameScreen } from "@/components/composed/onboarding/NameScreen";
 import { EmailScreen } from "@/components/composed/onboarding/EmailScreen";
-import { PhoneScreen } from "@/components/composed/onboarding/PhoneScreen";
-import { LocationScreen } from "@/components/composed/onboarding/LocationScreen";
+import { ContactDetailsScreen } from "@/components/composed/onboarding/ContactDetailsScreen";
 import { LinksScreen } from "@/components/composed/onboarding/LinksScreen";
 import { UploadScreen } from "@/components/composed/onboarding/UploadScreen";
 import { WorkPreferenceScreen } from "@/components/composed/onboarding/WorkPreferenceScreen";
@@ -35,8 +34,7 @@ const STEP_IDS = [
   "resume",
   "name",
   "email",
-  "phone",
-  "location",
+  "contact",
   "links",
   "careerArc",
   "workPreference",
@@ -318,24 +316,16 @@ export function OnboardingFlow() {
         />
       ) : null}
 
-      {step === "phone" ? (
-        <PhoneScreen
+      {step === "contact" ? (
+        <ContactDetailsScreen
           phone={form.phone}
-          onChange={(phone) =>
-            setForm((prev) => ({ ...prev, phone, fieldSource: withManualSource(prev, { phone }) }))
-          }
-          onNext={next}
-        />
-      ) : null}
-
-      {step === "location" ? (
-        <LocationScreen
           location={form.location}
-          onChange={(location) =>
+          onChange={(phone, location) =>
             setForm((prev) => ({
               ...prev,
+              phone,
               location,
-              fieldSource: withManualSource(prev, { location }),
+              fieldSource: withManualSource(prev, { phone, location }),
             }))
           }
           onNext={next}
@@ -412,8 +402,8 @@ export function OnboardingFlow() {
           fieldSource={form.fieldSource}
           onEditName={() => goTo("name")}
           onEditEmail={() => goTo("email")}
-          onEditPhone={() => goTo("phone")}
-          onEditLocation={() => goTo("location")}
+          onEditPhone={() => goTo("contact")}
+          onEditLocation={() => goTo("contact")}
           onEditLinks={() => goTo("links")}
           onEditResume={() => goTo("resume")}
           onEditCareerArc={() => goTo("careerArc")}
