@@ -11,6 +11,8 @@ const BLANK: ProjectEntry = {
   name: "",
   description: "",
   url: "",
+  live_url: "",
+  company: "",
 };
 
 export function ProjectsEditor({
@@ -37,11 +39,27 @@ export function ProjectsEditor({
                 onChange={(event) => update({ name: event.target.value })}
               />
             </Field>
-            <Field label="Link">
+            <Field label="Repository link">
               <UrlInput
                 value={entry.url ?? ""}
                 onChange={(event) => update({ url: event.target.value })}
                 placeholder="https://github.com/you/project"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Live project link">
+              <UrlInput
+                value={entry.live_url ?? ""}
+                onChange={(event) => update({ live_url: event.target.value })}
+                placeholder="https://project.example.com"
+              />
+            </Field>
+            <Field label="Built for" hint="Leave blank if this is a personal project.">
+              <Input
+                value={entry.company ?? ""}
+                onChange={(event) => update({ company: event.target.value })}
+                placeholder="Company or organization"
               />
             </Field>
           </div>

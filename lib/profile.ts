@@ -14,6 +14,7 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
     linkedin_url: profile.linkedin_url,
     github_url: profile.github_url,
     portfolio_url: profile.portfolio_url,
+    x_url: profile.x_url,
     // Read back flat and sent back flat. Leaving these out would blank the
     // stored resume parse, since the fields are columns and JSON the server
     // rewrites wholesale, not a patch.
@@ -22,6 +23,8 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
     work_history: profile.work_history,
     education: profile.education,
     projects: profile.projects,
+    certificates: profile.certificates,
+    languages: profile.languages,
     work_preference: profile.work_preference,
     target_roles: profile.target_roles,
     ...changes,

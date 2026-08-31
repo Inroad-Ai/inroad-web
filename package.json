@@ -11,7 +11,9 @@
     "generate-api-client": "openapi-typescript \"${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}/openapi.json\" -o lib/api-client/schema.d.ts"
   },
   "dependencies": {
+    "country-region-data": "^4.1.0",
     "jose": "^6.2.8",
+    "libphonenumber-js": "^1.13.12",
     "next": "^14.2.35",
     "openapi-fetch": "^0.17.0",
     "react": "18.3.1",

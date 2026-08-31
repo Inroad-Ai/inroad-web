@@ -18,7 +18,9 @@ import {
   fetchMe,
   parseResume,
   saveProfile,
+  type CertificateEntry,
   type EducationEntry,
+  type LanguageEntry,
   type ProjectEntry,
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
@@ -65,6 +67,8 @@ interface FormState {
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
   projects: ProjectEntry[];
+  certificates: CertificateEntry[];
+  languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
 }
@@ -84,6 +88,8 @@ const INITIAL_STATE: FormState = {
   workHistory: [],
   education: [],
   projects: [],
+  certificates: [],
+  languages: [],
   workPreference: [],
   targetRoles: [],
 };
@@ -204,6 +210,8 @@ export function OnboardingFlow() {
           work_history: form.workHistory,
           education: form.education,
           projects: form.projects,
+          certificates: form.certificates,
+          languages: form.languages,
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         },

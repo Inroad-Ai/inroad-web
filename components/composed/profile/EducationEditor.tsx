@@ -9,6 +9,7 @@ const BLANK: EducationEntry = {
   institution: "",
   degree: "",
   field: "",
+  start_date: "",
   end_date: "",
 };
 
@@ -43,18 +44,26 @@ export function EducationEditor({
               />
             </Field>
           </div>
+          <Field label="Field of study">
+            <Input
+              value={entry.field ?? ""}
+              onChange={(event) => update({ field: event.target.value })}
+              placeholder="Computer Science"
+            />
+          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Field of study">
+            <Field label="Start date">
               <Input
-                value={entry.field ?? ""}
-                onChange={(event) => update({ field: event.target.value })}
+                value={entry.start_date ?? ""}
+                onChange={(event) => update({ start_date: event.target.value })}
+                placeholder="Sep 2020"
               />
             </Field>
-            <Field label="Finished">
+            <Field label="End date">
               <Input
                 value={entry.end_date ?? ""}
                 onChange={(event) => update({ end_date: event.target.value })}
-                placeholder="2019"
+                placeholder="Jun 2024 or Present"
               />
             </Field>
           </div>
