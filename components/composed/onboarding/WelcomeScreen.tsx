@@ -12,10 +12,10 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
         a real person.
       </p>
       <p className="mt-4 text-sm text-text-secondary">
-        Nine short steps. Answer one thing at a time, go back whenever you
+        Seven short steps. Answer one thing at a time, go back whenever you
         want to change something.
       </p>
-      <Button type="button" onClick={onStart} className="mt-8">
+      <Button type="button" autoFocus onClick={onStart} className="mt-8">
         Let&apos;s go
       </Button>
     </div>

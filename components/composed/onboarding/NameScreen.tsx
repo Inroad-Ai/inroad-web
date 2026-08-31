@@ -31,6 +31,9 @@ export function NameScreen({
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">What&apos;s your name?</h1>
+      <p className="mt-2 text-sm text-text-secondary">
+        This is how we&apos;ll sign the outreach we draft for you.
+      </p>
       <div className="mt-6 space-y-4">
         <div>
           <label htmlFor="first-name" className="utility-label text-text-secondary">

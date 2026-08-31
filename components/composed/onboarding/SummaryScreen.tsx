@@ -21,7 +21,6 @@ export function SummaryScreen({
   portfolioUrl,
   skills,
   resumeFileName,
-  careerArcFileName,
   workPreference,
   targetRoles,
   fieldSource,
@@ -31,7 +30,6 @@ export function SummaryScreen({
   onEditLocation,
   onEditLinks,
   onEditResume,
-  onEditCareerArc,
   onEditWorkPreference,
   onEditTargetRole,
   onSubmit,
@@ -48,7 +46,6 @@ export function SummaryScreen({
   portfolioUrl: string;
   skills: string[];
   resumeFileName: string | null;
-  careerArcFileName: string | null;
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
   fieldSource: FieldSourceMap;
@@ -58,7 +55,6 @@ export function SummaryScreen({
   onEditLocation: () => void;
   onEditLinks: () => void;
   onEditResume: () => void;
-  onEditCareerArc: () => void;
   onEditWorkPreference: () => void;
   onEditTargetRole: () => void;
   onSubmit: () => void;
@@ -103,12 +99,6 @@ export function SummaryScreen({
         ? `${resumeFileName}${skills.length ? ` — ${skills.length} skills read` : ""}`
         : "Not uploaded",
       onEdit: onEditResume,
-      fromResume: false,
-    },
-    {
-      label: "Career arc",
-      value: careerArcFileName ?? "Skipped",
-      onEdit: onEditCareerArc,
       fromResume: false,
     },
     {

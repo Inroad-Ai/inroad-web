@@ -22,7 +22,6 @@ import {
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { CAREER_ARC_PARSING_UNAVAILABLE } from "@/lib/profile";
 import { toFormFields } from "@/lib/resume";
 import { type UploadState, type WorkPreferenceOption } from "@/lib/onboarding";
 import type { FieldSourceKey, FieldSourceMap } from "@/lib/types";
@@ -36,7 +35,6 @@ const STEP_IDS = [
   "email",
   "contact",
   "links",
-  "careerArc",
   "workPreference",
   "targetRole",
   "summary",
@@ -350,24 +348,6 @@ export function OnboardingFlow() {
         />
       ) : null}
 
-      {step === "careerArc" ? (
-        <UploadScreen
-          heading="Career arc document"
-          helperText="A longer story of your career, if you have one written up. Skip if not."
-          accept={DOCUMENT_ACCEPT}
-          optional
-          fileName={null}
-          state="idle"
-          progress={0}
-          errorMessage={null}
-          onSelect={() => undefined}
-          onRemove={() => undefined}
-          onNext={next}
-          onSkip={next}
-          unavailable={CAREER_ARC_PARSING_UNAVAILABLE}
-        />
-      ) : null}
-
       {step === "workPreference" ? (
         <WorkPreferenceScreen
           selected={form.workPreference}
@@ -396,7 +376,6 @@ export function OnboardingFlow() {
           portfolioUrl={form.portfolioUrl}
           skills={form.skills}
           resumeFileName={resume.state === "done" ? resume.fileName : null}
-          careerArcFileName={null}
           workPreference={form.workPreference}
           targetRoles={form.targetRoles}
           fieldSource={form.fieldSource}
@@ -406,7 +385,6 @@ export function OnboardingFlow() {
           onEditLocation={() => goTo("contact")}
           onEditLinks={() => goTo("links")}
           onEditResume={() => goTo("resume")}
-          onEditCareerArc={() => goTo("careerArc")}
           onEditWorkPreference={() => goTo("workPreference")}
           onEditTargetRole={() => goTo("targetRole")}
           onSubmit={handleSubmit}
