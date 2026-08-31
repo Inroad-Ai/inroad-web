@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { validateUrl } from "@/lib/onboarding-schema";
 
 export interface ProfileLinks {
   linkedinUrl: string;
@@ -24,11 +27,19 @@ export function LinksScreen({
   onChange: (links: ProfileLinks) => void;
   onNext: () => void;
 }) {
+  const [touched, setTouched] = useState<Partial<Record<keyof ProfileLinks, boolean>>>({});
+
+  function errorFor(key: keyof ProfileLinks): string | null {
+    return touched[key] ? validateUrl(links[key]) : null;
+  }
+
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        onNext();
+        setTouched({ linkedinUrl: true, githubUrl: true, portfolioUrl: true });
+        const hasError = FIELDS.some((field) => validateUrl(links[field.key]));
+        if (!hasError) onNext();
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">Where can people find you?</h1>
@@ -46,10 +57,16 @@ export function LinksScreen({
               type="url"
               autoFocus={index === 0}
               value={links[field.key]}
-              onChange={(event) => onChange({ ...links, [field.key]: event.target.value })}
+              onChange={(event) => {
+                onChange({ ...links, [field.key]: event.target.value });
+                setTouched((prev) => ({ ...prev, [field.key]: true }));
+              }}
               placeholder={field.placeholder}
               className="mt-2"
             />
+            {errorFor(field.key) ? (
+              <p className="mt-2 text-sm text-error">{errorFor(field.key)}</p>
+            ) : null}
           </div>
         ))}
       </div>

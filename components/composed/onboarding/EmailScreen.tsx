@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { isValidEmail } from "@/lib/onboarding";
+import { validateEmail } from "@/lib/onboarding-schema";
 
 export function EmailScreen({
   email,
@@ -18,14 +18,14 @@ export function EmailScreen({
   onNext: () => void;
 }) {
   const [touched, setTouched] = useState(false);
-  const valid = isValidEmail(email);
+  const error = touched ? validateEmail(email) : null;
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         setTouched(true);
-        if (valid) onNext();
+        if (!validateEmail(email)) onNext();
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">What&apos;s your email?</h1>
@@ -38,13 +38,16 @@ export function EmailScreen({
         type="email"
         autoFocus
         value={email}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          onChange(event.target.value);
+          // Once the user has started typing, feedback stays live on every
+          // keystroke instead of waiting for a submit attempt.
+          setTouched(true);
+        }}
         placeholder="you@example.com"
         className="mt-6"
       />
-      {touched && !valid ? (
-        <p className="mt-3 text-sm text-error">That doesn&apos;t look like a real email.</p>
-      ) : null}
+      {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
       <Button type="submit" className="mt-8">
         Continue
       </Button>

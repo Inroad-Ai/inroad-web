@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { isValidPhone } from "@/lib/onboarding";
+import { validatePhone } from "@/lib/onboarding-schema";
 
 export function PhoneScreen({
   phone,
@@ -16,14 +16,14 @@ export function PhoneScreen({
   onNext: () => void;
 }) {
   const [touched, setTouched] = useState(false);
-  const valid = isValidPhone(phone);
+  const error = touched ? validatePhone(phone) : null;
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         setTouched(true);
-        if (valid) onNext();
+        if (!validatePhone(phone)) onNext();
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">What&apos;s your phone number?</h1>
@@ -34,13 +34,14 @@ export function PhoneScreen({
         type="tel"
         autoFocus
         value={phone}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          onChange(event.target.value);
+          setTouched(true);
+        }}
         placeholder="(555) 123-4567"
         className="mt-6"
       />
-      {touched && !valid ? (
-        <p className="mt-3 text-sm text-error">That doesn&apos;t look like a phone number.</p>
-      ) : null}
+      {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
       <Button type="submit" className="mt-8">
         Continue
       </Button>
