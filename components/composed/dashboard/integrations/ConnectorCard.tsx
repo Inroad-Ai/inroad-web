@@ -120,53 +120,103 @@ export function ConnectorCard({
 
   return (
     <article
-      className={`flex min-h-64 flex-col rounded-md border bg-surface p-6 shadow-card transition-all duration-150 hover:shadow-overlay ${
-        connection ? "border-success/40" : "border-line hover:border-signal-teal/40"
+      className={`group relative flex flex-col overflow-hidden rounded-lg border transition-all duration-200 ${
+        connection
+          ? "border-success/30 bg-success-subtle/30 shadow-sm hover:border-success/50 hover:shadow-card"
+          : "border-line bg-surface shadow-sm hover:border-signal-teal/40 hover:shadow-card hover:bg-surface"
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-raised">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoSrc} alt="" className="h-full w-full object-contain p-1.5" />
+      {/* Connected indicator bar */}
+      {connection && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-success to-signal-teal" />}
+
+      <div className="flex flex-col p-6">
+        {/* Header with logo and status */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-raised">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoSrc} alt="" className="h-full w-full object-contain p-1.5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-ink">{label}</h3>
+              <p className="mt-1 text-sm text-text-secondary">{eyebrow}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-base text-ink">{label}</h3>
-            <p className="mt-0.5 text-sm text-text-secondary">{eyebrow}</p>
-          </div>
+
+          {/* Status badge */}
+          {connection ? (
+            <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-success" />
+              <span className="text-xs font-semibold text-success">Connected</span>
+            </div>
+          ) : (
+            <span className="inline-flex shrink-0 items-center rounded-full bg-line/40 px-3 py-1.5 text-xs font-medium text-text-secondary">
+              Not connected
+            </span>
+          )}
         </div>
-        {connection ? <Badge tone="success">Connected</Badge> : null}
-      </div>
 
-      <div className="mt-5 border-y border-line py-4">
-        <span className="inline-flex items-center rounded-full bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary">
-          {category}
-        </span>
-        <p className="mt-3 text-sm text-text-secondary">{description}</p>
-      </div>
+        {/* Category and description */}
+        <div className="mt-5 space-y-3 border-t border-line/40 pt-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex rounded-full bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary">
+              {category}
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-text-secondary">{description}</p>
+        </div>
 
-      <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-        <p className="text-xs text-text-secondary">
-          {authMode === "oauth" ? "Secure sign-in with OAuth" : "Connect with an API key"}
-        </p>
-        {connection ? (
-          <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} disabled={busy}>
-            Disconnect
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            size="sm"
-            type="button"
-            onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
-            disabled={busy}
-          >
-            Connect
-          </Button>
-        )}
-      </div>
+        {/* Auth method info */}
+        <div className="mt-5 flex items-center gap-2 pt-4 text-xs text-text-secondary">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-line/40">
+            {authMode === "oauth" ? "🔐" : "🔑"}
+          </span>
+          <span>
+            {authMode === "oauth"
+              ? "Secure OAuth connection"
+              : "API key authentication"}
+          </span>
+        </div>
 
-      {error && !modalOpen ? <p className="mt-3 text-sm text-muted-rose">{error}</p> : null}
+        {/* Action buttons */}
+        <div className="mt-6 flex gap-2 pt-4">
+          {connection ? (
+            <>
+              <Button
+                variant="quiet"
+                size="sm"
+                type="button"
+                onClick={handleDisconnect}
+                disabled={busy}
+                className="flex-1"
+              >
+                {busy ? "Disconnecting..." : "Disconnect"}
+              </Button>
+              <Button variant="quiet" size="sm" type="button" disabled className="flex-1 text-success">
+                ✓ Active
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              type="button"
+              onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
+              disabled={busy}
+              className="w-full"
+            >
+              {busy ? "Connecting..." : "Connect"}
+            </Button>
+          )}
+        </div>
+
+        {/* Error message */}
+        {error && !modalOpen ? (
+          <p className="mt-3 rounded-md border border-muted-rose/30 bg-muted-rose-subtle px-3 py-2 text-xs text-muted-rose">
+            {error}
+          </p>
+        ) : null}
+      </div>
 
       {authMode === "api_key" ? (
         <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={`Connect ${label}`}>

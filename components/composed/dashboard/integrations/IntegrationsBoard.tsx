@@ -53,13 +53,41 @@ const KNOWN_PROVIDERS = [
 
 function IntegrationsSkeleton() {
   return (
-    <div className="mt-8 space-y-8">
-      <Skeleton className="h-32 rounded-lg" />
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {KNOWN_PROVIDERS.map((entry) => (
-          <Skeleton key={entry.provider} className="h-64 rounded-md" />
-        ))}
+    <div className="mt-8 space-y-10">
+      {/* Header skeleton */}
+      <div className="rounded-lg border border-line bg-surface p-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-5 w-40" />
+              </div>
+            </div>
+            <Skeleton className="h-12 w-full" />
+          </div>
+          <Skeleton className="h-32 w-56 rounded-lg" />
+        </div>
       </div>
+
+      {/* Category sections */}
+      {[1, 2].map((section) => (
+        <div key={section} className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-72" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {[1, 2].map((card) => (
+              <Skeleton key={card} className="h-72 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Footer skeleton */}
+      <Skeleton className="h-16 rounded-lg" />
     </div>
   );
 }
@@ -114,71 +142,103 @@ export function IntegrationsBoard() {
     KNOWN_PROVIDERS.some((provider) => provider.provider === connection.provider),
   ).length;
 
+  // Group providers by category
+  const groupedProviders = KNOWN_PROVIDERS.reduce(
+    (acc, provider) => {
+      const cat = provider.category;
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat]!.push(provider);
+      return acc;
+    },
+    {} as Record<string, typeof KNOWN_PROVIDERS[number][]>,
+  );
+
   return (
-    <div className="mt-8 space-y-8">
+    <div className="mt-8 space-y-10">
       {redirectNotice ? (
         <p className="rounded-md border border-success/40 bg-success-subtle px-4 py-3 text-sm text-success">
           {redirectNotice}
         </p>
       ) : null}
 
-      <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
-        <div className="grid gap-6 px-6 py-6 sm:px-8 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="flex gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-signal-amber-subtle text-ink">
-              <PlugIcon />
+      {/* Header Section */}
+      <div className="rounded-lg border border-line bg-gradient-to-br from-surface to-surface-raised p-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-signal-amber/10 text-signal-amber">
+                <PlugIcon />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Connected services</p>
+                <h1 className="mt-1 text-2xl font-semibold text-ink">Your integration hub</h1>
+              </div>
             </div>
-            <div>
-              <p className="utility-label text-signal-teal">Your connected tools</p>
-              <h2 className="mt-2 text-xl text-ink">Build a more complete outreach workflow</h2>
-              <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-                Connect the services you already use. Inroad only uses each connection for
-                the work you start.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-md border border-line bg-surface-raised px-5 py-4 md:min-w-44">
-            <p className="utility-label text-text-secondary">Connected</p>
-            <p className="mt-1 text-2xl text-ink">
-              {connectedCount}
-              <span className="text-base text-text-secondary"> / {KNOWN_PROVIDERS.length}</span>
+            <p className="mt-4 max-w-2xl text-sm text-text-secondary">
+              Connect the tools you already use to build a richer, more automated outreach workflow. Each connection is
+              optional and only used for the work you explicitly start.
             </p>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line/60">
-              <div
-                className="h-full rounded-full bg-signal-teal transition-[width] duration-300"
-                style={{ width: `${(connectedCount / KNOWN_PROVIDERS.length) * 100}%` }}
-              />
+          </div>
+          
+          {/* Progress Card */}
+          <div className="flex flex-col rounded-lg border border-line/50 bg-surface p-6 lg:min-w-56">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Connected</p>
+            <div className="mt-4 flex items-baseline gap-2">
+              <p className="text-4xl font-bold text-ink">{connectedCount}</p>
+              <p className="text-sm text-text-secondary">of {KNOWN_PROVIDERS.length}</p>
+            </div>
+            <div className="mt-4 space-y-1">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-line/50">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-signal-teal to-signal-amber transition-[width] duration-500"
+                  style={{ width: `${(connectedCount / KNOWN_PROVIDERS.length) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-text-secondary">{Math.round((connectedCount / KNOWN_PROVIDERS.length) * 100)}% complete</p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section>
-        <div className="mb-5">
-          <p className="utility-label text-signal-teal">Available connections</p>
-          <h2 className="mt-2 text-xl text-ink">Choose the tools that fit your search</h2>
-        </div>
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {KNOWN_PROVIDERS.map((entry) => (
-            <ConnectorCard
-              key={entry.provider}
-              provider={entry.provider}
-              label={entry.label}
-              category={entry.category}
-              eyebrow={entry.eyebrow}
-              description={entry.description}
-              logoSrc={entry.logoSrc}
-              authMode={entry.authMode}
-              connection={connections.find((connection) => connection.provider === entry.provider) ?? null}
-              onConnected={handleConnected}
-              onDisconnected={handleDisconnected}
-            />
-          ))}
-        </div>
-        <p className="mt-5 text-sm text-text-secondary">
-          Connections are optional. You can add or remove them whenever your workflow changes.
+      {/* Category Sections */}
+      {Object.entries(groupedProviders).map(([category, providers]) => (
+        <section key={category}>
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink">{category}</h2>
+            <p className="mt-2 text-sm text-text-secondary">
+              {category === "Outreach"
+                ? "Send outreach from your own accounts with full transparency and control."
+                : "Enrich people found during research with verified email addresses."}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {providers.map((entry) => (
+              <ConnectorCard
+                key={entry.provider}
+                provider={entry.provider}
+                label={entry.label}
+                category={entry.category}
+                eyebrow={entry.eyebrow}
+                description={entry.description}
+                logoSrc={entry.logoSrc}
+                authMode={entry.authMode}
+                connection={connections.find((connection) => connection.provider === entry.provider) ?? null}
+                onConnected={handleConnected}
+                onDisconnected={handleDisconnected}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
+
+      {/* Footer Note */}
+      <div className="rounded-lg border border-line/50 bg-surface-raised px-6 py-5">
+        <p className="text-sm text-text-secondary">
+          💡 <span className="font-medium">Tip:</span> Connections are private to your account. Inroad accesses them
+          only during research or when you draft outreach—never in the background.
         </p>
-      </section>
+      </div>
     </div>
   );
 }
