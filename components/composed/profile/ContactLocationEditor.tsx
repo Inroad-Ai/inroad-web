@@ -71,11 +71,15 @@ function nationalNumber(phone: string, countryCode: string): string {
 export function ContactLocationEditor({
   location,
   phone,
+  phoneError,
+  locationError,
   onLocationChange,
   onPhoneChange,
 }: {
   location: string;
   phone: string;
+  phoneError?: string | null;
+  locationError?: string | null;
   onLocationChange: (location: string) => void;
   onPhoneChange: (phone: string) => void;
 }) {
@@ -155,9 +159,16 @@ export function ContactLocationEditor({
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="City or address" htmlFor={addressId}>
+        <Field
+          label="City or address"
+          htmlFor={addressId}
+          error={locationError}
+          errorId={`${addressId}-error`}
+        >
           <Input
             id={addressId}
+            aria-invalid={locationError ? true : undefined}
+            aria-describedby={locationError ? `${addressId}-error` : undefined}
             value={parsedLocation.address}
             onChange={(event) =>
               onLocationChange(
@@ -171,7 +182,12 @@ export function ContactLocationEditor({
             placeholder="City or address"
           />
         </Field>
-        <Field label="Phone number" htmlFor={phoneId}>
+        <Field
+          label="Phone number"
+          htmlFor={phoneId}
+          error={phoneError}
+          errorId={`${phoneId}-error`}
+        >
           <div className="flex overflow-hidden rounded-sm border border-line bg-surface focus-within:border-signal-teal">
             {callingCode ? (
               <span className="flex items-center border-r border-line bg-surface-raised px-3 text-sm text-text-secondary">
@@ -180,6 +196,8 @@ export function ContactLocationEditor({
             ) : null}
             <Input
               id={phoneId}
+              aria-invalid={phoneError ? true : undefined}
+              aria-describedby={phoneError ? `${phoneId}-error` : undefined}
               value={phoneValue}
               onChange={(event) => changePhone(event.target.value)}
               placeholder={callingCode ? "Phone number" : "+1 555 0100"}

@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 export function SelectableCard({
   selected,
   onClick,
+  autoFocus,
   children,
   compact = false,
 }: {
   selected: boolean;
   onClick: () => void;
+  autoFocus?: boolean;
   children: ReactNode;
   compact?: boolean;
 }) {
@@ -16,6 +18,7 @@ export function SelectableCard({
     <button
       type="button"
       aria-pressed={selected}
+      autoFocus={autoFocus}
       onClick={onClick}
       className={`w-full border font-sans text-sm transition-colors ${
         compact ? "rounded-sm px-4 py-3 text-center" : "rounded-md px-5 py-4 text-left"

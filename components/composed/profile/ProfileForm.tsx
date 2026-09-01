@@ -31,6 +31,13 @@ import {
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
+import {
+  validateEmail,
+  validateLocation,
+  validateName,
+  validatePhone,
+  validateUrl,
+} from "@/lib/onboarding-schema";
 import { CAREER_ARC_PARSING_UNAVAILABLE, toUpsert } from "@/lib/profile";
 import type { ParsedFields } from "@/lib/resume";
 
@@ -53,6 +60,41 @@ interface FormState {
   languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
+}
+
+type ValidatedField =
+  | "firstName"
+  | "lastName"
+  | "email"
+  | "phone"
+  | "location"
+  | "linkedinUrl"
+  | "githubUrl"
+  | "portfolioUrl"
+  | "xUrl"
+  | "workPreference"
+  | "targetRoles";
+
+type ValidationErrors = Partial<Record<ValidatedField, string>>;
+
+function validateProfile(form: FormState): ValidationErrors {
+  const checks: Record<ValidatedField, string | null> = {
+    firstName: validateName(form.firstName),
+    lastName: validateName(form.lastName),
+    email: validateEmail(form.email),
+    phone: validatePhone(form.phone),
+    location: validateLocation(form.location),
+    linkedinUrl: validateUrl(form.linkedinUrl),
+    githubUrl: validateUrl(form.githubUrl),
+    portfolioUrl: validateUrl(form.portfolioUrl),
+    xUrl: validateUrl(form.xUrl),
+    workPreference: form.workPreference.length ? null : "Pick at least one.",
+    targetRoles: form.targetRoles.length ? null : "Add at least one role.",
+  };
+
+  return Object.fromEntries(
+    Object.entries(checks).filter((entry): entry is [ValidatedField, string] => Boolean(entry[1])),
+  );
 }
 
 function toFormState(profile: Profile): FormState {
@@ -98,6 +140,7 @@ export function ProfileForm() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
   useEffect(() => {
     if (profile) setForm(toFormState(profile));
@@ -105,6 +148,12 @@ export function ProfileForm() {
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
+    setValidationErrors((previous) => {
+      const next = { ...previous };
+      delete next[key as ValidatedField];
+      return next;
+    });
+    setSaveError(null);
     setSaved(false);
   }
 
@@ -167,6 +216,14 @@ export function ProfileForm() {
 
   async function handleSave() {
     if (!profile || !form) return;
+
+    const errors = validateProfile(form);
+    setValidationErrors(errors);
+    if (Object.keys(errors).length) {
+      setSaveError("Review the highlighted fields before saving.");
+      return;
+    }
+
     setSaving(true);
     setSaveError(null);
     setSaved(false);
@@ -344,22 +401,51 @@ export function ProfileForm() {
         >
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="First name">
+              <Field
+                label="First name"
+                htmlFor="profile-first-name"
+                error={validationErrors.firstName}
+                errorId="profile-first-name-error"
+              >
                 <Input
+                  id="profile-first-name"
+                  aria-invalid={validationErrors.firstName ? true : undefined}
+                  aria-describedby={
+                    validationErrors.firstName ? "profile-first-name-error" : undefined
+                  }
                   value={form.firstName}
                   onChange={(event) => update("firstName", event.target.value)}
                 />
               </Field>
-              <Field label="Last name">
+              <Field
+                label="Last name"
+                htmlFor="profile-last-name"
+                error={validationErrors.lastName}
+                errorId="profile-last-name-error"
+              >
                 <Input
+                  id="profile-last-name"
+                  aria-invalid={validationErrors.lastName ? true : undefined}
+                  aria-describedby={
+                    validationErrors.lastName ? "profile-last-name-error" : undefined
+                  }
                   value={form.lastName}
                   onChange={(event) => update("lastName", event.target.value)}
                 />
               </Field>
             </div>
-            <Field label="Email" hint="Use the same contact email you confirmed in onboarding.">
+            <Field
+              label="Email"
+              hint="Use the same contact email you confirmed in onboarding."
+              htmlFor="profile-email"
+              error={validationErrors.email}
+              errorId="profile-email-error"
+            >
               <Input
+                id="profile-email"
                 type="email"
+                aria-invalid={validationErrors.email ? true : undefined}
+                aria-describedby={validationErrors.email ? "profile-email-error" : undefined}
                 value={form.email}
                 onChange={(event) => update("email", event.target.value)}
                 placeholder="you@example.com"
@@ -368,6 +454,8 @@ export function ProfileForm() {
             <ContactLocationEditor
               location={form.location}
               phone={form.phone}
+              locationError={validationErrors.location}
+              phoneError={validationErrors.phone}
               onLocationChange={(location) => update("location", location)}
               onPhoneChange={(phone) => update("phone", phone)}
             />
@@ -379,29 +467,67 @@ export function ProfileForm() {
           meta={<span className="text-xs text-text-secondary">Optional</span>}
         >
           <div className="space-y-4">
-            <Field label="LinkedIn">
+            <Field
+              label="LinkedIn"
+              htmlFor="profile-linkedin"
+              error={validationErrors.linkedinUrl}
+              errorId="profile-linkedin-error"
+            >
               <UrlInput
+                id="profile-linkedin"
+                aria-invalid={validationErrors.linkedinUrl ? true : undefined}
+                aria-describedby={
+                  validationErrors.linkedinUrl ? "profile-linkedin-error" : undefined
+                }
                 value={form.linkedinUrl}
                 onChange={(event) => update("linkedinUrl", event.target.value)}
                 placeholder="https://linkedin.com/in/you"
               />
             </Field>
-            <Field label="GitHub">
+            <Field
+              label="GitHub"
+              htmlFor="profile-github"
+              error={validationErrors.githubUrl}
+              errorId="profile-github-error"
+            >
               <UrlInput
+                id="profile-github"
+                aria-invalid={validationErrors.githubUrl ? true : undefined}
+                aria-describedby={
+                  validationErrors.githubUrl ? "profile-github-error" : undefined
+                }
                 value={form.githubUrl}
                 onChange={(event) => update("githubUrl", event.target.value)}
                 placeholder="https://github.com/you"
               />
             </Field>
-            <Field label="Portfolio or site">
+            <Field
+              label="Portfolio or site"
+              htmlFor="profile-portfolio"
+              error={validationErrors.portfolioUrl}
+              errorId="profile-portfolio-error"
+            >
               <UrlInput
+                id="profile-portfolio"
+                aria-invalid={validationErrors.portfolioUrl ? true : undefined}
+                aria-describedby={
+                  validationErrors.portfolioUrl ? "profile-portfolio-error" : undefined
+                }
                 value={form.portfolioUrl}
                 onChange={(event) => update("portfolioUrl", event.target.value)}
                 placeholder="https://yoursite.com"
               />
             </Field>
-            <Field label="X profile">
+            <Field
+              label="X profile"
+              htmlFor="profile-x"
+              error={validationErrors.xUrl}
+              errorId="profile-x-error"
+            >
               <UrlInput
+                id="profile-x"
+                aria-invalid={validationErrors.xUrl ? true : undefined}
+                aria-describedby={validationErrors.xUrl ? "profile-x-error" : undefined}
                 value={form.xUrl}
                 onChange={(event) => update("xUrl", event.target.value)}
                 placeholder="https://x.com/you"
@@ -448,7 +574,11 @@ export function ProfileForm() {
         meta={<span className="text-xs text-text-secondary">Used for matching</span>}
       >
         <div className="space-y-6">
-          <Field label="Target roles" hint="Add the roles you would genuinely consider next.">
+          <Field
+            label="Target roles"
+            hint="Add the roles you would genuinely consider next."
+            error={validationErrors.targetRoles}
+          >
             <TagInput
               value={form.targetRoles}
               onChange={(targetRoles) => update("targetRoles", targetRoles)}
@@ -470,6 +600,11 @@ export function ProfileForm() {
                 </SelectableCard>
               ))}
             </div>
+            {validationErrors.workPreference ? (
+              <p className="mt-2 text-xs text-error" aria-live="polite">
+                {validationErrors.workPreference}
+              </p>
+            ) : null}
           </div>
         </div>
       </Section>

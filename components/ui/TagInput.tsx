@@ -10,11 +10,13 @@ export function TagInput({
   onChange,
   placeholder,
   addLabel,
+  autoFocus,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
   addLabel?: string;
+  autoFocus?: boolean;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -62,6 +64,7 @@ export function TagInput({
         <div className="flex min-w-[12rem] flex-1 items-center gap-2">
           <input
             value={draft}
+            autoFocus={autoFocus}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={commitDraft}
