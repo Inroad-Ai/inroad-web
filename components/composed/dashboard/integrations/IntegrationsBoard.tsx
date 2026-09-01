@@ -137,12 +137,18 @@ export function IntegrationsBoard() {
               </p>
             </div>
           </div>
-          <div className="rounded-md border border-line bg-surface-raised px-5 py-4 md:min-w-36">
+          <div className="rounded-md border border-line bg-surface-raised px-5 py-4 md:min-w-44">
             <p className="utility-label text-text-secondary">Connected</p>
             <p className="mt-1 text-2xl text-ink">
               {connectedCount}
               <span className="text-base text-text-secondary"> / {KNOWN_PROVIDERS.length}</span>
             </p>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-line/60">
+              <div
+                className="h-full rounded-full bg-signal-teal transition-[width] duration-300"
+                style={{ width: `${(connectedCount / KNOWN_PROVIDERS.length) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
       </section>

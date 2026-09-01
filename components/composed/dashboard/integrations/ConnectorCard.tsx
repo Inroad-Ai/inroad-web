@@ -119,7 +119,11 @@ export function ConnectorCard({
   }
 
   return (
-    <article className="flex min-h-64 flex-col rounded-md border border-line bg-surface p-6 shadow-card transition-shadow duration-150 hover:shadow-overlay">
+    <article
+      className={`flex min-h-64 flex-col rounded-md border bg-surface p-6 shadow-card transition-all duration-150 hover:shadow-overlay ${
+        connection ? "border-success/40" : "border-line hover:border-signal-teal/40"
+      }`}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-raised">
@@ -135,8 +139,10 @@ export function ConnectorCard({
       </div>
 
       <div className="mt-5 border-y border-line py-4">
-        <p className="utility-label text-text-secondary">{category}</p>
-        <p className="mt-2 text-sm text-text-secondary">{description}</p>
+        <span className="inline-flex items-center rounded-full bg-surface-raised px-2.5 py-1 text-xs font-medium text-text-secondary">
+          {category}
+        </span>
+        <p className="mt-3 text-sm text-text-secondary">{description}</p>
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-5">
