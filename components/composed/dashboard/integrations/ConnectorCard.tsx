@@ -17,11 +17,12 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Modal } from "@/components/ui/Modal";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Section } from "@/components/ui/Section";
 
 interface ConnectorCardProps {
   provider: ConnectionProvider;
   label: string;
+  category: string;
+  eyebrow: string;
   description: string;
   logoSrc: string;
   /** oauth: Connect redirects straight to the provider's own login, no key
@@ -39,6 +40,8 @@ interface ConnectorCardProps {
 export function ConnectorCard({
   provider,
   label,
+  category,
+  eyebrow,
   description,
   logoSrc,
   authMode,
@@ -116,28 +119,37 @@ export function ConnectorCard({
   }
 
   return (
-    <div className="flex flex-col rounded-md border border-line bg-surface p-6 shadow-card">
-      <div className="flex items-center gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-raised">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} alt="" className="h-full w-full object-contain p-1.5" />
+    <article className="flex min-h-64 flex-col rounded-md border border-line bg-surface p-6 shadow-card transition-shadow duration-150 hover:shadow-overlay">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border border-line bg-surface-raised">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoSrc} alt="" className="h-full w-full object-contain p-1.5" />
+          </div>
+          <div>
+            <h3 className="text-base text-ink">{label}</h3>
+            <p className="mt-0.5 text-sm text-text-secondary">{eyebrow}</p>
+          </div>
         </div>
-        <h3 className="text-base text-ink">{label}</h3>
+        {connection ? <Badge tone="success">Connected</Badge> : null}
       </div>
 
-      <p className="mt-4 flex-1 text-sm text-text-secondary">{description}</p>
+      <div className="mt-5 border-y border-line py-4">
+        <p className="utility-label text-text-secondary">{category}</p>
+        <p className="mt-2 text-sm text-text-secondary">{description}</p>
+      </div>
 
-      <div className="mt-5">
+      <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+        <p className="text-xs text-text-secondary">
+          {authMode === "oauth" ? "Secure sign-in with OAuth" : "Connect with an API key"}
+        </p>
         {connection ? (
-          <div className="flex items-center justify-between gap-3">
-            <Badge tone="success">Connected</Badge>
-            <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} disabled={busy}>
-              Disconnect
-            </Button>
-          </div>
+          <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} disabled={busy}>
+            Disconnect
+          </Button>
         ) : (
           <Button
-            variant="quiet"
+            variant="primary"
             size="sm"
             type="button"
             onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
@@ -182,6 +194,6 @@ export function ConnectorCard({
           </form>
         </Modal>
       ) : null}
-    </div>
+    </article>
   );
 }
