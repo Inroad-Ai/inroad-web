@@ -1556,7 +1556,7 @@ export interface components {
             languages?: components["schemas"]["LanguageEntry"][] | null;
             /**
              * Summary
-             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved summary untouched; send null or an empty string to clear it.
              */
             summary?: string | null;
         };

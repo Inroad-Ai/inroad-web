@@ -315,6 +315,8 @@ export function OnboardingFlow() {
           workHistory: fields.workHistory,
           education: fields.education,
           projects: fields.projects,
+          certificates: fields.certificates,
+          languages: fields.languages,
           // The signed-in address beats whatever the resume prints; that one is
           // confirmed and this one is a document that may be years old.
           email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
