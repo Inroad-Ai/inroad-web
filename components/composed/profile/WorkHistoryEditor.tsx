@@ -65,7 +65,7 @@ export function WorkHistoryEditor({
           </div>
           <Field label="What you did">
             <Textarea
-              rows={3}
+              rows={5}
               value={entry.description ?? ""}
               onChange={(event) => update({ description: event.target.value })}
             />

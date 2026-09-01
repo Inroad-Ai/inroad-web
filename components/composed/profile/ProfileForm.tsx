@@ -31,12 +31,13 @@ import {
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
-import { toUpsert } from "@/lib/profile";
+import { CAREER_ARC_PARSING_UNAVAILABLE, toUpsert } from "@/lib/profile";
 import type { ParsedFields } from "@/lib/resume";
 
 interface FormState {
   firstName: string;
   lastName: string;
+  email: string;
   phone: string;
   location: string;
   linkedinUrl: string;
@@ -58,6 +59,7 @@ function toFormState(profile: Profile): FormState {
   return {
     firstName: profile.first_name,
     lastName: profile.last_name,
+    email: profile.email,
     phone: profile.phone,
     location: profile.location ?? "",
     linkedinUrl: profile.linkedin_url ?? "",
@@ -98,8 +100,8 @@ export function ProfileForm() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (profile && !form) setForm(toFormState(profile));
-  }, [form, profile]);
+    if (profile) setForm(toFormState(profile));
+  }, [profile]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -128,13 +130,15 @@ export function ProfileForm() {
             linkedinUrl: fields.linkedinUrl || previous.linkedinUrl,
             githubUrl: fields.githubUrl || previous.githubUrl,
             portfolioUrl: fields.portfolioUrl || previous.portfolioUrl,
-            summary: fields.summary,
-            skills: fields.skills,
-            workHistory: fields.workHistory,
-            education: fields.education,
-            projects: fields.projects,
-            certificates: fields.certificates,
-            languages: fields.languages,
+            summary: fields.summary || previous.summary,
+            skills: fields.skills.length ? fields.skills : previous.skills,
+            workHistory: fields.workHistory.length ? fields.workHistory : previous.workHistory,
+            education: fields.education.length ? fields.education : previous.education,
+            projects: fields.projects.length ? fields.projects : previous.projects,
+            certificates: fields.certificates.length
+              ? fields.certificates
+              : previous.certificates,
+            languages: fields.languages.length ? fields.languages : previous.languages,
           }
         : previous,
     );
@@ -178,6 +182,7 @@ export function ProfileForm() {
         toUpsert(profile, {
           first_name: form.firstName.trim(),
           last_name: form.lastName.trim(),
+          email: form.email.trim(),
           phone: form.phone.trim(),
           location: orNull(form.location),
           linkedin_url: orNull(form.linkedinUrl),
@@ -196,6 +201,7 @@ export function ProfileForm() {
         }),
         token,
       );
+      setForm(toFormState(updated));
       setProfile(updated);
       setSaved(true);
     } catch (caught) {
@@ -207,7 +213,11 @@ export function ProfileForm() {
 
   if (loading) {
     return (
-      <div className="mt-6 max-w-5xl space-y-6" aria-label="Loading your profile">
+      <div
+        role="status"
+        className="mt-6 max-w-5xl space-y-6"
+        aria-label="Loading your profile"
+      >
         <div className="rounded-md border border-line bg-surface p-6 shadow-card">
           <div className="flex items-center gap-4">
             <Skeleton className="h-14 w-14" />
@@ -250,6 +260,7 @@ export function ProfileForm() {
   const completionChecks = [
     form.firstName.trim(),
     form.lastName.trim(),
+    form.email.trim(),
     form.phone.trim(),
     form.location.trim(),
     form.targetRoles.length,
@@ -286,7 +297,7 @@ export function ProfileForm() {
               <h2 className="mt-1 font-display text-xl font-semibold text-text-primary sm:text-2xl">
                 {form.firstName || "Your"} {form.lastName || "profile"}
               </h2>
-              <p className="mt-1 text-xs text-text-secondary">{profile.email}</p>
+              <p className="mt-1 text-xs text-text-secondary">{form.email}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 divide-x divide-line overflow-hidden rounded-sm border border-line bg-surface-raised text-center lg:min-w-80">
@@ -346,10 +357,13 @@ export function ProfileForm() {
                 />
               </Field>
             </div>
-            <Field label="Email" hint="Your sign-in address cannot be changed here.">
-              <p className="w-full rounded-sm border border-line bg-surface-raised px-4 py-3.5 text-base text-text-secondary">
-                {profile.email}
-              </p>
+            <Field label="Email" hint="Use the same contact email you confirmed in onboarding.">
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(event) => update("email", event.target.value)}
+                placeholder="you@example.com"
+              />
             </Field>
             <ContactLocationEditor
               location={form.location}
@@ -408,6 +422,25 @@ export function ProfileForm() {
           onParsed={applyParsedResume}
           onDeleted={applyDeletedResume}
         />
+      </Section>
+
+      <Section
+        title="Career arc document"
+        meta={<span className="text-xs text-text-secondary">Optional</span>}
+      >
+        <div className="flex flex-col gap-3 rounded-sm border border-line bg-surface-raised p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-sm font-semibold text-text-primary">
+              {profile.career_arc_parsed_json ? "Career arc added" : "No career arc added"}
+            </p>
+            <p className="mt-1 text-xs text-text-secondary">
+              {CAREER_ARC_PARSING_UNAVAILABLE}
+            </p>
+          </div>
+          <span className="utility-label shrink-0 text-text-secondary">
+            {profile.career_arc_parsed_json ? "Parsed" : "Not added"}
+          </span>
+        </div>
       </Section>
 
       <Section

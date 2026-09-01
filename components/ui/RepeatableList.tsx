@@ -7,7 +7,11 @@ interface RepeatableListProps<T> {
   newItem: () => T;
   addLabel: string;
   emptyLabel: string;
-  children: (item: T, update: (patch: Partial<T>) => void) => ReactNode;
+  children: (
+    item: T,
+    update: (patch: Partial<T>) => void,
+    index: number,
+  ) => ReactNode;
 }
 
 /**
@@ -53,7 +57,9 @@ export function RepeatableList<T>({
               Remove
             </button>
           </div>
-          <div className="mt-4 space-y-4">{children(item, (patch) => update(index, patch))}</div>
+          <div className="mt-4 space-y-4">
+            {children(item, (patch) => update(index, patch), index)}
+          </div>
         </div>
       ))}
 

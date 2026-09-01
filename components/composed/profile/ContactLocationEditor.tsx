@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { allCountries, type CountryData } from "country-region-data";
 import {
   getCountries,
@@ -77,6 +79,11 @@ export function ContactLocationEditor({
   onLocationChange: (location: string) => void;
   onPhoneChange: (phone: string) => void;
 }) {
+  const idPrefix = useId();
+  const countryId = `${idPrefix}-country`;
+  const regionId = `${idPrefix}-region`;
+  const addressId = `${idPrefix}-address`;
+  const phoneId = `${idPrefix}-phone`;
   const parsedLocation = parseLocation(location);
   const countryCode = parsedLocation.country?.[1] ?? "";
   const callingCode = callingCodeFor(countryCode);
@@ -105,8 +112,9 @@ export function ContactLocationEditor({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Country">
+        <Field label="Country" htmlFor={countryId}>
           <Select
+            id={countryId}
             value={countryCode}
             onChange={(event) => changeCountry(event.target.value)}
             className="w-full"
@@ -119,8 +127,9 @@ export function ContactLocationEditor({
             ))}
           </Select>
         </Field>
-        <Field label="State or province">
+        <Field label="State or province" htmlFor={regionId}>
           <Select
+            id={regionId}
             value={parsedLocation.region}
             onChange={(event) =>
               onLocationChange(
@@ -146,8 +155,9 @@ export function ContactLocationEditor({
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="City or address">
+        <Field label="City or address" htmlFor={addressId}>
           <Input
+            id={addressId}
             value={parsedLocation.address}
             onChange={(event) =>
               onLocationChange(
@@ -161,7 +171,7 @@ export function ContactLocationEditor({
             placeholder="City or address"
           />
         </Field>
-        <Field label="Phone number">
+        <Field label="Phone number" htmlFor={phoneId}>
           <div className="flex overflow-hidden rounded-sm border border-line bg-surface focus-within:border-signal-teal">
             {callingCode ? (
               <span className="flex items-center border-r border-line bg-surface-raised px-3 text-sm text-text-secondary">
@@ -169,6 +179,7 @@ export function ContactLocationEditor({
               </span>
             ) : null}
             <Input
+              id={phoneId}
               value={phoneValue}
               onChange={(event) => changePhone(event.target.value)}
               placeholder={callingCode ? "Phone number" : "+1 555 0100"}

@@ -4,15 +4,25 @@ import type { ReactNode } from "react";
 export function Field({
   label,
   hint,
+  htmlFor,
+  labelId,
   children,
 }: {
   label: string;
   hint?: string;
+  htmlFor?: string;
+  labelId?: string;
   children: ReactNode;
 }) {
   return (
     <div>
-      <label className="utility-label text-text-secondary">{label}</label>
+      <label
+        htmlFor={htmlFor}
+        id={labelId}
+        className="utility-label text-text-secondary"
+      >
+        {label}
+      </label>
       <div className="mt-2">{children}</div>
       {hint ? <p className="mt-2 text-xs text-text-secondary">{hint}</p> : null}
     </div>
