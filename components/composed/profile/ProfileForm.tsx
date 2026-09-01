@@ -630,7 +630,6 @@ export function ProfileForm() {
               value={form.skills}
               onChange={(skills) => update("skills", skills)}
               placeholder="Python, PostgreSQL, ..."
-              addLabel="Add skill"
             />
           </Field>
         </div>
