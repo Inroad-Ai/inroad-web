@@ -4,16 +4,19 @@ import type { ReactNode } from "react";
 export function SelectableCard({
   selected,
   onClick,
+  autoFocus,
   children,
 }: {
   selected: boolean;
   onClick: () => void;
+  autoFocus?: boolean;
   children: ReactNode;
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
+      autoFocus={autoFocus}
       onClick={onClick}
       className={`w-full rounded-md border px-5 py-4 text-left font-sans text-sm transition-colors ${
         selected

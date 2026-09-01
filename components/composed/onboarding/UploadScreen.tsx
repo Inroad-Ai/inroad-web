@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/Button";
 import { FileUpload } from "@/components/ui/FileUpload";
 import type { UploadState } from "@/lib/onboarding";
 
-/** Shared shape for the resume screen and the career-arc screen - same upload pattern, different copy and required-ness. */
+/** The file-upload step shape - currently just the resume screen, but kept
+ * generic since a second document step is a real possibility later. */
 export function UploadScreen({
   heading,
   helperText,
@@ -18,6 +19,7 @@ export function UploadScreen({
   onNext,
   onSkip,
   unavailable,
+  autoFocus,
 }: {
   heading: string;
   helperText: string;
@@ -35,6 +37,7 @@ export function UploadScreen({
   /** Shown instead of the file picker. Also releases Continue, so a required
    * step stays passable while uploads are down. */
   unavailable?: string;
+  autoFocus?: boolean;
 }) {
   // An error releases Continue as well: a file that couldn't be read is a
   // reason to ask for those fields by hand, not to trap the user on this step.
@@ -65,6 +68,7 @@ export function UploadScreen({
             errorMessage={errorMessage}
             onSelect={onSelect}
             onRemove={onRemove}
+            autoFocus={autoFocus}
           />
         )}
       </div>
