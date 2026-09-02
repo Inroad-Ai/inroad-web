@@ -269,10 +269,11 @@ export function ContactProfile({ personId }: { personId: string }) {
         <div className="min-w-0 lg:col-span-2">
           <Section title="Outreach">
             {outreach.error ? (
-              <p className="text-sm text-error" role="alert">
+              <p className="mb-4 text-sm text-error" role="alert">
                 {outreach.error}
               </p>
-            ) : isClosed ? (
+            ) : null}
+            {isClosed ? (
               <>
                 <p className="text-sm leading-6 text-text-secondary">
                   Outreach is closed for this contact. Saved messages remain available as a record,
