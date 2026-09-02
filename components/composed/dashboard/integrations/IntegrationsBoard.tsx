@@ -13,6 +13,11 @@ import type { Connection } from "@/lib/api-client/client";
 // Lusha and ContactOut append here later - authMode "api_key" for either,
 // unless they turn out to offer OAuth too. No backend change required, see
 // schemas/connection.py's ConnectionProvider literal on the API side.
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  Outreach: "Send outreach from your own accounts with full transparency and control.",
+  "Contact data": "Enrich people found during research with verified email addresses.",
+};
+
 const KNOWN_PROVIDERS = [
   {
     provider: "gmail",
@@ -206,9 +211,7 @@ export function IntegrationsBoard() {
           <div className="mb-6">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-ink">{category}</h2>
             <p className="mt-2 text-sm text-text-secondary">
-              {category === "Outreach"
-                ? "Send outreach from your own accounts with full transparency and control."
-                : "Enrich people found during research with verified email addresses."}
+              {CATEGORY_DESCRIPTIONS[category] ?? ""}
             </p>
           </div>
 

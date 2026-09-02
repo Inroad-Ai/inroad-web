@@ -120,7 +120,7 @@ export function ConnectorCard({
 
   return (
     <article
-      className={`group relative flex flex-col overflow-hidden rounded-lg border transition-all duration-200 ${
+      className={`relative flex flex-col overflow-hidden rounded-lg border transition-all duration-200 ${
         connection
           ? "border-success/30 bg-success-subtle/30 shadow-sm hover:border-success/50 hover:shadow-card"
           : "border-line bg-surface shadow-sm hover:border-signal-teal/40 hover:shadow-card hover:bg-surface"
@@ -144,16 +144,16 @@ export function ConnectorCard({
           </div>
 
           {/* Status badge */}
-          {connection ? (
-            <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-success" />
-              <span className="text-xs font-semibold text-success">Connected</span>
-            </div>
-          ) : (
-            <span className="inline-flex shrink-0 items-center rounded-full bg-line/40 px-3 py-1.5 text-xs font-medium text-text-secondary">
-              Not connected
-            </span>
-          )}
+          <div className="shrink-0">
+            {connection ? (
+              <Badge tone="success">
+                <span className="h-2 w-2 rounded-full bg-success" />
+                Connected
+              </Badge>
+            ) : (
+              <Badge tone="neutral">Not connected</Badge>
+            )}
+          </div>
         </div>
 
         {/* Category and description */}
@@ -192,9 +192,9 @@ export function ConnectorCard({
               >
                 {busy ? "Disconnecting..." : "Disconnect"}
               </Button>
-              <Button variant="quiet" size="sm" type="button" disabled className="flex-1 text-success">
+              <span className="flex flex-1 items-center justify-center rounded-full border border-success/40 bg-success-subtle px-5 py-2.5 font-display text-sm font-semibold text-success">
                 ✓ Active
-              </Button>
+              </span>
             </>
           ) : (
             <Button
