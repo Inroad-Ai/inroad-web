@@ -6,8 +6,8 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 export default function ContactProfilePage({ params }: { params: { id: string } }) {
   return (
     <PageShell
-      title="Person"
-      description="Everything found about this person, and their outreach progress."
+      title="Contact profile"
+      description="Contact details, engagement status, and outreach sequence."
       action={
         <Link
           href="/contacts"

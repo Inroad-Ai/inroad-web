@@ -9,8 +9,8 @@ import { useSettings } from "@/hooks/useSettings";
 import { OutreachDraftSection } from "./OutreachDraftSection";
 
 const TITLES: Record<OutreachChannel, string> = {
-  email: "Email draft",
-  linkedin: "LinkedIn message",
+  email: "Email",
+  linkedin: "LinkedIn",
 };
 
 /** Fixed rather than taken from the response order: these are two sections
@@ -38,6 +38,7 @@ export function OutreachDrafts({
   personEmail,
   personLinkedinUrl,
   drafting,
+  readOnly = false,
   onDraftFollowUp,
   onSaved,
 }: {
@@ -48,6 +49,7 @@ export function OutreachDrafts({
   /** Disables the "Draft follow-up" button while any draft call is in
    * flight - there is only ever one reachable undrafted tab at a time. */
   drafting: boolean;
+  readOnly?: boolean;
   onDraftFollowUp: (sequenceIndex: number) => void;
   onSaved: (draft: OutreachDraft) => void;
 }) {
@@ -93,6 +95,7 @@ export function OutreachDrafts({
               recipientEmail={personEmail}
               title={TITLES[channel]}
               hint={hint(channel, personEmail, personLinkedinUrl)}
+              readOnly={readOnly}
               onSaved={onSaved}
             />
           );
@@ -103,14 +106,18 @@ export function OutreachDrafts({
             Written with the earlier messages in this sequence as context, shorter and more
             direct than the last one.
           </p>
-          <Button
-            size="sm"
-            type="button"
-            onClick={() => onDraftFollowUp(activeSequenceIndex)}
-            disabled={drafting}
-          >
-            {drafting ? "Drafting..." : `Draft follow-up ${activeSequenceIndex}`}
-          </Button>
+          {readOnly ? (
+            <p className="text-sm text-text-secondary">No message was prepared for this step.</p>
+          ) : (
+            <Button
+              size="sm"
+              type="button"
+              onClick={() => onDraftFollowUp(activeSequenceIndex)}
+              disabled={drafting}
+            >
+              {drafting ? "Drafting..." : `Draft follow-up ${activeSequenceIndex}`}
+            </Button>
+          )}
         </div>
       )}
     </div>

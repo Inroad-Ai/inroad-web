@@ -9,6 +9,7 @@ import { PERSON_ROLE_LABEL, type PersonListItem } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
 import { Menu } from "@/components/ui/Menu";
 import {
   PERSON_STAGES,
@@ -51,6 +52,7 @@ export function ContactsBoard() {
   const router = useRouter();
 
   const [board, setBoard] = useState<BoardState>(initialBoard);
+  const [query, setQuery] = useState("");
   const [movingId, setMovingId] = useState<string | null>(null);
   const [moveErrors, setMoveErrors] = useState<Record<string, string>>({});
 
@@ -187,21 +189,47 @@ export function ContactsBoard() {
     }
   }
 
+  const normalizedQuery = query.trim().toLowerCase();
+
   return (
-    <div className="mt-6 overflow-x-auto pb-32">
-      <div className="flex min-w-max gap-4">
-        {PERSON_STAGES.map((stage) => (
-          <ContactsColumn
-            key={stage}
-            stage={stage}
-            column={board[stage]}
-            movingId={movingId}
-            moveErrors={moveErrors}
-            onOpen={(id) => router.push(`/contacts/${id}`)}
-            onMove={movePerson}
-            onLoadMore={() => loadMore(stage)}
+    <div className="mt-6 space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="w-full sm:max-w-md">
+          <label htmlFor="people-filter" className="sr-only">
+            Filter people by name or company
+          </label>
+          <Input
+            id="people-filter"
+            name="people-filter"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter by name or company"
+            autoComplete="off"
           />
-        ))}
+        </div>
+        {query ? (
+          <Button variant="quiet" size="sm" type="button" onClick={() => setQuery("")}>
+            Clear filter
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="flex min-w-max gap-4 pb-40">
+          {PERSON_STAGES.map((stage) => (
+            <ContactsColumn
+              key={stage}
+              stage={stage}
+              column={board[stage]}
+              query={normalizedQuery}
+              movingId={movingId}
+              moveErrors={moveErrors}
+              onOpen={(id) => router.push(`/contacts/${id}`)}
+              onMove={movePerson}
+              onLoadMore={() => loadMore(stage)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -210,6 +238,7 @@ export function ContactsBoard() {
 function ContactsColumn({
   stage,
   column,
+  query,
   movingId,
   moveErrors,
   onOpen,
@@ -218,6 +247,7 @@ function ContactsColumn({
 }: {
   stage: PersonStage;
   column: ColumnState;
+  query: string;
   movingId: string | null;
   moveErrors: Record<string, string>;
   onOpen: (id: string) => void;
@@ -225,13 +255,23 @@ function ContactsColumn({
   onLoadMore: () => void;
 }) {
   const hasMore = column.items.length < column.total;
+  const visiblePeople = query
+    ? column.items.filter((person) =>
+        [person.name, person.company_domain, person.title, PERSON_ROLE_LABEL[person.role_category]]
+          .filter((value): value is string => Boolean(value))
+          .some((value) => value.toLowerCase().includes(query)),
+      )
+    : column.items;
 
   return (
     <section className="flex w-72 shrink-0 flex-col rounded-md border border-line bg-surface-raised p-3">
       <header className="flex items-center justify-between gap-2 pb-3">
         <PersonStageBadge stage={stage} />
-        <span className="utility-label text-text-secondary" aria-label={`${column.total} people`}>
-          {column.status === "loading" ? "" : column.total}
+        <span
+          className="utility-label text-text-secondary"
+          aria-label={`${query ? visiblePeople.length : column.total} people`}
+        >
+          {column.status === "loading" ? "" : query ? visiblePeople.length : column.total}
         </span>
       </header>
 
@@ -245,10 +285,12 @@ function ContactsColumn({
           ))
         ) : column.status === "error" ? (
           <EmptyState className="px-1 py-6">{column.errorMessage}</EmptyState>
-        ) : column.items.length === 0 ? (
-          <EmptyState className="px-1 py-6">Nobody at this stage.</EmptyState>
+        ) : visiblePeople.length === 0 ? (
+          <EmptyState className="px-1 py-6">
+            {query ? "No matching people." : "Nobody at this stage."}
+          </EmptyState>
         ) : (
-          column.items.map((person) => (
+          visiblePeople.map((person) => (
             <ContactCard
               key={person.id}
               person={person}
