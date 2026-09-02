@@ -268,7 +268,11 @@ export function ContactProfile({ personId }: { personId: string }) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="min-w-0 lg:col-span-2">
           <Section title="Outreach">
-            {isClosed ? (
+            {outreach.error ? (
+              <p className="text-sm text-error" role="alert">
+                {outreach.error}
+              </p>
+            ) : isClosed ? (
               <>
                 <p className="text-sm leading-6 text-text-secondary">
                   Outreach is closed for this contact. Saved messages remain available as a record,
@@ -289,10 +293,6 @@ export function ContactProfile({ personId }: { personId: string }) {
                   </div>
                 ) : null}
               </>
-            ) : outreach.error ? (
-              <p className="text-sm text-error" role="alert">
-                {outreach.error}
-              </p>
             ) : outreach.drafts.length === 0 ? (
               <div className="rounded-md border border-dashed border-line bg-surface-raised px-5 py-8">
                 <p className="font-display text-lg text-ink">Ready to start a conversation</p>
