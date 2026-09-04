@@ -163,7 +163,8 @@ Both are `GET`, which matches the backend's CORS config — it allows
 
 ## Running locally
 
-Requires **Node 18.17 or newer** and a running backend.
+Requires **Node 18.17 or newer**, **pnpm 11** (see `packageManager` in
+`package.json`), and a running backend.
 
 Start the backend first:
 
@@ -177,17 +178,17 @@ Then this app:
 
 ```bash
 cd inroad-web
-npm install
+pnpm install
 cp .env.example .env.local     # optional, defaults to http://127.0.0.1:8000
-npm run dev
+pnpm dev
 ```
 
 Open <http://localhost:3000>.
 
 ```bash
-npm run build       # production build, also type-checks
-npm run typecheck   # types only
-npm run lint
+pnpm build       # production build, also type-checks
+pnpm typecheck   # types only
+pnpm lint
 ```
 
 ### CORS
@@ -246,8 +247,8 @@ Not deployed anywhere yet, and unlike the backend there is no container here —
 this is a standard Next.js app and the intended target is Vercel.
 
 ```bash
-npm run build
-npm start          # serves the production build on :3000
+pnpm build
+pnpm start          # serves the production build on :3000
 ```
 
 Both commands are verified locally; the hosted deploy below is not.
