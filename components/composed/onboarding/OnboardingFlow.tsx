@@ -18,7 +18,9 @@ import {
   fetchMe,
   parseResume,
   saveProfile,
+  type CertificateEntry,
   type EducationEntry,
+  type LanguageEntry,
   type ProjectEntry,
   type WorkHistoryEntry,
 } from "@/lib/api-client/client";
@@ -87,6 +89,8 @@ interface FormState {
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
   projects: ProjectEntry[];
+  certificates: CertificateEntry[];
+  languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
   targetRoles: string[];
   fieldSource: FieldSourceMap;
@@ -107,6 +111,8 @@ const INITIAL_STATE: FormState = {
   workHistory: [],
   education: [],
   projects: [],
+  certificates: [],
+  languages: [],
   workPreference: [],
   targetRoles: [],
   fieldSource: {},
@@ -309,6 +315,8 @@ export function OnboardingFlow() {
           workHistory: fields.workHistory,
           education: fields.education,
           projects: fields.projects,
+          certificates: fields.certificates,
+          languages: fields.languages,
           // The signed-in address beats whatever the resume prints; that one is
           // confirmed and this one is a document that may be years old.
           email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
@@ -356,6 +364,8 @@ export function OnboardingFlow() {
           work_history: form.workHistory,
           education: form.education,
           projects: form.projects,
+          certificates: form.certificates,
+          languages: form.languages,
           work_preference: form.workPreference,
           target_roles: form.targetRoles,
         },

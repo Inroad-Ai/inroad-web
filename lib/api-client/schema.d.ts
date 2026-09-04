@@ -701,6 +701,19 @@ export interface components {
             /** File */
             file: string;
         };
+        /** CertificateEntry */
+        CertificateEntry: {
+            /** Name */
+            name?: string | null;
+            /** Issuer */
+            issuer?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Credential Id */
+            credential_id?: string | null;
+            /** Credential Url */
+            credential_url?: string | null;
+        };
         /** CompanyDetail */
         CompanyDetail: {
             /**
@@ -952,6 +965,8 @@ export interface components {
             degree?: string | null;
             /** Field */
             field?: string | null;
+            /** Start Date */
+            start_date?: string | null;
             /** End Date */
             end_date?: string | null;
         };
@@ -1064,6 +1079,13 @@ export interface components {
              * @description apple-touch-icon / favicon / og:image, in that preference order
              */
             logo_url?: string | null;
+        };
+        /** LanguageEntry */
+        LanguageEntry: {
+            /** Language */
+            language?: string | null;
+            /** Proficiency */
+            proficiency?: ("beginner" | "intermediate" | "professional" | "fluent" | "native") | null;
         };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {
@@ -1446,6 +1468,8 @@ export interface components {
             github_url: string | null;
             /** Portfolio Url */
             portfolio_url: string | null;
+            /** X Url */
+            x_url: string | null;
             /** Resume Parsed Json */
             resume_parsed_json: {
                 [key: string]: unknown;
@@ -1468,6 +1492,10 @@ export interface components {
             education?: components["schemas"]["EducationEntry"][];
             /** Projects */
             projects?: components["schemas"]["ProjectEntry"][];
+            /** Certificates */
+            certificates?: components["schemas"]["CertificateEntry"][];
+            /** Languages */
+            languages?: components["schemas"]["LanguageEntry"][];
         };
         /** ProfileUpsert */
         ProfileUpsert: {
@@ -1490,6 +1518,8 @@ export interface components {
             github_url?: string | null;
             /** Portfolio Url */
             portfolio_url?: string | null;
+            /** X Url */
+            x_url?: string | null;
             /** Work Preference */
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
             /** Target Roles */
@@ -1515,8 +1545,18 @@ export interface components {
              */
             projects?: components["schemas"]["ProjectEntry"][] | null;
             /**
-             * Summary
+             * Certificates
              * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            certificates?: components["schemas"]["CertificateEntry"][] | null;
+            /**
+             * Languages
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.
+             */
+            languages?: components["schemas"]["LanguageEntry"][] | null;
+            /**
+             * Summary
+             * @description Stored inside resume_parsed_json. Omit the field to leave the saved summary untouched; send null or an empty string to clear it.
              */
             summary?: string | null;
         };
@@ -1528,6 +1568,10 @@ export interface components {
             description?: string | null;
             /** Url */
             url?: string | null;
+            /** Live Url */
+            live_url?: string | null;
+            /** Company */
+            company?: string | null;
         };
         /** RefreshRequest */
         RefreshRequest: {
@@ -1607,6 +1651,10 @@ export interface components {
             education?: components["schemas"]["EducationEntry"][];
             /** Projects */
             projects?: components["schemas"]["ProjectEntry"][];
+            /** Certificates */
+            certificates?: components["schemas"]["CertificateEntry"][];
+            /** Languages */
+            languages?: components["schemas"]["LanguageEntry"][];
         };
         /**
          * RolePosting

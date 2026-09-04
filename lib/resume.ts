@@ -2,7 +2,9 @@
  * is parseResume in lib/api-client/client.ts. */
 
 import type {
+  CertificateEntry,
   EducationEntry,
+  LanguageEntry,
   ProjectEntry,
   ResumeParseResult,
   WorkHistoryEntry,
@@ -22,6 +24,8 @@ export interface ParsedFields {
   workHistory: WorkHistoryEntry[];
   education: EducationEntry[];
   projects: ProjectEntry[];
+  certificates: CertificateEntry[];
+  languages: LanguageEntry[];
 }
 
 /** Everything the parse can omit lands as "", which is what an unanswered
@@ -44,6 +48,8 @@ export function toFormFields(parsed: ResumeParseResult): ParsedFields {
     workHistory: parsed.work_history ?? [],
     education: parsed.education ?? [],
     projects: parsed.projects ?? [],
+    certificates: parsed.certificates ?? [],
+    languages: parsed.languages ?? [],
   };
 }
 

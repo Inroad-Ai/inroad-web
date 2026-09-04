@@ -9,11 +9,13 @@ export function TagInput({
   value,
   onChange,
   placeholder,
+  addLabel,
   autoFocus,
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
+  addLabel?: string;
   autoFocus?: boolean;
 }) {
   const [draft, setDraft] = useState("");
@@ -59,15 +61,28 @@ export function TagInput({
             </button>
           </span>
         ))}
-        <input
-          value={draft}
-          autoFocus={autoFocus}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={commitDraft}
-          placeholder={value.length === 0 ? placeholder : undefined}
-          className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 font-sans text-base text-ink placeholder:text-ink-muted/50 focus:outline-none"
-        />
+        <div className="flex min-w-[12rem] flex-1 items-center gap-2">
+          <input
+            value={draft}
+            autoFocus={autoFocus}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={commitDraft}
+            placeholder={value.length === 0 ? placeholder : undefined}
+            className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 font-sans text-base text-ink placeholder:text-ink-muted/50 focus:outline-none"
+          />
+          {addLabel ? (
+            <button
+              type="button"
+              disabled={!draft.trim()}
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={commitDraft}
+              className="utility-label shrink-0 text-signal-teal hover:text-signal-teal-hover disabled:cursor-not-allowed disabled:text-text-secondary/40"
+            >
+              + {addLabel}
+            </button>
+          ) : null}
+        </div>
       </div>
     </div>
   );

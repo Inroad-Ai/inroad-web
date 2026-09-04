@@ -6,11 +6,13 @@ export function SelectableCard({
   onClick,
   autoFocus,
   children,
+  compact = false,
 }: {
   selected: boolean;
   onClick: () => void;
   autoFocus?: boolean;
   children: ReactNode;
+  compact?: boolean;
 }) {
   return (
     <button
@@ -18,7 +20,9 @@ export function SelectableCard({
       aria-pressed={selected}
       autoFocus={autoFocus}
       onClick={onClick}
-      className={`w-full rounded-md border px-5 py-4 text-left font-sans text-sm transition-colors ${
+      className={`w-full border font-sans text-sm transition-colors ${
+        compact ? "rounded-sm px-4 py-3 text-center" : "rounded-md px-5 py-4 text-left"
+      } ${
         selected
           ? "border-signal-teal bg-signal-teal-subtle text-text-primary shadow-card"
           : "border-line bg-surface text-text-primary hover:border-signal-teal/60"
