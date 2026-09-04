@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Menu } from "@/components/ui/Menu";
 import { PERSON_STAGES, PersonStageBadge } from "@/components/ui/PersonStageBadge";
 import { Section } from "@/components/ui/Section";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useOutreachDrafts } from "@/hooks/useOutreachDrafts";
 import { OutreachDrafts } from "./OutreachDrafts";
 
@@ -119,8 +120,14 @@ export function ContactProfile({ personId }: { personId: string }) {
 
   if (loadState === "loading") {
     return (
-      <div className="mt-6 rounded-md border border-line bg-surface">
-        <EmptyState className="px-6 py-16 text-center">Loading...</EmptyState>
+      <div className="mt-6 space-y-6" role="status" aria-label="Loading contact profile">
+        <Skeleton className="h-44 w-full rounded-md" />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Skeleton className="h-80 w-full rounded-md lg:col-span-2" />
+          <Skeleton className="h-80 w-full rounded-md" />
+        </div>
+        <Skeleton className="h-64 w-full rounded-md" />
+        <span className="sr-only">Loading this contact...</span>
       </div>
     );
   }
@@ -133,10 +140,23 @@ export function ContactProfile({ personId }: { personId: string }) {
     );
   }
 
+  const initials = detail.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join("")
+    .toUpperCase();
+  const sentDrafts = outreach.drafts.filter((draft) => draft.sent_at).length;
+  const isClosed = detail.stage === "closed";
+  const latestDraft = [...outreach.drafts].sort(
+    (first, second) => Date.parse(second.updated_at) - Date.parse(first.updated_at),
+  )[0];
+
   return (
     <div className="mt-6 flex flex-col gap-6">
       <Section
-        title="Person"
+        title="Contact"
         meta={
           <Menu
             label={`Move ${detail.name} to another stage`}
@@ -151,21 +171,23 @@ export function ContactProfile({ personId }: { personId: string }) {
           />
         }
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg text-ink">{detail.name}</h2>
-          <Badge tone="neutral">{PERSON_ROLE_LABEL[detail.role_category]}</Badge>
-          <PersonStageBadge stage={detail.stage} />
+        <div className="flex min-w-0 items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-signal-teal/30 bg-signal-teal-subtle font-display font-semibold text-signal-teal">
+            {initials || "?"}
+          </div>
+          <div className="min-w-0">
+            <h2 className="truncate font-display text-xl font-semibold text-ink">{detail.name}</h2>
+            <p className="mt-1 text-sm text-text-secondary">
+              {detail.title ?? "Title not listed"} at {detail.company_homepage_title ?? detail.company_domain}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge tone="neutral">{PERSON_ROLE_LABEL[detail.role_category]}</Badge>
+              <PersonStageBadge stage={detail.stage} />
+            </div>
+          </div>
         </div>
-        {moveError ? (
-          <p className="mt-2 text-sm text-error" role="alert">
-            {moveError}
-          </p>
-        ) : null}
 
         <dl className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <DataField label="Title">
-            {detail.title ?? <span className="text-text-secondary/70">No title listed</span>}
-          </DataField>
           <DataField label="Company">
             <Link
               href={`/companies/${detail.company_id}`}
@@ -174,14 +196,11 @@ export function ContactProfile({ personId }: { personId: string }) {
               {detail.company_homepage_title ?? detail.company_domain}
             </Link>
           </DataField>
-          <DataField label="Found via">
-            {detail.source ?? <span className="text-text-secondary/70">Unknown</span>}
-          </DataField>
           <DataField label="Email">
             {detail.email ? (
               <a
                 href={`mailto:${detail.email}`}
-                className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+                className="break-all text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
               >
                 {detail.email}
               </a>
@@ -203,6 +222,9 @@ export function ContactProfile({ personId }: { personId: string }) {
               <span className="text-text-secondary/70">Not found</span>
             )}
           </DataField>
+          <DataField label="Found via">
+            {detail.source ?? <span className="text-text-secondary/70">Unknown</span>}
+          </DataField>
           <DataField label="Contacted">
             {detail.contacted_at ? (
               formatTimestamp(detail.contacted_at)
@@ -212,34 +234,7 @@ export function ContactProfile({ personId }: { personId: string }) {
           </DataField>
         </dl>
 
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button
-            variant="primary"
-            size="sm"
-            type="button"
-            onClick={() => outreach.draft(0)}
-            disabled={outreach.drafting || outreach.loading}
-          >
-            {outreach.drafting
-              ? "Drafting..."
-              : outreach.drafts.length > 0
-                ? "Draft again"
-                : "Outreach"}
-          </Button>
-          {outreach.error ? (
-            <p className="text-xs text-muted-rose" role="alert">
-              {outreach.error}
-            </p>
-          ) : (
-            <span className="text-xs text-text-secondary/70">
-              {outreach.drafts.length > 0
-                ? "Drafting again replaces both drafts below, edits included."
-                : "Writes an email and a LinkedIn message from this company's research and your profile."}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-3">
+        <div className="mt-6 border-t border-line pt-5">
           <Button
             variant="quiet"
             size="sm"
@@ -251,28 +246,145 @@ export function ContactProfile({ personId }: { personId: string }) {
           </Button>
           {enrichMessage ? (
             <p
-              className={`text-xs ${enrichMessage.isError ? "text-muted-rose" : "text-text-secondary"}`}
+              className={`mt-3 text-xs ${enrichMessage.isError ? "text-muted-rose" : "text-text-secondary"}`}
               role={enrichMessage.isError ? "alert" : undefined}
             >
               {enrichMessage.text}
             </p>
           ) : Boolean(detail.email) && Boolean(detail.linkedin_url) ? (
-            <span className="text-xs text-text-secondary/70">
-              Already has both an email and a LinkedIn profile.
-            </span>
+            <p className="mt-3 text-xs text-text-secondary/70">
+              This contact already has an email and LinkedIn profile.
+            </p>
           ) : null}
         </div>
       </Section>
 
-      <OutreachDrafts
-        drafts={outreach.drafts}
-        personId={detail.id}
-        personEmail={detail.email}
-        personLinkedinUrl={detail.linkedin_url}
-        drafting={outreach.drafting}
-        onDraftFollowUp={outreach.draft}
-        onSaved={outreach.replaceDraft}
-      />
+      {moveError ? (
+        <p className="text-sm text-error" role="alert">
+          {moveError}
+        </p>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
+          <Section title="Outreach">
+            {outreach.error ? (
+              <p className="mb-4 text-sm text-error" role="alert">
+                {outreach.error}
+              </p>
+            ) : null}
+            {isClosed ? (
+              <>
+                <p className="text-sm leading-6 text-text-secondary">
+                  Outreach is closed for this contact. Saved messages remain available as a record,
+                  but cannot be drafted, edited, or sent.
+                </p>
+                {outreach.drafts.length > 0 ? (
+                  <div className="mt-5">
+                    <OutreachDrafts
+                      drafts={outreach.drafts}
+                      personId={detail.id}
+                      personEmail={detail.email}
+                      personLinkedinUrl={detail.linkedin_url}
+                      drafting={false}
+                      readOnly
+                      onDraftFollowUp={outreach.draft}
+                      onSaved={outreach.replaceDraft}
+                    />
+                  </div>
+                ) : null}
+              </>
+            ) : outreach.drafts.length === 0 ? (
+              <div className="rounded-md border border-dashed border-line bg-surface-raised px-5 py-8">
+                <p className="font-display text-lg text-ink">Ready to start a conversation</p>
+                <p className="mt-2 max-w-xl text-sm leading-6 text-text-secondary">
+                  Create a personalized email and LinkedIn message from this company&apos;s research
+                  and your profile.
+                </p>
+                <Button
+                  className="mt-5"
+                  size="sm"
+                  type="button"
+                  onClick={() => outreach.draft(0)}
+                  disabled={outreach.drafting || outreach.loading}
+                >
+                  {outreach.drafting ? "Drafting..." : "Draft outreach"}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <p className="max-w-3xl text-sm leading-6 text-text-secondary">
+                  Review each touchpoint in order. Earlier messages provide context for every
+                  follow-up.
+                </p>
+                <div className="mt-5">
+                  <OutreachDrafts
+                    drafts={outreach.drafts}
+                    personId={detail.id}
+                    personEmail={detail.email}
+                    personLinkedinUrl={detail.linkedin_url}
+                    drafting={outreach.drafting}
+                    onDraftFollowUp={outreach.draft}
+                    onSaved={outreach.replaceDraft}
+                  />
+                </div>
+              </>
+            )}
+          </Section>
+        </div>
+
+        <aside className="min-w-0">
+          <Section title="Engagement history" meta={<PersonStageBadge stage={detail.stage} />}>
+            <ol className="space-y-5">
+              <li className="flex gap-3">
+                <span
+                  aria-hidden="true"
+                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal-teal"
+                />
+                <div>
+                  <p className="font-display font-semibold text-ink">Contact added</p>
+                  <p className="mt-1 text-sm text-text-secondary">
+                    {formatTimestamp(detail.created_at)}
+                  </p>
+                </div>
+              </li>
+              {detail.contacted_at ? (
+                <li className="flex gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal-teal"
+                  />
+                  <div>
+                    <p className="font-display font-semibold text-ink">Marked as contacted</p>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {formatTimestamp(detail.contacted_at)}
+                    </p>
+                  </div>
+                </li>
+              ) : null}
+              {latestDraft ? (
+                <li className="flex gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal-teal"
+                  />
+                  <div>
+                    <p className="font-display font-semibold text-ink">Latest draft updated</p>
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {formatTimestamp(latestDraft.updated_at)}
+                    </p>
+                  </div>
+                </li>
+              ) : null}
+            </ol>
+            {sentDrafts > 0 ? (
+              <p className="mt-5 border-t border-line pt-4 text-sm text-text-secondary">
+                {sentDrafts} recorded {sentDrafts === 1 ? "message" : "messages"} sent.
+              </p>
+            ) : null}
+          </Section>
+        </aside>
+      </div>
     </div>
   );
 }

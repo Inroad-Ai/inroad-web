@@ -19,6 +19,7 @@ export function OutreachDraftSection({
   recipientEmail,
   title,
   hint,
+  readOnly = false,
   onSaved,
 }: {
   draft: OutreachDraft;
@@ -26,6 +27,7 @@ export function OutreachDraftSection({
   recipientEmail: string | null;
   title: string;
   hint: string;
+  readOnly?: boolean;
   onSaved: (draft: OutreachDraft) => void;
 }) {
   const [subject, setSubject] = useState(draft.subject ?? "");
@@ -120,6 +122,7 @@ export function OutreachDraftSection({
             className="mt-2"
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
+            readOnly={readOnly}
           />
         </label>
       ) : null}
@@ -131,20 +134,23 @@ export function OutreachDraftSection({
           rows={BODY_ROWS}
           value={body}
           onChange={(event) => setBody(event.target.value)}
+          readOnly={readOnly}
         />
       </label>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button
-          variant="quiet"
-          size="sm"
-          type="button"
-          onClick={persist}
-          disabled={saving || !edited || body.trim().length === 0}
-        >
-          {saving ? "Saving..." : "Save"}
-        </Button>
-        {draft.channel === "email" ? (
+        {readOnly ? null : (
+          <Button
+            variant="quiet"
+            size="sm"
+            type="button"
+            onClick={persist}
+            disabled={saving || !edited || body.trim().length === 0}
+          >
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        )}
+        {!readOnly && draft.channel === "email" ? (
           <>
             <SendOutreachButton
               personId={personId}
