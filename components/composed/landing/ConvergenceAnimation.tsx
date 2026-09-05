@@ -1,6 +1,8 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { motion } from "framer-motion";
+
+import { LANDING_EASE, useLandingMotion } from "@/lib/landing-motion";
 
 export type ConvergenceState = "idle" | "running" | "resolved";
 
@@ -13,18 +15,18 @@ const STARTS = [
 ];
 
 const OUTLINE = { x: 150, y: 120, width: 500, height: 160, radius: 4 };
-const OUTLINE_LENGTH = 2 * (OUTLINE.width + OUTLINE.height);
 
 /**
  * The signature visual: three thin teal lines travel inward from three points,
  * meet at one, and resolve into a single amber outline once a real result
  * comes back.
  *
- * Purely decorative — `aria-hidden`, and every animation here is cancelled by
- * the reduced-motion rule in globals.css, which lands each path on its drawn
- * state. That fallback *is* the static converged picture, so nothing is lost.
+ * Purely decorative — `aria-hidden`, and reduced-motion visitors get the
+ * finished mark immediately. That static state communicates the same result.
  */
 export function ConvergenceAnimation({ state }: { state: ConvergenceState }) {
+  const reduceMotion = useLandingMotion();
+
   return (
     <svg
       aria-hidden="true"
@@ -32,10 +34,8 @@ export function ConvergenceAnimation({ state }: { state: ConvergenceState }) {
       className="pointer-events-none absolute inset-0 h-full w-full"
     >
       {STARTS.map((start, index) => {
-        const length = Math.hypot(MEET.x - start.x, MEET.y - start.y);
-
         return (
-          <line
+          <motion.line
             key={index}
             x1={start.x}
             y1={start.y}
@@ -43,29 +43,23 @@ export function ConvergenceAnimation({ state }: { state: ConvergenceState }) {
             y2={MEET.y}
             stroke="var(--color-signal-teal)"
             strokeWidth={1}
-            strokeDasharray={length}
-            className={
-              state === "running"
-                ? "animate-converge opacity-60"
-                : "opacity-20"
+            initial={false}
+            animate={
+              state === "running" && !reduceMotion
+                ? { opacity: [0.18, 0.72, 0.2], pathLength: [0, 1, 1], pathOffset: [0, 0, 1] }
+                : { opacity: state === "resolved" ? 0.28 : 0.2, pathLength: 1, pathOffset: 0 }
             }
-            style={
-              {
-                "--line-length": `${length}`,
-                // Not running: the line sits fully drawn. Running: the keyframe
-                // owns the offset and redraws it inward on every pass.
-                strokeDashoffset: state === "running" ? undefined : 0,
-                // Each line starts a beat apart, so they read as three separate
-                // things arriving rather than one shape scaling.
-                animationDelay: `${index * 0.18}s`,
-              } as CSSProperties
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { duration: 1.15, delay: index * 0.14, ease: LANDING_EASE }
             }
           />
         );
       })}
 
       {/* The meeting point. Faint until something has actually met there. */}
-      <circle
+      <motion.circle
         cx={MEET.x}
         cy={MEET.y}
         r={3}
@@ -74,11 +68,13 @@ export function ConvergenceAnimation({ state }: { state: ConvergenceState }) {
             ? "var(--color-signal-amber)"
             : "var(--color-signal-teal)"
         }
-        className={state === "idle" ? "opacity-25" : "opacity-90"}
+        initial={false}
+        animate={{ opacity: state === "idle" ? 0.25 : 0.9, scale: state === "resolved" ? [1, 1.65, 1] : 1 }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.52, ease: LANDING_EASE }}
       />
 
       {state === "resolved" ? (
-        <rect
+        <motion.rect
           x={OUTLINE.x}
           y={OUTLINE.y}
           width={OUTLINE.width}
@@ -87,11 +83,9 @@ export function ConvergenceAnimation({ state }: { state: ConvergenceState }) {
           fill="none"
           stroke="var(--color-signal-amber)"
           strokeWidth={1}
-          strokeDasharray={OUTLINE_LENGTH}
-          className="animate-resolve-outline"
-          style={
-            { "--outline-length": `${OUTLINE_LENGTH}` } as CSSProperties
-          }
+          initial={{ opacity: 0, pathLength: 0 }}
+          animate={{ opacity: 1, pathLength: 1 }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.72, ease: LANDING_EASE }}
         />
       ) : null}
     </svg>

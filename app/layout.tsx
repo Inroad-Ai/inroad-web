@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { DM_Sans, DM_Serif_Display } from "next/font/google";
 
 import "./globals.css";
 
 // Loaded here via next/font, self-hosted at build time. No CDN link tag.
-// Plus Jakarta Sans, not Geist: Geist isn't in this Next.js version's
-// bundled Google Fonts data yet. Same rounded-geometric feel.
-const displayFont = Plus_Jakarta_Sans({
+// DM Sans is the working face: practical in dense research, controls and
+// messages. DM Serif Display appears only in marketing headlines, adding a
+// human, editorial note without making the product UI feel decorative.
+const productFont = DM_Sans({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-display",
+  variable: "--font-product",
 });
 
-const inter = Inter({
+const marketingFont = DM_Serif_Display({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-body",
+  variable: "--font-marketing",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${displayFont.variable} ${inter.variable}`}
+      className={`${productFont.variable} ${marketingFont.variable}`}
     >
       <body className="min-h-screen bg-paper text-ink antialiased">
         {children}

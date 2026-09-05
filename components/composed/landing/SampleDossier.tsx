@@ -1,4 +1,9 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
+import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
 import { totalTimeSeconds } from "@/lib/format";
 import { SOURCE_KEYS, type CompanyDossier } from "@/lib/types";
 
@@ -75,28 +80,46 @@ const SAMPLE: CompanyDossier = {
 };
 
 export function SampleDossier() {
+  const reduceMotion = useLandingMotion();
+
   return (
     <section id="sample" className="border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <motion.div
+          className="flex flex-wrap items-baseline justify-between gap-4"
+          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={LANDING_VIEWPORT}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.52, ease: LANDING_EASE }}
+        >
           <p className="utility-label text-text-secondary">
             One run, exactly as it comes back
           </p>
           <p className="font-sans text-sm text-text-secondary">
             {SAMPLE.domain} · {totalTimeSeconds(SAMPLE.elapsed_ms)}s
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {SOURCE_KEYS.map((key) => (
-            <ResultCard
+        <motion.div
+          className="mt-8 grid gap-4 md:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={LANDING_VIEWPORT}
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: reduceMotion ? 0 : 0.14 } } }}
+        >
+          {SOURCE_KEYS.map((key, index) => (
+            <motion.div
               key={key}
-              source={key}
-              state="done"
-              dossier={SAMPLE}
-            />
+              variants={{
+                hidden: { opacity: 0, y: 32, scale: 0.96 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: reduceMotion ? { duration: 0 } : { duration: 0.62, ease: LANDING_EASE } },
+              }}
+              whileHover={reduceMotion ? undefined : { y: -5, rotate: index === 1 ? 0 : index === 0 ? -0.5 : 0.5 }}
+            >
+              <ResultCard source={key} state="done" dossier={SAMPLE} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

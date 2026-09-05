@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
+import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
 
 const LINK_COLUMNS = [
   {
@@ -47,32 +51,18 @@ const SOCIALS = [
   },
 ];
 
-/**
- * Squares scattered across the watermark. Positions are percentages of the
- * watermark block, so they keep their arrangement at any width. Two tones:
- * solid amber reads as a "hit", the pale one as a candidate still being
- * checked — the same idea the hero animation uses.
- */
-const WATERMARK_SQUARES = [
-  { left: "20%", top: "58%", size: "h-2 w-2", tone: "bg-signal-amber-subtle" },
-  { left: "24%", top: "80%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "28%", top: "78%", size: "h-2 w-2", tone: "bg-signal-amber-subtle" },
-  { left: "30%", top: "36%", size: "h-2 w-2", tone: "bg-signal-amber" },
-  { left: "33%", top: "79%", size: "h-2 w-2", tone: "bg-signal-amber-subtle" },
-  { left: "36%", top: "24%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "39%", top: "26%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "42%", top: "48%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "47%", top: "23%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "50%", top: "79%", size: "h-2 w-2", tone: "bg-signal-amber-subtle" },
-  { left: "54%", top: "77%", size: "h-3 w-3", tone: "bg-signal-amber" },
-  { left: "57%", top: "51%", size: "h-3 w-3", tone: "bg-signal-amber-subtle" },
-  { left: "62%", top: "60%", size: "h-2 w-2", tone: "bg-signal-amber-subtle" },
-];
-
 export function Footer() {
+  const reduceMotion = useLandingMotion();
+
   return (
     <footer className="relative overflow-hidden border-t border-line bg-paper">
-      <div className="mx-auto max-w-6xl px-6 pt-16">
+      <motion.div
+        className="mx-auto max-w-6xl px-6 pt-16"
+        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={LANDING_VIEWPORT}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.6, ease: LANDING_EASE }}
+      >
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/" aria-label="Inroad home">
             <Logo />
@@ -83,18 +73,20 @@ export function Footer() {
               Social media
             </span>
             {SOCIALS.map((social) => (
-              <a
+              <motion.a
                 key={social.label}
                 href={social.href}
                 target="_blank"
                 rel="noreferrer"
                 aria-label={social.label}
                 className="flex h-9 w-9 items-center justify-center rounded-sm bg-surface-raised text-ink transition-colors hover:bg-signal-amber-subtle"
+                whileHover={reduceMotion ? undefined : { y: -3, scale: 1.04 }}
+                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
                   <path d={social.path} />
                 </svg>
-              </a>
+              </motion.a>
             ))}
           </div>
         </div>
@@ -135,36 +127,35 @@ export function Footer() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Watermark. The negative bottom margin pulls the bottom bar up over the
-          wordmark and lets the footer's overflow clip its descender, same as
-          the letters running off the bottom edge in the reference. */}
-      <div aria-hidden className="relative mt-12 select-none">
-        <span className="-mb-8 block text-center font-display text-wordmark font-bold tracking-tight text-surface-raised sm:-mb-12 lg:-mb-16">
-          Inroad
-        </span>
-        {WATERMARK_SQUARES.map((square) => (
-          <span
-            key={`${square.left}-${square.top}`}
-            style={{ left: square.left, top: square.top }}
-            className={`absolute ${square.size} ${square.tone}`}
-          />
-        ))}
-      </div>
-
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-2 px-6 pb-8 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-sans text-sm text-text-secondary">
-          © {new Date().getFullYear()} Inroad. Built for people who would rather do the homework
-          than send another application.
-        </p>
-        <Link
-          href="/terms"
-          className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-        >
-          Terms &amp; Conditions
-        </Link>
-      </div>
+      <motion.div
+        className="mx-auto mt-12 max-w-6xl px-6 pb-8"
+        initial={reduceMotion ? false : { opacity: 0, y: 36 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={LANDING_VIEWPORT}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.7, ease: LANDING_EASE }}
+      >
+        <div className="relative overflow-hidden rounded-lg border border-line bg-surface-raised px-6 py-7 sm:px-10 sm:py-9">
+          <span aria-hidden className="absolute right-8 top-8 h-3 w-3 bg-signal-amber" />
+          <span aria-hidden className="absolute right-14 top-14 h-2 w-2 bg-signal-amber-subtle" />
+          <span className="relative block font-editorial text-wordmark leading-none tracking-tight text-ink">
+            Inroad
+          </span>
+          <div className="relative mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-sans text-sm text-text-secondary">
+              © {new Date().getFullYear()} Inroad. Built for people who would rather do the homework
+              than send another application.
+            </p>
+            <Link
+              href="/terms"
+              className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
+            >
+              Terms &amp; Conditions
+            </Link>
+          </div>
+        </div>
+      </motion.div>
     </footer>
   );
 }

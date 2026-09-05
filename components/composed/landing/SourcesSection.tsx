@@ -1,3 +1,9 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
+
 const SOURCES = [
   {
     code: "SOURCE_01",
@@ -17,17 +23,40 @@ const SOURCES = [
 ];
 
 export function SourcesSection() {
+  const reduceMotion = useLandingMotion();
+
   return (
     <section id="sources" className="border-t border-line">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <p className="utility-label text-text-secondary">What each run gives you</p>
+        <motion.p
+          className="utility-label text-text-secondary"
+          initial={reduceMotion ? false : { opacity: 0, x: -16 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={LANDING_VIEWPORT}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.45, ease: LANDING_EASE }}
+        >
+          What each run gives you
+        </motion.p>
 
         <div className="mt-10 grid gap-10 sm:mt-14 md:grid-cols-3 md:gap-8">
-          {SOURCES.map((source) => (
-            <div
+          {SOURCES.map((source, index) => (
+            <motion.article
               key={source.code}
-              className="rounded-md border border-line bg-surface p-6 shadow-card"
+              className="group relative overflow-hidden rounded-md border border-line bg-surface p-6 shadow-card"
+              initial={reduceMotion ? false : { opacity: 0, y: 28, rotate: index === 1 ? 1 : 0 }}
+              whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+              viewport={LANDING_VIEWPORT}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.58, delay: index * 0.1, ease: LANDING_EASE }}
+              whileHover={reduceMotion ? undefined : { y: -8, transition: { duration: 0.22 } }}
             >
+              <motion.span
+                aria-hidden="true"
+                className="absolute inset-x-0 top-0 h-1 origin-left bg-signal-amber"
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={LANDING_VIEWPORT}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.5, delay: 0.16 + index * 0.1, ease: LANDING_EASE }}
+              />
               <span className="utility-label text-signal-teal">
                 {source.code}
               </span>
@@ -37,7 +66,7 @@ export function SourcesSection() {
               <p className="mt-3 text-sm leading-relaxed text-text-secondary">
                 {source.line}
               </p>
-            </div>
+            </motion.article>
           ))}
         </div>
       </div>

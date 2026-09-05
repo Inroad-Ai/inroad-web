@@ -45,6 +45,7 @@ const config: Config = {
         // Set by next/font in app/layout.tsx, consumed as CSS variables.
         display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
         sans: ["var(--font-body)", "ui-sans-serif", "system-ui"],
+        editorial: ["var(--font-marketing)", "ui-serif", "Georgia", "serif"],
       },
       fontSize: {
         xs: ["var(--text-xs-size)", { lineHeight: "var(--text-xs-line-height)" }],
@@ -59,6 +60,7 @@ const config: Config = {
           "var(--text-wordmark-size)",
           { lineHeight: "var(--text-wordmark-line-height)" },
         ],
+        hero: ["var(--text-hero-size)", { lineHeight: "var(--text-hero-line-height)" }],
       },
       fontWeight: {
         "sans-regular": "var(--font-weight-sans-regular)",
@@ -85,16 +87,6 @@ const config: Config = {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.45", transform: "scale(0.82)" },
         },
-        // ConvergenceAnimation: three lines drawing inward.
-        converge: {
-          "0%": { strokeDashoffset: "var(--line-length)" },
-          "100%": { strokeDashoffset: "0" },
-        },
-        // The amber outline that resolves around a returned result.
-        "resolve-outline": {
-          "0%": { strokeDashoffset: "var(--outline-length)", opacity: "0.2" },
-          "100%": { strokeDashoffset: "0", opacity: "1" },
-        },
         "fade-up": {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -102,8 +94,6 @@ const config: Config = {
       },
       animation: {
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
-        converge: "converge 1.6s ease-in-out infinite",
-        "resolve-outline": "resolve-outline 0.7s ease-out forwards",
         "fade-up": "fade-up 0.35s ease-out both",
       },
     },

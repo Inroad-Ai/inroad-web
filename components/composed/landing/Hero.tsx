@@ -1,5 +1,12 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/Button";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
+import { ConvergenceAnimation, type ConvergenceState } from "@/components/composed/landing/ConvergenceAnimation";
+import { LANDING_EASE, LANDING_SPRING, useLandingMotion } from "@/lib/landing-motion";
 import { SOURCE_KEYS, type CompanyDossier } from "@/lib/types";
 
 /** A real recorded run, shaped exactly like the dossier the tool returns. */
@@ -63,37 +70,77 @@ const PREVIEW: CompanyDossier = {
 };
 
 export function Hero() {
+  const reduceMotion = useLandingMotion();
+  const [convergenceState, setConvergenceState] = useState<ConvergenceState>(
+    reduceMotion ? "resolved" : "running",
+  );
+
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    const timer = window.setTimeout(() => setConvergenceState("resolved"), 1350);
+    return () => window.clearTimeout(timer);
+  }, [reduceMotion]);
+
+  const introTransition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.7, ease: LANDING_EASE };
+
   return (
     <header className="overflow-hidden pb-24 pt-16 text-center sm:pb-32 sm:pt-24">
-      <div className="mx-auto max-w-3xl px-6">
-        <span className="utility-label inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-signal-teal">
+      <motion.div
+        className="mx-auto max-w-3xl px-6"
+        initial={reduceMotion ? false : "hidden"}
+        animate="visible"
+        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.11 } } }}
+      >
+        <motion.span
+          className="utility-label inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-signal-teal"
+          variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: introTransition } }}
+        >
           Built for job searches, not job boards
-        </span>
+        </motion.span>
 
-        <h1 className="mx-auto mt-6 max-w-2xl font-display text-4xl leading-tight text-ink sm:text-5xl">
+        <motion.h1
+          className="mx-auto mt-6 max-w-3xl font-editorial text-hero tracking-tight text-ink"
+          variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: introTransition } }}
+        >
           Get an inroad, not a rejection email.
-        </h1>
+        </motion.h1>
 
-        <p className="mx-auto mt-6 max-w-2xl font-sans text-lg leading-relaxed text-text-secondary">
+        <motion.p
+          className="mx-auto mt-6 max-w-2xl font-sans text-lg leading-relaxed text-text-secondary"
+          variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: introTransition } }}
+        >
           Inroad finds companies that actually match what you&apos;re looking
           for, digs into the funding, team, and tech stack details that make
           a message worth reading, and helps you write outreach to someone
           who can actually hire you. No queue, no black box, just a real
           message to a real person who&apos;d have no idea you did an hour of
           research to write it.
-        </p>
+        </motion.p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          <Button href="/onboarding">Get started</Button>
-          <Button href="#sample" variant="quiet">
+        <motion.div
+          className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0, transition: introTransition } }}
+        >
+          <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>
+            <Button href="/onboarding">Get started</Button>
+          </motion.div>
+          <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>
+            <Button href="#sample" variant="quiet">
             See a sample
-          </Button>
-        </div>
+            </Button>
+          </motion.div>
+        </motion.div>
 
-        <p className="utility-label mt-8 text-text-secondary/70">
+        <motion.p
+          className="utility-label mt-8 text-text-secondary/70"
+          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: introTransition } }}
+        >
           3 sources checked · under 60s per company · no template
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
 
       <div className="relative mt-16">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -102,16 +149,31 @@ export function Hero() {
           <div className="absolute bottom-0 right-0 h-80 w-1/2 translate-x-1/4 translate-y-1/4 rounded-full bg-signal-amber/20 blur-[100px]" />
         </div>
 
-        <div className="mx-auto max-w-6xl px-6">
+        <motion.div
+          className="mx-auto max-w-6xl px-6"
+          initial={reduceMotion ? false : { opacity: 0, y: 40, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={reduceMotion ? { duration: 0 } : { ...LANDING_SPRING, delay: 0.38 }}
+        >
           <p className="utility-label px-1 pb-4 text-left text-text-secondary">
             One run, exactly as it comes back
           </p>
-          <div className="grid gap-6 text-left sm:grid-cols-3">
-            {SOURCE_KEYS.map((key) => (
-              <ResultCard key={key} source={key} state="done" dossier={PREVIEW} />
+          <div className="relative grid gap-6 text-left sm:grid-cols-3">
+            <ConvergenceAnimation state={convergenceState} />
+            {SOURCE_KEYS.map((key, index) => (
+              <motion.div
+                key={key}
+                className="relative"
+                initial={reduceMotion ? false : { opacity: 0, y: 26 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.55, delay: 0.58 + index * 0.12, ease: LANDING_EASE }}
+                whileHover={reduceMotion ? undefined : { y: -6 }}
+              >
+                <ResultCard source={key} state="done" dossier={PREVIEW} />
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </header>
   );
