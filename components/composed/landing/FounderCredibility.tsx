@@ -1,21 +1,15 @@
 "use client";
 
-import { motion } from "framer-motion";
-
-import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
+import { Reveal } from "@/components/ui/Reveal";
 
 export function FounderCredibility() {
-  const reduceMotion = useLandingMotion();
-
   return (
     <section className="border-b border-line bg-signal-teal-subtle/35">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <motion.div
+        <Reveal
           className="grid gap-10 rounded-lg border border-signal-teal/20 bg-surface p-7 shadow-card sm:p-10 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-16"
-          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.66, ease: LANDING_EASE }}
+          offset={28}
+          duration={0.66}
         >
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-signal-teal text-2xl font-semibold text-paper">I</div>
           <div>
@@ -32,7 +26,7 @@ export function FounderCredibility() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

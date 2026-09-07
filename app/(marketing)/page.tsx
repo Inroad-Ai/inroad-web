@@ -6,6 +6,7 @@ import { Footer } from "@/components/composed/landing/Footer";
 import { FounderCredibility } from "@/components/composed/landing/FounderCredibility";
 import { Hero } from "@/components/composed/landing/Hero";
 import { HowItWorks } from "@/components/composed/landing/HowItWorks";
+import { Integrations } from "@/components/composed/landing/Integrations";
 import { Nav } from "@/components/composed/landing/Nav";
 import { ProblemSection } from "@/components/composed/landing/ProblemSection";
 import { SampleDossier } from "@/components/composed/landing/SampleDossier";
@@ -32,6 +33,7 @@ export default function LandingPage() {
       <ProblemSection />
       <FounderCredibility />
       <Differentiation />
+      <Integrations />
       <Faq />
       <Footer />
     </main>

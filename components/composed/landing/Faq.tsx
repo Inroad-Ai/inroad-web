@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
+import { Reveal } from "@/components/ui/Reveal";
+import { LANDING_EASE, useLandingMotion } from "@/lib/landing-motion";
 
 const FAQS = [
   {
@@ -31,20 +32,15 @@ export function Faq() {
   return (
     <section id="faq" className="border-b border-line">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 sm:py-28 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-16">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.56, ease: LANDING_EASE }}
-        >
+        <Reveal offset={18} duration={0.56}>
           <p className="utility-label text-signal-teal">Good to know</p>
           <h2 className="mt-4 max-w-sm font-display text-3xl font-semibold tracking-[-0.045em] text-ink sm:text-4xl">
-            Clear answers, before you start.
+            Clear answers, <span className="text-signal-amber">before you start.</span>
           </h2>
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-text-secondary sm:text-base">
             Inroad is intentionally straightforward about what it does, what it does not automate, and where it is today.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="rounded-lg border border-line bg-surface px-5 sm:px-7">
           {FAQS.map((item, index) => {
@@ -52,13 +48,12 @@ export function Faq() {
             const panelId = `faq-panel-${index}`;
             const buttonId = `faq-button-${index}`;
             return (
-              <motion.div
+              <Reveal
                 key={item.question}
                 className="border-b border-line last:border-b-0"
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={LANDING_VIEWPORT}
-                transition={reduceMotion ? { duration: 0 } : { duration: 0.42, delay: index * 0.06, ease: LANDING_EASE }}
+                offset={12}
+                duration={0.42}
+                delay={index * 0.06}
               >
                 <button
                   id={buttonId}
@@ -72,7 +67,7 @@ export function Faq() {
                   <motion.span
                     aria-hidden="true"
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line text-lg leading-none text-signal-teal"
-                    animate={{ rotate: isOpen ? 45 : 0, backgroundColor: isOpen ? "var(--color-signal-teal-subtle)" : "var(--color-surface)" }}
+                    animate={{ rotate: isOpen ? 45 : 0, backgroundColor: isOpen ? "rgb(var(--color-signal-teal-subtle))" : "rgb(var(--color-surface))" }}
                     transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: LANDING_EASE }}
                   >
                     +
@@ -94,7 +89,7 @@ export function Faq() {
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
-              </motion.div>
+              </Reveal>
             );
           })}
         </div>

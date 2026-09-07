@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
-import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
+import { Reveal } from "@/components/ui/Reveal";
+import { LANDING_EASE, useLandingMotion } from "@/lib/landing-motion";
 
 const DOSSIER_VIEWS = [
   {
@@ -40,13 +41,7 @@ export function SampleDossier() {
   return (
     <section id="sample" className="border-b border-line bg-surface-raised/35">
       <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 sm:py-28 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:gap-16">
-        <motion.div
-          className="lg:pt-8"
-          initial={reduceMotion ? false : { opacity: 0, x: -22 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.6, ease: LANDING_EASE }}
-        >
+        <Reveal className="lg:pt-8" axis="x" offset={-22} duration={0.6}>
           <p className="utility-label text-signal-teal">Inside one dossier</p>
           <h2 className="mt-4 max-w-md font-display text-3xl font-semibold tracking-[-0.045em] text-ink sm:text-4xl">
             Research should leave you with something you can use.
@@ -58,15 +53,9 @@ export function SampleDossier() {
             <span className="h-2 w-2 rounded-full bg-success" />
             Recorded example from stripe.com
           </div>
-        </motion.div>
+        </Reveal>
 
-        <motion.div
-          className="overflow-hidden rounded-lg border border-line bg-surface shadow-card"
-          initial={reduceMotion ? false : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.7, delay: 0.1, ease: LANDING_EASE }}
-        >
+        <Reveal className="overflow-hidden rounded-lg border border-line bg-surface shadow-card" offset={30} duration={0.7} delay={0.1}>
           <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6">
             <div>
               <p className="utility-label text-text-secondary">Research dossier</p>
@@ -116,7 +105,7 @@ export function SampleDossier() {
               </motion.div>
             </AnimatePresence>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

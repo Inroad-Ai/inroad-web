@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
-import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
+import { Reveal } from "@/components/ui/Reveal";
+import { useLandingMotion } from "@/lib/landing-motion";
 
 const LINKS = [
   { label: "What you get", href: "/#sources" },
@@ -19,13 +20,7 @@ export function Footer() {
 
   return (
     <footer className="bg-ink text-paper">
-      <motion.div
-        className="mx-auto max-w-6xl px-6 py-14 sm:py-20"
-        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={LANDING_VIEWPORT}
-        transition={reduceMotion ? { duration: 0 } : { duration: 0.62, ease: LANDING_EASE }}
-      >
+      <Reveal className="mx-auto max-w-6xl px-6 py-14 sm:py-20" offset={24} duration={0.62}>
         <div className="grid gap-12 border-b border-paper/15 pb-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-end">
           <div>
             <p className="utility-label text-signal-amber">Take the direct route</p>
@@ -33,7 +28,7 @@ export function Footer() {
               Do the homework once. Make it count.
             </h2>
             <p className="mt-5 max-w-lg text-sm leading-relaxed text-paper/65 sm:text-base">
-              Find companies that fit, understand the signal, and send outreach that sounds like a person paid attention.
+              Drop in a company, get the research that makes a message worth sending, then send it yourself.
             </p>
           </div>
           <div className="lg:justify-self-end">
@@ -71,7 +66,7 @@ export function Footer() {
             <Link href="/terms" className="transition-colors hover:text-paper">Terms</Link>
           </div>
         </div>
-      </motion.div>
+      </Reveal>
     </footer>
   );
 }

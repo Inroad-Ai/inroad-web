@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ConvergenceAnimation,
@@ -19,6 +19,7 @@ const SIGNALS = [
 /** The first screen answers the product question before asking for a click. */
 export function Hero() {
   const reduceMotion = useLandingMotion();
+  const previewRef = useRef<HTMLDivElement>(null);
   const [convergenceState, setConvergenceState] = useState<ConvergenceState>(
     reduceMotion ? "resolved" : "running",
   );
@@ -51,7 +52,7 @@ export function Hero() {
             className="mt-5 max-w-xl font-display text-hero font-semibold tracking-[-0.055em] text-ink"
             variants={{ hidden: { opacity: 0, y: 22 }, visible: { opacity: 1, y: 0, transition: intro } }}
           >
-            Find the reason to reach out.
+            Find the reason <span className="text-signal-amber">to reach out.</span>
           </motion.h1>
           <motion.p
             className="mt-6 max-w-lg text-base leading-relaxed text-text-secondary sm:text-lg"
@@ -95,8 +96,8 @@ export function Hero() {
               </div>
               <span className="utility-label text-text-secondary">New research</span>
             </div>
-            <div className="relative p-4 sm:p-6">
-              <ConvergenceAnimation state={convergenceState} />
+            <div ref={previewRef} className="relative p-4 sm:p-6">
+              <ConvergenceAnimation state={convergenceState} containerRef={previewRef} />
               <div className="relative flex items-center justify-between gap-3">
                 <div>
                   <p className="utility-label text-text-secondary">Company domain</p>
@@ -113,6 +114,7 @@ export function Hero() {
                 {SIGNALS.map((signal, index) => (
                   <motion.div
                     key={signal.label}
+                    data-convergence-start
                     className="rounded-md border border-line bg-paper p-3.5"
                     initial={reduceMotion ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -125,10 +127,21 @@ export function Hero() {
                 ))}
               </div>
               <motion.div
+                data-convergence-target
                 className="relative mt-4 rounded-md border border-signal-teal/25 bg-signal-teal-subtle/55 p-4"
-                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                animate={{ opacity: convergenceState === "resolved" ? 1 : 0, y: convergenceState === "resolved" ? 0 : 12 }}
-                transition={reduceMotion ? { duration: 0 } : { duration: 0.42, ease: LANDING_EASE }}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{
+                  opacity: convergenceState === "resolved" ? 1 : 0,
+                  boxShadow:
+                    convergenceState === "resolved" && !reduceMotion
+                      ? [
+                          "0 0 0 0 rgb(var(--color-signal-amber) / 0)",
+                          "0 0 0 8px rgb(var(--color-signal-amber) / 0.18)",
+                          "0 0 0 0 rgb(var(--color-signal-amber) / 0)",
+                        ]
+                      : "0 0 0 0 rgb(var(--color-signal-amber) / 0)",
+                }}
+                transition={reduceMotion ? { duration: 0 } : { duration: 0.6, ease: LANDING_EASE }}
               >
                 <p className="utility-label text-signal-teal">A useful opening</p>
                 <p className="mt-2 text-sm leading-relaxed text-ink">

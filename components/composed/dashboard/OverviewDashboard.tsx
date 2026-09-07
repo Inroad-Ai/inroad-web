@@ -138,31 +138,31 @@ export function OverviewDashboard() {
         <ChartCard title="Pipeline by stage" description="Where saved companies sit right now.">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={funnelData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="var(--color-line)" />
+              <CartesianGrid vertical={false} stroke="rgb(var(--color-line))" />
               <XAxis
                 dataKey="label"
-                tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
+                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
                 tickLine={false}
-                axisLine={{ stroke: "var(--color-line)" }}
+                axisLine={{ stroke: "rgb(var(--color-line))" }}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
+                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
                 width={28}
               />
               <Tooltip
-                cursor={{ fill: "var(--color-surface-raised)" }}
+                cursor={{ fill: "rgb(var(--color-surface-raised))" }}
                 contentStyle={{
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-line)",
+                  background: "rgb(var(--color-surface))",
+                  border: "1px solid rgb(var(--color-line))",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "0.75rem",
                 }}
-                labelStyle={{ color: "var(--color-ink)" }}
+                labelStyle={{ color: "rgb(var(--color-ink))" }}
               />
-              <Bar dataKey="count" fill="var(--color-signal-teal)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="count" fill="rgb(var(--color-signal-teal))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -173,37 +173,37 @@ export function OverviewDashboard() {
         >
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={weeklyData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="var(--color-line)" />
+              <CartesianGrid vertical={false} stroke="rgb(var(--color-line))" />
               <XAxis
                 dataKey="label"
-                tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
+                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
                 tickLine={false}
-                axisLine={{ stroke: "var(--color-line)" }}
+                axisLine={{ stroke: "rgb(var(--color-line))" }}
                 interval="preserveStartEnd"
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
+                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
                 width={28}
               />
               <Tooltip
-                cursor={{ stroke: "var(--color-line)" }}
+                cursor={{ stroke: "rgb(var(--color-line))" }}
                 contentStyle={{
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-line)",
+                  background: "rgb(var(--color-surface))",
+                  border: "1px solid rgb(var(--color-line))",
                   borderRadius: "var(--radius-sm)",
                   fontSize: "0.75rem",
                 }}
-                labelStyle={{ color: "var(--color-ink)" }}
+                labelStyle={{ color: "rgb(var(--color-ink))" }}
               />
               <Line
                 type="monotone"
                 dataKey="count"
-                stroke="var(--color-signal-amber)"
+                stroke="rgb(var(--color-signal-amber))"
                 strokeWidth={2}
-                dot={{ r: 3, fill: "var(--color-signal-amber)", strokeWidth: 0 }}
+                dot={{ r: 3, fill: "rgb(var(--color-signal-amber))", strokeWidth: 0 }}
                 activeDot={{ r: 4 }}
               />
             </LineChart>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 /** Shared motion values for the marketing site. Sections compose these values
  * into their own sequences instead of sharing one generic reveal animation. */
@@ -15,7 +16,20 @@ export const LANDING_SPRING = {
 } as const;
 
 /** Keeps essential content still and immediately available when the visitor
- * asks their operating system to reduce movement. */
+ * asks their operating system to reduce movement.
+ *
+ * `matchMedia` doesn't exist during SSR, so the server always renders as if
+ * motion is allowed. Returning `false` until after mount keeps the first
+ * client render identical to that SSR output — otherwise a reduced-motion
+ * visitor's hydration render disagrees with the server's and React throws a
+ * hydration mismatch on every animated section. */
 export function useLandingMotion() {
-  return useReducedMotion() ?? false;
+  const prefersReducedMotion = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return mounted && (prefersReducedMotion ?? false);
 }
