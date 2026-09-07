@@ -46,29 +46,29 @@ export function Nav() {
       animate={{ y: 0, opacity: 1 }}
       transition={reduceMotion ? { duration: 0 } : { duration: 0.48, ease: LANDING_EASE }}
     >
-      <div className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-[padding] duration-200 ${scrolled ? "py-3.5" : "py-5"}`}>
+      <div className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-[padding] duration-200 ${scrolled ? "py-3" : "py-4"}`}>
         <Link href="/" aria-label="Inroad home">
           <Logo />
         </Link>
 
-        <div className="hidden items-center gap-8 sm:flex">
+        <div className="hidden items-center gap-7 md:flex">
           <a
             href="#sources"
             className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
           >
-            What you get
+            Research
           </a>
           <a
             href="#how-it-works"
             className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
           >
-            How it works
+            Process
           </a>
           <a
-            href="#faq"
+            href="#sample"
             className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
           >
-            FAQ
+            Dossier
           </a>
         </div>
 

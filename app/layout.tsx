@@ -1,24 +1,6 @@
 import type { Metadata } from "next";
-import { DM_Sans, DM_Serif_Display } from "next/font/google";
 
 import "./globals.css";
-
-// Loaded here via next/font, self-hosted at build time. No CDN link tag.
-// DM Sans is the working face: practical in dense research, controls and
-// messages. DM Serif Display appears only in marketing headlines, adding a
-// human, editorial note without making the product UI feel decorative.
-const productFont = DM_Sans({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-product",
-});
-
-const marketingFont = DM_Serif_Display({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-marketing",
-  weight: "400",
-});
 
 export const metadata: Metadata = {
   title: "Inroad",
@@ -32,10 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${productFont.variable} ${marketingFont.variable}`}
-    >
+    <html lang="en">
       <body className="min-h-screen bg-paper text-ink antialiased">
         {children}
       </body>

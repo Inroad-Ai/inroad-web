@@ -1,88 +1,73 @@
 "use client";
 
-import { animate, motion, useInView, useMotionValue, useMotionValueEvent } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
 
-// Measured against stripe.com on a home connection: homepage 1093ms, news
-// 296ms, hiring 1455ms. Run one after another that is their sum; run together
-// it is the slowest one, plus overhead.
-const SEQUENTIAL_MS = 2843;
-const CONCURRENT_MS = 765;
+const CHECKS = ["Homepage", "News", "Hiring"] as const;
 
 export function SpeedComparison() {
   const reduceMotion = useLandingMotion();
-  const ratio = (CONCURRENT_MS / SEQUENTIAL_MS) * 100;
 
   return (
-    <section id="speed" className="overflow-hidden border-t border-line bg-surface-raised/45">
+    <section id="speed" className="border-b border-line bg-ink text-paper">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, x: -22 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.52, ease: LANDING_EASE }}
-        >
-          <p className="utility-label text-text-secondary">Why it is quick</p>
-          <h2 className="mt-4 max-w-2xl font-editorial text-2xl leading-snug tracking-tight text-ink sm:text-3xl">
-            The three checks do not wait for each other.
-          </h2>
-        </motion.div>
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-center lg:gap-20">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 22 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={LANDING_VIEWPORT}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.58, ease: LANDING_EASE }}
+          >
+            <p className="utility-label text-signal-amber">Built for momentum</p>
+            <h2 className="mt-4 max-w-lg font-display text-3xl font-semibold tracking-[-0.045em] text-paper sm:text-4xl">
+              Good research should not slow down a good lead.
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-paper/70">
+              Inroad starts the independent checks together. A slow source does not make the rest of the brief wait around.
+            </p>
+          </motion.div>
 
-        <div className="mt-10 max-w-3xl space-y-6 sm:mt-14">
-          <Bar label="One at a time" ms={SEQUENTIAL_MS} widthPercent={100} tone="bg-line" />
-          <Bar label="All at once" ms={CONCURRENT_MS} widthPercent={ratio} tone="bg-signal-amber" />
+          <motion.div
+            className="rounded-lg border border-paper/15 bg-paper/5 p-5 sm:p-7"
+            initial={reduceMotion ? false : { opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={LANDING_VIEWPORT}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.65, delay: 0.12, ease: LANDING_EASE }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <p className="utility-label text-paper/55">A typical run</p>
+              <span className="rounded-full bg-signal-amber px-3 py-1.5 text-xs font-semibold text-ink">All together</span>
+            </div>
+            <div className="mt-8 space-y-4">
+              {CHECKS.map((check, index) => (
+                <div key={check} className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3 sm:grid-cols-[7rem_1fr_auto]">
+                  <span className="text-sm text-paper/75">{check}</span>
+                  <div className="h-2 overflow-hidden rounded-full bg-paper/10">
+                    <motion.div
+                      className="h-full rounded-full bg-signal-teal"
+                      initial={reduceMotion ? false : { width: "0%" }}
+                      whileInView={{ width: `${[75, 42, 100][index]}%` }}
+                      viewport={{ once: true, amount: 0.7 }}
+                      transition={reduceMotion ? { duration: 0 } : { duration: 0.74, delay: 0.2 + index * 0.1, ease: LANDING_EASE }}
+                    />
+                  </div>
+                  <span className="font-mono text-xs text-paper/55">{["1.09s", "0.30s", "1.46s"][index]}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-col gap-4 border-t border-paper/15 pt-5 sm:flex-row sm:items-end sm:justify-between">
+              <p className="max-w-xs text-sm leading-relaxed text-paper/65">
+                The total is shaped by the slowest check, not the sum of all three.
+              </p>
+              <div className="shrink-0 sm:text-right">
+                <p className="utility-label text-paper/55">Recorded sample</p>
+                <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-paper">1.62s</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
-
-        <motion.p
-          className="mt-8 max-w-2xl text-sm leading-relaxed text-text-secondary"
-          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={LANDING_VIEWPORT}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.52, delay: 0.18, ease: LANDING_EASE }}
-        >
-          Both bars are the same three checks. Waiting on each in turn costs
-          their total; starting them together costs the slowest one. If a source
-          is down, it stops at its own deadline and the other two still come
-          back.
-        </motion.p>
       </div>
     </section>
-  );
-}
-
-function Bar({ label, ms, widthPercent, tone }: { label: string; ms: number; widthPercent: number; tone: string }) {
-  const reduceMotion = useLandingMotion();
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.7 });
-  const value = useMotionValue(reduceMotion ? ms : 0);
-  const [displayedMilliseconds, setDisplayedMilliseconds] = useState(reduceMotion ? ms : 0);
-
-  useMotionValueEvent(value, "change", (latest) => setDisplayedMilliseconds(Math.round(latest)));
-
-  useEffect(() => {
-    if (!isInView || reduceMotion) return;
-
-    const controls = animate(value, ms, { duration: 0.9, ease: LANDING_EASE });
-    return () => controls.stop();
-  }, [isInView, ms, reduceMotion, value]);
-
-  return (
-    <div ref={ref}>
-      <div className="flex items-baseline justify-between gap-4">
-        <span className="utility-label text-text-secondary">{label}</span>
-        <span className="font-display text-lg text-ink">{(displayedMilliseconds / 1000).toFixed(2)}s</span>
-      </div>
-      <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-surface">
-        <motion.div
-          className={`h-3 rounded-full ${tone}`}
-          initial={reduceMotion ? false : { width: "0%" }}
-          whileInView={{ width: `${widthPercent}%` }}
-          viewport={{ once: true, amount: 0.8 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.9, ease: LANDING_EASE }}
-        />
-      </div>
-    </div>
   );
 }

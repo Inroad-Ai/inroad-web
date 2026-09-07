@@ -3,156 +3,72 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
+import { Button } from "@/components/ui/Button";
 import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
 
-const LINK_COLUMNS = [
-  {
-    heading: "Product",
-    links: [
-      { label: "What you get", href: "/#sources" },
-      { label: "How it works", href: "/#how-it-works" },
-      { label: "FAQ", href: "/#faq" },
-    ],
-  },
-  {
-    heading: "Account",
-    links: [
-      { label: "Get started", href: "/signup" },
-      { label: "Log in", href: "/login" },
-      { label: "Dashboard", href: "/research" },
-    ],
-  },
-  {
-    heading: "Legal",
-    links: [
-      { label: "Privacy", href: "/privacy" },
-      { label: "Terms", href: "/terms" },
-    ],
-  },
-];
-
-const SOCIALS = [
-  {
-    label: "X",
-    href: "https://x.com",
-    path: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
-  },
-  {
-    label: "LinkedIn",
-    href: "https://linkedin.com",
-    path: "M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13M7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0",
-  },
-  {
-    label: "GitHub",
-    href: "https://github.com",
-    path: "M12 .3a12 12 0 0 0-3.79 23.4c.6.11.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.744.083-.729.083-.729 1.205.085 1.838 1.237 1.838 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.605-2.665-.3-5.467-1.332-5.467-5.93 0-1.31.468-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57A12 12 0 0 0 12 .3",
-  },
-];
+const LINKS = [
+  { label: "What you get", href: "/#sources" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Sample dossier", href: "/#sample" },
+  { label: "Questions", href: "/#faq" },
+] as const;
 
 export function Footer() {
   const reduceMotion = useLandingMotion();
 
   return (
-    <footer className="relative overflow-hidden border-t border-line bg-paper">
+    <footer className="bg-ink text-paper">
       <motion.div
-        className="mx-auto max-w-6xl px-6 pt-16"
+        className="mx-auto max-w-6xl px-6 py-14 sm:py-20"
         initial={reduceMotion ? false : { opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={LANDING_VIEWPORT}
-        transition={reduceMotion ? { duration: 0 } : { duration: 0.6, ease: LANDING_EASE }}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.62, ease: LANDING_EASE }}
       >
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <Link href="/" aria-label="Inroad home">
-            <Logo />
-          </Link>
-
-          <div className="flex items-center gap-3">
-            <span className="hidden font-sans text-sm text-text-secondary sm:block">
-              Social media
-            </span>
-            {SOCIALS.map((social) => (
-              <motion.a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={social.label}
-                className="flex h-9 w-9 items-center justify-center rounded-sm bg-surface-raised text-ink transition-colors hover:bg-signal-amber-subtle"
-                whileHover={reduceMotion ? undefined : { y: -3, scale: 1.04 }}
-                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                  <path d={social.path} />
-                </svg>
-              </motion.a>
-            ))}
+        <div className="grid gap-12 border-b border-paper/15 pb-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)] lg:items-end">
+          <div>
+            <p className="utility-label text-signal-amber">Take the direct route</p>
+            <h2 className="mt-4 max-w-2xl font-display text-3xl font-semibold tracking-[-0.05em] text-paper sm:text-5xl">
+              Do the homework once. Make it count.
+            </h2>
+            <p className="mt-5 max-w-lg text-sm leading-relaxed text-paper/65 sm:text-base">
+              Find companies that fit, understand the signal, and send outreach that sounds like a person paid attention.
+            </p>
+          </div>
+          <div className="lg:justify-self-end">
+            <motion.div whileHover={reduceMotion ? undefined : { y: -2 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>
+              <Button href="/signup" className="min-w-36">Get started</Button>
+            </motion.div>
+            <p className="mt-3 text-xs text-paper/55">Free during early access.</p>
           </div>
         </div>
 
-        <div className="mt-6 border-t border-dotted border-line" />
-
-        <div className="mt-10 grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))]">
-          <div className="flex flex-col items-start gap-6">
-            <p className="max-w-xs font-sans text-sm text-text-secondary">
-              Skip the job board. Find companies that fit, research them properly, and send
-              outreach that sounds like a real person did the homework.
-            </p>
-            <Button href="/signup" size="sm">
-              Get started
-            </Button>
-          </div>
-
-          {LINK_COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 bg-signal-amber" />
-                <span className="font-display text-base font-semibold text-ink">
-                  {column.heading}
-                </span>
-              </div>
-              <ul className="mt-4 space-y-3">
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="mx-auto mt-12 max-w-6xl px-6 pb-8"
-        initial={reduceMotion ? false : { opacity: 0, y: 36 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={LANDING_VIEWPORT}
-        transition={reduceMotion ? { duration: 0 } : { duration: 0.7, ease: LANDING_EASE }}
-      >
-        <div className="relative overflow-hidden rounded-lg border border-line bg-surface-raised px-6 py-7 sm:px-10 sm:py-9">
-          <span aria-hidden className="absolute right-8 top-8 h-3 w-3 bg-signal-amber" />
-          <span aria-hidden className="absolute right-14 top-14 h-2 w-2 bg-signal-amber-subtle" />
-          <span className="relative block font-editorial text-wordmark leading-none tracking-tight text-ink">
-            Inroad
-          </span>
-          <div className="relative mt-7 flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-sans text-sm text-text-secondary">
-              © {new Date().getFullYear()} Inroad. Built for people who would rather do the homework
-              than send another application.
-            </p>
-            <Link
-              href="/terms"
-              className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-            >
-              Terms &amp; Conditions
+        <div className="grid gap-10 py-10 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-start">
+          <div>
+            <Link href="/" aria-label="Inroad home">
+              <Logo className="[&>span]:text-paper" />
             </Link>
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-paper/60">
+              A research workspace for people who would rather make a real connection than send another application into a queue.
+            </p>
+          </div>
+          <nav aria-label="Footer navigation" className="grid grid-cols-2 gap-x-6 gap-y-4 sm:justify-self-end">
+            {LINKS.map((link) => (
+              <Link key={link.label} href={link.href} className="text-sm text-paper/70 transition-colors hover:text-signal-amber">
+                {link.label}
+              </Link>
+            ))}
+            <Link href="/login" className="text-sm text-paper/70 transition-colors hover:text-signal-amber">Log in</Link>
+            <Link href="/research" className="text-sm text-paper/70 transition-colors hover:text-signal-amber">Dashboard</Link>
+          </nav>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-paper/15 pt-6 text-xs text-paper/50 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Inroad. Built with care for careful job seekers.</p>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="transition-colors hover:text-paper">Privacy</Link>
+            <Link href="/terms" className="transition-colors hover:text-paper">Terms</Link>
           </div>
         </div>
       </motion.div>

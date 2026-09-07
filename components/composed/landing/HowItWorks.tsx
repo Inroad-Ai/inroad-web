@@ -6,19 +6,22 @@ import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-
 
 const STEPS = [
   {
-    heading: "Find companies that actually fit what you want.",
-    detail:
-      "Tell Inroad what you're looking for and it surfaces companies worth pursuing, not a generic list of everyone hiring.",
+    number: "01",
+    title: "Start with a company you are curious about.",
+    copy: "Drop in a domain. Inroad gives the research a single, reusable home instead of another loose tab.",
+    evidence: "stripe.com",
   },
   {
-    heading: "Research the details worth mentioning, fast.",
-    detail:
-      "Funding, team, tech stack, recent news, the specific thing that shows you did the homework, pulled together in minutes instead of an afternoon.",
+    number: "02",
+    title: "Let the useful context come together.",
+    copy: "Homepage, recent news, and hiring signals are checked at the same time. You see what came back and where it came from.",
+    evidence: "3 sources checked",
   },
   {
-    heading: "Send outreach that sounds like you, not a template.",
-    detail:
-      "Draft a message built on the research, not a mail-merge. You read it, edit it, and send it, nothing goes out without you.",
+    number: "03",
+    title: "Write from evidence, then make it yours.",
+    copy: "Use the dossier to build a message worth sending. You edit it, decide on it, and send it yourself.",
+    evidence: "Always your call",
   },
 ] as const;
 
@@ -26,50 +29,49 @@ export function HowItWorks() {
   const reduceMotion = useLandingMotion();
 
   return (
-    <section id="how-it-works" className="border-t border-line">
+    <section id="how-it-works" className="overflow-hidden border-b border-line">
       <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-        <motion.h2
-          className="font-editorial text-2xl tracking-tight text-ink sm:text-3xl"
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+        <motion.div
+          className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"
+          initial={reduceMotion ? false : { opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={LANDING_VIEWPORT}
           transition={reduceMotion ? { duration: 0 } : { duration: 0.56, ease: LANDING_EASE }}
         >
-          How it works
-        </motion.h2>
+          <div>
+            <p className="utility-label text-text-secondary">From curiosity to outreach</p>
+            <h2 className="mt-4 font-display text-3xl font-semibold tracking-[-0.045em] text-ink sm:text-4xl">
+              A calmer way to do the homework.
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-text-secondary sm:text-right">
+            The work stays human. Inroad just removes the part that makes each good lead feel expensive.
+          </p>
+        </motion.div>
 
-        <ol className="mt-10 grid gap-10 sm:mt-14 sm:grid-cols-3 sm:gap-8">
+        <ol className="mt-12 grid gap-4 md:grid-cols-3">
           {STEPS.map((step, index) => (
             <motion.li
-              key={step.heading}
-              className="relative"
-              initial={reduceMotion ? false : { opacity: 0, y: 26 }}
+              key={step.number}
+              className="relative flex min-h-80 flex-col rounded-lg border border-line bg-surface p-6 sm:p-7"
+              initial={reduceMotion ? false : { opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={LANDING_VIEWPORT}
-              transition={reduceMotion ? { duration: 0 } : { duration: 0.56, delay: 0.12 + index * 0.14, ease: LANDING_EASE }}
+              transition={reduceMotion ? { duration: 0 } : { duration: 0.58, delay: index * 0.12, ease: LANDING_EASE }}
             >
-              {index < STEPS.length - 1 ? (
-                <motion.span
-                  aria-hidden="true"
-                  className="absolute left-0 top-3 hidden h-px w-full origin-left translate-x-[calc(100%+1rem)] bg-signal-teal/35 sm:block"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={LANDING_VIEWPORT}
-                  transition={reduceMotion ? { duration: 0 } : { duration: 0.65, delay: 0.34 + index * 0.14, ease: LANDING_EASE }}
-                />
-              ) : null}
-              <motion.span
-                className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-signal-teal-subtle px-2 utility-label text-signal-teal"
-                whileHover={reduceMotion ? undefined : { scale: 1.08 }}
-              >
-                {String(index + 1).padStart(2, "0")}
-              </motion.span>
-              <h3 className="mt-3 font-display text-lg leading-snug text-ink sm:text-xl">
-                {step.heading}
+              <div className="flex items-center justify-between">
+                <span className="utility-label text-signal-teal">Step {step.number}</span>
+                {index < STEPS.length - 1 ? <span aria-hidden className="hidden text-signal-amber md:block">→</span> : null}
+              </div>
+              <h3 className="mt-12 max-w-xs font-display text-xl font-semibold leading-snug tracking-tight text-ink">
+                {step.title}
               </h3>
-              <p className="mt-3 font-sans text-sm leading-relaxed text-text-secondary sm:text-base">
-                {step.detail}
-              </p>
+              <p className="mt-4 text-sm leading-relaxed text-text-secondary">{step.copy}</p>
+              <div className="mt-auto pt-8">
+                <span className="inline-flex rounded-full bg-surface-raised px-3 py-2 font-mono text-xs text-ink">
+                  {step.evidence}
+                </span>
+              </div>
             </motion.li>
           ))}
         </ol>
