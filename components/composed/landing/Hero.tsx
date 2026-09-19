@@ -25,7 +25,10 @@ export function Hero() {
   );
 
   useEffect(() => {
-    if (reduceMotion) return;
+    if (reduceMotion) {
+      setConvergenceState("resolved");
+      return;
+    }
     const timer = window.setTimeout(() => setConvergenceState("resolved"), 1250);
     return () => window.clearTimeout(timer);
   }, [reduceMotion]);
