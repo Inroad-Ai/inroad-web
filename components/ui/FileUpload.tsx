@@ -1,99 +1,193 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
-import { StatusDot } from "@/components/ui/StatusDot";
+import { AlertCircleIcon, CheckCircleIcon, UploadIcon } from "@/components/ui/Icons";
 import type { UploadState } from "@/lib/onboarding";
+
+// The parse is one round trip with no field-level signal to report, so this
+// cycles honest phrases about what's happening rather than faking a
+// per-field checklist the backend can't actually back up. Covers the wire
+// upload too - for a resume-sized file that leg is sub-second, not worth its
+// own fake percentage.
+const PARSE_PHASES = [
+  "Uploading…",
+  "Reading your resume…",
+  "Extracting your details…",
+];
+
+function useRotatingPhase(active: boolean, phases: readonly string[], intervalMs = 1400) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      setIndex(0);
+      return;
+    }
+    const timer = setInterval(() => {
+      setIndex((current) => Math.min(current + 1, phases.length - 1));
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [active, phases.length, intervalMs]);
+
+  return phases[index];
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 interface FileUploadProps {
   accept: string;
   fileName: string | null;
+  fileSize?: number | null;
   state: UploadState;
-  /** null when the work has no measurable progress, which is what a parse
-   * round trip is. Shows the pending dot instead of a bar that would have to
-   * invent a percentage. */
-  progress: number | null;
-  /** What the in-flight state is waiting on, in the caller's words. */
-  statusLabel?: string;
   errorMessage?: string | null;
   onSelect: (file: File) => void;
   onRemove?: () => void;
+  onRetry?: () => void;
   autoFocus?: boolean;
 }
 
 export function FileUpload({
   accept,
   fileName,
+  fileSize,
   state,
-  progress,
-  statusLabel,
   errorMessage,
   onSelect,
   onRemove,
+  onRetry,
   autoFocus,
 }: FileUploadProps) {
   const inputId = useId();
-  const showPicker = !fileName || state === "error";
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const isBusy = state === "uploading";
+  const rotatingPhase = useRotatingPhase(isBusy, PARSE_PHASES);
+
+  function openPicker() {
+    inputRef.current?.click();
+  }
+
+  function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) onSelect(file);
+  }
+
+  if (state === "idle") {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Upload your resume"
+        autoFocus={autoFocus}
+        onClick={openPicker}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPicker();
+          }
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          setDragActive(true);
+        }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={handleDrop}
+        className={`flex min-h-[240px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[1.5px] border-dashed p-8 text-center transition-colors duration-200 ease-out focus-visible:outline-2 focus-visible:outline-signal-teal focus-visible:outline-offset-2 ${
+          dragActive
+            ? "border-signal-teal bg-signal-teal-subtle"
+            : "border-line hover:border-signal-teal/60"
+        }`}
+      >
+        <input
+          ref={inputRef}
+          id={inputId}
+          type="file"
+          accept={accept}
+          className="sr-only"
+          tabIndex={-1}
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) onSelect(file);
+            event.target.value = "";
+          }}
+        />
+        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-text-secondary">
+          <UploadIcon />
+        </span>
+        <p className="text-sm text-text-primary">
+          Drag your resume here or{" "}
+          <span className="font-medium text-signal-teal">browse files</span>
+        </p>
+        <p className="text-xs text-text-secondary">PDF or DOCX · up to 10MB</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full rounded-md border border-line bg-surface p-5">
-      <input
-        id={inputId}
-        type="file"
-        accept={accept}
-        autoFocus={autoFocus}
-        className="peer sr-only"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) onSelect(file);
-          event.target.value = "";
-        }}
-      />
-
-      {showPicker ? (
-        <label
-          htmlFor={inputId}
-          className="flex cursor-pointer flex-col items-center gap-2 rounded-md py-8 text-center peer-focus-visible:ring-2 peer-focus-visible:ring-signal-teal peer-focus-visible:ring-offset-2"
-        >
-          <span className="utility-label text-signal-teal">Choose a file</span>
-          <span className="text-xs text-text-secondary">PDF or DOCX, up to 10MB</span>
-        </label>
-      ) : (
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="truncate font-sans text-sm text-text-primary">{fileName}</p>
-            {state === "uploading" && progress !== null ? (
-              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-line">
-                <div
-                  className="h-full bg-signal-teal transition-[width] duration-150 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+    <div
+      className={`animate-fade-up w-full rounded-xl border p-5 transition-colors duration-200 ${
+        state === "done"
+          ? "border-success/30 bg-success-subtle"
+          : state === "error"
+            ? "border-error/30 bg-error-subtle"
+            : "border-line bg-surface"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex min-w-0 items-start gap-3">
+          {state === "done" ? (
+            <span className="mt-0.5 shrink-0 text-success">
+              <CheckCircleIcon />
+            </span>
+          ) : state === "error" ? (
+            <span className="mt-0.5 shrink-0 text-error">
+              <AlertCircleIcon />
+            </span>
+          ) : null}
+          <div className="min-w-0">
+            <p className="truncate text-sm text-text-primary">{fileName}</p>
+            {fileSize && state !== "error" ? (
+              <p className="text-xs text-text-secondary">{formatFileSize(fileSize)}</p>
             ) : null}
-            {state === "uploading" && progress === null ? (
-              <p className="mt-1 flex items-center gap-2 text-xs text-text-secondary">
-                <StatusDot state="pending" />
-                {statusLabel}
-              </p>
+            {isBusy ? (
+              <p className="mt-1.5 text-xs font-medium text-signal-teal">{rotatingPhase}</p>
             ) : null}
-            {state === "done" ? (
-              <p className="mt-1 text-xs text-success">Uploaded</p>
+            {state === "error" && errorMessage ? (
+              <p className="mt-1 text-xs text-error">{errorMessage}</p>
             ) : null}
           </div>
-          {state === "done" && onRemove ? (
-            <label
-              htmlFor={inputId}
-              onClick={onRemove}
-              className="utility-label shrink-0 cursor-pointer text-text-secondary hover:text-signal-teal"
-            >
-              Replace
-            </label>
-          ) : null}
         </div>
-      )}
 
-      {state === "error" && errorMessage ? (
-        <p className="mt-2 text-xs text-error">{errorMessage}</p>
+        {state === "done" && onRemove ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="utility-label shrink-0 text-text-secondary hover:text-signal-teal"
+          >
+            Replace
+          </button>
+        ) : null}
+        {state === "error" && onRetry ? (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="utility-label shrink-0 text-error hover:text-error/80"
+          >
+            Retry
+          </button>
+        ) : null}
+      </div>
+
+      {isBusy ? (
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-line">
+          <div className="animate-indeterminate h-full w-1/3 rounded-full bg-signal-teal" />
+        </div>
       ) : null}
     </div>
   );

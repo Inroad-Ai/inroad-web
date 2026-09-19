@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { ArrowLeftIcon } from "@/components/ui/Icons";
 import { ProgressIndicator } from "@/components/ui/ProgressIndicator";
 
 /**
@@ -13,6 +14,7 @@ export function ScreenShell({
   phases,
   currentPhaseIndex,
   onBack,
+  wide = false,
   children,
 }: {
   step: number;
@@ -20,10 +22,15 @@ export function ScreenShell({
   phases: readonly string[];
   currentPhaseIndex: number;
   onBack?: () => void;
+  // The welcome screen carries a two-column layout (copy + visual panel)
+  // that the max-w-xl single-column form steps would crush.
+  wide?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="animate-fade-up mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-6 py-16">
+    <div
+      className={`animate-fade-up mx-auto flex min-h-screen w-full flex-col justify-center px-6 py-16 ${wide ? "max-w-[1100px]" : "max-w-xl"}`}
+    >
       <div className="mb-10">
         <ProgressIndicator
           step={step}
@@ -37,9 +44,10 @@ export function ScreenShell({
         <button
           type="button"
           onClick={onBack}
-          className="utility-label mb-6 inline-flex w-fit items-center gap-1 text-text-secondary hover:text-signal-teal"
+          className="mb-6 inline-flex w-fit items-center gap-1.5 text-sm text-text-secondary transition-colors hover:text-signal-teal"
         >
-          ← Back
+          <ArrowLeftIcon />
+          Back
         </button>
       ) : null}
 

@@ -96,10 +96,17 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // FileUpload's uploading/parsing bar - no real percentage to show
+        // (see FileUpload.tsx), so a sweeping segment stands in for one.
+        indeterminate: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(300%)" },
+        },
       },
       animation: {
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
         "fade-up": "fade-up 0.35s ease-out both",
+        indeterminate: "indeterminate 1.2s ease-in-out infinite",
       },
     },
   },

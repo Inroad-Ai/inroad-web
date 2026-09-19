@@ -31,7 +31,7 @@ export function ContactDetailsScreen({
       }}
     >
       <h1 className="font-display text-2xl text-text-primary">How can we reach you?</h1>
-      <div className="mt-6 space-y-5">
+      <div className="mt-6 space-y-4">
         <div>
           <label htmlFor="phone" className="utility-label text-text-secondary">
             Phone

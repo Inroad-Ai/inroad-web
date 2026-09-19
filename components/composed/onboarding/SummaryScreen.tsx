@@ -161,7 +161,7 @@ export function SummaryScreen({
         {sections.map((section) => (
           <div key={section.title}>
             <p className="utility-label text-text-secondary">{section.title}</p>
-            <div className="mt-2 divide-y divide-line rounded-md border border-line bg-surface shadow-card">
+            <div className="mt-2 divide-y divide-line rounded-md border border-line bg-surface">
               {section.rows.map((row) => (
                 <button
                   key={row.label}
