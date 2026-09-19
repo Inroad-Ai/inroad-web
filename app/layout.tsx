@@ -1,22 +1,6 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 
 import "./globals.css";
-
-// Loaded here via next/font, self-hosted at build time. No CDN link tag.
-// Plus Jakarta Sans, not Geist: Geist isn't in this Next.js version's
-// bundled Google Fonts data yet. Same rounded-geometric feel.
-const displayFont = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-display",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-body",
-});
 
 export const metadata: Metadata = {
   title: "Inroad",
@@ -30,10 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${displayFont.variable} ${inter.variable}`}
-    >
+    <html lang="en">
       <body className="min-h-screen bg-paper text-ink antialiased">
         {children}
       </body>

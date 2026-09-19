@@ -14,19 +14,19 @@
   }
 
   body {
-    background-color: var(--color-paper);
-    color: var(--color-ink);
+    background-color: rgb(var(--color-paper));
+    color: rgb(var(--color-ink));
     font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   ::selection {
-    background-color: var(--color-signal-amber);
-    color: var(--color-ink);
+    background-color: rgb(var(--color-signal-amber));
+    color: rgb(var(--color-ink));
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-signal-teal);
+    outline: 2px solid rgb(var(--color-signal-teal));
     outline-offset: 2px;
   }
 }

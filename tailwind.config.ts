@@ -2,8 +2,14 @@ import type { Config } from "tailwindcss";
 
 /**
  * Maps token names components use (`bg-surface`) onto the custom properties
- * in styles/tokens.css. Every value here is a `var(--*)`, never a literal.
+ * in styles/tokens.css. Colors resolve through rgb(var(--*) / <alpha-value>)
+ * so Tailwind's opacity modifiers (`border-paper/15`) work; tokens.css
+ * stores each color as an "R G B" channel triplet, not a hex string.
  */
+function withOpacity(variable: string) {
+  return `rgb(var(${variable}) / <alpha-value>)`;
+}
+
 const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
@@ -13,33 +19,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "var(--color-ink)",
-        "ink-muted": "var(--color-ink-muted)",
-        surface: "var(--color-surface)",
-        "surface-raised": "var(--color-surface-raised)",
-        paper: "var(--color-paper)",
-        "signal-amber": "var(--color-signal-amber)",
-        "signal-amber-hover": "var(--color-signal-amber-hover)",
-        "signal-amber-subtle": "var(--color-signal-amber-subtle)",
-        "signal-teal": "var(--color-signal-teal)",
-        "signal-teal-hover": "var(--color-signal-teal-hover)",
-        "signal-teal-subtle": "var(--color-signal-teal-subtle)",
-        "muted-rose": "var(--color-muted-rose)",
-        "muted-rose-subtle": "var(--color-muted-rose-subtle)",
-        success: "var(--color-success)",
-        "success-subtle": "var(--color-success-subtle)",
-        warning: "var(--color-warning)",
-        "warning-subtle": "var(--color-warning-subtle)",
-        line: "var(--color-line)",
+        ink: withOpacity("--color-ink"),
+        "ink-muted": withOpacity("--color-ink-muted"),
+        surface: withOpacity("--color-surface"),
+        "surface-raised": withOpacity("--color-surface-raised"),
+        paper: withOpacity("--color-paper"),
+        "signal-amber": withOpacity("--color-signal-amber"),
+        "signal-amber-hover": withOpacity("--color-signal-amber-hover"),
+        "signal-amber-subtle": withOpacity("--color-signal-amber-subtle"),
+        "signal-teal": withOpacity("--color-signal-teal"),
+        "signal-teal-hover": withOpacity("--color-signal-teal-hover"),
+        "signal-teal-subtle": withOpacity("--color-signal-teal-subtle"),
+        "muted-rose": withOpacity("--color-muted-rose"),
+        "muted-rose-subtle": withOpacity("--color-muted-rose-subtle"),
+        success: withOpacity("--color-success"),
+        "success-subtle": withOpacity("--color-success-subtle"),
+        warning: withOpacity("--color-warning"),
+        "warning-subtle": withOpacity("--color-warning-subtle"),
+        line: withOpacity("--color-line"),
         // Semantic aliases — same values as above, named by role.
-        bg: "var(--color-bg)",
-        "text-primary": "var(--color-text-primary)",
-        "text-secondary": "var(--color-text-secondary)",
-        border: "var(--color-border)",
-        "accent-primary": "var(--color-accent-primary)",
-        "accent-secondary": "var(--color-accent-secondary)",
-        error: "var(--color-error)",
-        "error-subtle": "var(--color-error-subtle)",
+        bg: withOpacity("--color-bg"),
+        "text-primary": withOpacity("--color-text-primary"),
+        "text-secondary": withOpacity("--color-text-secondary"),
+        border: withOpacity("--color-border"),
+        "accent-primary": withOpacity("--color-accent-primary"),
+        "accent-secondary": withOpacity("--color-accent-secondary"),
+        error: withOpacity("--color-error"),
+        "error-subtle": withOpacity("--color-error-subtle"),
       },
       fontFamily: {
         // Set by next/font in app/layout.tsx, consumed as CSS variables.
@@ -59,6 +65,7 @@ const config: Config = {
           "var(--text-wordmark-size)",
           { lineHeight: "var(--text-wordmark-line-height)" },
         ],
+        hero: ["var(--text-hero-size)", { lineHeight: "var(--text-hero-line-height)" }],
       },
       fontWeight: {
         "sans-regular": "var(--font-weight-sans-regular)",
@@ -85,16 +92,6 @@ const config: Config = {
           "0%, 100%": { opacity: "1", transform: "scale(1)" },
           "50%": { opacity: "0.45", transform: "scale(0.82)" },
         },
-        // ConvergenceAnimation: three lines drawing inward.
-        converge: {
-          "0%": { strokeDashoffset: "var(--line-length)" },
-          "100%": { strokeDashoffset: "0" },
-        },
-        // The amber outline that resolves around a returned result.
-        "resolve-outline": {
-          "0%": { strokeDashoffset: "var(--outline-length)", opacity: "0.2" },
-          "100%": { strokeDashoffset: "0", opacity: "1" },
-        },
         "fade-up": {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
@@ -102,8 +99,6 @@ const config: Config = {
       },
       animation: {
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
-        converge: "converge 1.6s ease-in-out infinite",
-        "resolve-outline": "resolve-outline 0.7s ease-out forwards",
         "fade-up": "fade-up 0.35s ease-out both",
       },
     },

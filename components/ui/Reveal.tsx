@@ -1,33 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import type { ReactNode } from "react";
 
-/** Wraps a section and plays the existing fade-up animation the first time it scrolls into view. */
-export function Reveal({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+import { LANDING_EASE, LANDING_VIEWPORT, useLandingMotion } from "@/lib/landing-motion";
 
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
+type RevealProps = {
+  children: ReactNode;
+  /** Tag to render the wrapper as, for semantic call sites like "li" inside an <ol>. */
+  as?: "div" | "li" | "p" | "article";
+  /** Which axis the offset animates on. */
+  axis?: "x" | "y";
+  /** Starting distance from rest, in px. 0 fades in place. */
+  offset?: number;
+  duration?: number;
+  delay?: number;
+  viewport?: typeof LANDING_VIEWPORT;
+} & Omit<
+  HTMLMotionProps<"div">,
+  "initial" | "whileInView" | "viewport" | "transition" | "children"
+>;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 },
-    );
+/** Fades a section in with a small directional offset once it scrolls into
+ * view. Covers the common landing-page reveal; a section with genuinely
+ * different motion (a mount-time slide, a staggered group, an accordion)
+ * should keep its own motion.div instead of forcing this shape. */
+export function Reveal({
+  children,
+  as = "div",
+  axis = "y",
+  offset = 22,
+  duration = 0.58,
+  delay = 0,
+  viewport = LANDING_VIEWPORT,
+  ...rest
+}: RevealProps) {
+  const reduceMotion = useLandingMotion();
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  const sharedProps = {
+    initial: reduceMotion ? false : { opacity: 0, [axis]: offset },
+    whileInView: { opacity: 1, [axis]: 0 },
+    viewport,
+    transition: reduceMotion ? { duration: 0 } : { duration, delay, ease: LANDING_EASE },
+    ...rest,
+  };
 
-  return (
-    <div ref={ref} className={visible ? "animate-fade-up" : "opacity-0"}>
-      {children}
-    </div>
-  );
+  switch (as) {
+    case "li":
+      return <motion.li {...(sharedProps as HTMLMotionProps<"li">)}>{children}</motion.li>;
+    case "p":
+      return <motion.p {...(sharedProps as HTMLMotionProps<"p">)}>{children}</motion.p>;
+    case "article":
+      return <motion.article {...(sharedProps as HTMLMotionProps<"article">)}>{children}</motion.article>;
+    default:
+      return <motion.div {...(sharedProps as HTMLMotionProps<"div">)}>{children}</motion.div>;
+  }
 }
