@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageShell } from "@/components/composed/dashboard/PageShell";
-import { SearchBar } from "@/components/composed/dashboard/SearchBar";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -16,36 +15,32 @@ import type { CardState, PipelineRunStatus } from "@/lib/types";
 interface MatchRun {
   id: string;
   status: PipelineRunStatus;
+  startedAt: number;
   error: string | null;
   matchedCompanyIds: string[];
-  /** Gave up polling before reaching a terminal status - most likely the
-   * background worker isn't running, not that the search is still going. */
   timedOut: boolean;
 }
 
 const MATCH_POLL_INTERVAL_MS = 3000;
-// ~2 minutes: comfortably above the 17-38s a real match run has taken, but
-// short enough that a dead worker doesn't leave this polling silently
-// forever with nothing to show for it.
 const MATCH_POLL_MAX_ATTEMPTS = 40;
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
   const { runs, startResearch } = useResearchRuns();
-  // One at a time in this box, same as before - startResearch itself has no
-  // such limit, this is just the input's own UX.
-  const busy = runs.some((r) => r.state === "pending");
-
+  const busy = runs.some((run) => run.state === "pending");
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
-  function run(next: string) {
-    setDomain(next);
-    startResearch(next);
+  function runResearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextDomain = domain.trim();
+    if (nextDomain && !busy) startResearch(nextDomain);
   }
 
   function settleMatch(runId: string, update: Partial<MatchRun>) {
-    setMatchRuns((prev) => prev.map((r) => (r.id === runId ? { ...r, ...update } : r)));
+    setMatchRuns((previous) =>
+      previous.map((run) => (run.id === runId ? { ...run, ...update } : run)),
+    );
   }
 
   async function pollMatch(runId: string, token: string, attempt = 0) {
@@ -82,7 +77,7 @@ export default function ResearchPage() {
       });
       return;
     }
-    void pollMatch(runId, token, 0);
+    void pollMatch(runId, token);
   }
 
   async function runMatch() {
@@ -90,35 +85,38 @@ export default function ResearchPage() {
     try {
       const token = await ensureValidAccessToken();
       if (!token) {
-        setMatchRuns((prev) => [
+        setMatchRuns((previous) => [
           {
             id: `local-${Date.now()}`,
             status: "failed",
+            startedAt: Date.now(),
             error: "Your session expired. Sign in again to run this.",
             matchedCompanyIds: [],
             timedOut: false,
           },
-          ...prev,
+          ...previous,
         ]);
         return;
       }
       const initial = await startMatchRun(token);
-      setMatchRuns((prev) => [
+      setMatchRuns((previous) => [
         {
           id: initial.id,
           status: initial.status,
+          startedAt: Date.now(),
           error: initial.error,
           matchedCompanyIds: [],
           timedOut: false,
         },
-        ...prev,
+        ...previous,
       ]);
       void pollMatch(initial.id, token);
     } catch (error) {
-      setMatchRuns((prev) => [
+      setMatchRuns((previous) => [
         {
           id: `local-${Date.now()}`,
           status: "failed",
+          startedAt: Date.now(),
           error:
             error instanceof ApiError
               ? error.message
@@ -126,7 +124,7 @@ export default function ResearchPage() {
           matchedCompanyIds: [],
           timedOut: false,
         },
-        ...prev,
+        ...previous,
       ]);
     } finally {
       setMatchBusy(false);
@@ -136,154 +134,292 @@ export default function ResearchPage() {
   return (
     <PageShell
       title="Research"
-      description="Enter a company domain to research it, or find companies matching your own profile."
-      action={
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <div className="sm:min-w-[26rem]">
-            <SearchBar onRun={run} busy={busy} value={domain} />
-          </div>
-          <Button variant="quiet" onClick={runMatch} disabled={matchBusy} className="px-5 py-3.5">
-            {matchBusy ? "Starting..." : "Job Run"}
-          </Button>
-        </div>
-      }
+      description="Build focused company intelligence or discover roles aligned with your profile."
     >
-      <div className="mt-6 rounded-md border border-line bg-surface shadow-card">
-        <header className="flex items-baseline justify-between gap-3 border-b border-line px-6 py-4">
-          <span className="utility-label text-text-secondary">Runs</span>
-          {runs.length > 0 ? (
-            <span className="utility-label text-text-secondary/60">{runs.length}</span>
-          ) : null}
-        </header>
+      <section className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(19rem,0.8fr)]">
+        <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+          <div className="border-b border-line bg-surface-raised/50 px-6 py-5 sm:px-8">
+            <p className="utility-label text-signal-teal">Company intelligence</p>
+            <h2 className="mt-2 text-xl font-semibold text-ink">Start with a company domain</h2>
+            <p className="mt-1 max-w-xl text-sm text-text-secondary">
+              We&apos;ll consolidate the company&apos;s profile, hiring signals, and relevant
+              context into a research brief.
+            </p>
+          </div>
+          <form onSubmit={runResearch} className="px-6 py-6 sm:px-8">
+            <label htmlFor="research-domain" className="text-sm font-medium text-ink">
+              Company website
+            </label>
+            <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+              <Input
+                id="research-domain"
+                name="domain"
+                value={domain}
+                onChange={(event) => setDomain(event.target.value)}
+                placeholder="e.g. stripe.com"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                disabled={busy}
+                className="min-w-0 flex-1"
+              />
+              <Button
+                type="submit"
+                disabled={busy || domain.trim().length === 0}
+                className="shrink-0 px-6"
+              >
+                {busy ? "Research in progress" : "Research company"}
+              </Button>
+            </div>
+            <div className="mt-5 grid gap-3 border-t border-line pt-5 text-sm text-text-secondary sm:grid-cols-3">
+              <ProcessStep number="01" label="Verify company" />
+              <ProcessStep number="02" label="Gather signals" />
+              <ProcessStep number="03" label="Create brief" />
+            </div>
+          </form>
+        </div>
+        <aside className="rounded-lg border border-signal-teal/20 bg-signal-teal-subtle/55 p-6 shadow-card sm:p-7">
+          <p className="utility-label text-signal-teal">Profile-led discovery</p>
+          <h2 className="mt-2 text-xl font-semibold text-ink">
+            Find your next best-fit company
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-text-secondary">
+            Search current hiring signals against your target roles, skills, and work preferences.
+          </p>
+          <Button
+            variant="quiet"
+            onClick={runMatch}
+            disabled={matchBusy}
+            className="mt-6 w-full border-signal-teal/30 bg-surface px-5"
+          >
+            {matchBusy ? "Starting match scan..." : "Run job match scan"}
+          </Button>
+          <p className="mt-3 text-center text-xs text-text-secondary">
+            Usually ready in 20-35 seconds
+          </p>
+        </aside>
+      </section>
 
-        {runs.length === 0 ? (
-          <EmptyState className="px-6 py-6">
-            Nothing yet. Enter a domain above to research and save a company.
-          </EmptyState>
-        ) : (
-          <ul className="divide-y divide-line">
-            {runs.map((r) => (
-              <li key={r.id}>
-                <RunRow run={r} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div className="mt-6 rounded-md border border-line bg-surface shadow-card">
-        <header className="flex items-baseline justify-between gap-3 border-b border-line px-6 py-4">
-          <span className="utility-label text-text-secondary">Company matches</span>
-          {matchRuns.length > 0 ? (
-            <span className="utility-label text-text-secondary/60">{matchRuns.length}</span>
-          ) : null}
-        </header>
-
-        {matchRuns.length === 0 ? (
-          <EmptyState className="px-6 py-6">
-            Nothing yet. Job Run searches for companies hiring for your target roles, matched
-            against your profile.
-          </EmptyState>
-        ) : (
-          <ul className="divide-y divide-line">
-            {matchRuns.map((r) => (
-              <li key={r.id}>
-                <MatchRunRow run={r} onRetry={retryMatchPoll} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <section className="mt-8 grid gap-6 xl:grid-cols-2">
+        <RunPanel
+          title="Company research"
+          subtitle="Your recent intelligence requests"
+          count={runs.length}
+          empty="Research a company to create your first brief."
+        >
+          {runs.map((run) => (
+            <RunRow key={run.id} run={run} />
+          ))}
+        </RunPanel>
+        <RunPanel
+          title="Job match scans"
+          subtitle="Companies matched to your profile"
+          count={matchRuns.length}
+          empty="Run a match scan to surface companies aligned with your profile."
+        >
+          {matchRuns.map((run) => (
+            <MatchRunRow key={run.id} run={run} onRetry={retryMatchPoll} />
+          ))}
+        </RunPanel>
+      </section>
     </PageShell>
   );
 }
 
-function RunRow({ run }: { run: ResearchRun }) {
-  const body = (
-    <div className="flex w-full flex-wrap items-center justify-between gap-3 px-6 py-4 text-left">
-      <span className="flex items-center gap-3">
-        <StatusDot state={run.state} />
-        <span className="font-sans text-sm text-ink">{run.domain}</span>
-      </span>
-      {run.state === "pending" ? (
-        <span className="utility-label text-text-secondary/70">Researching...</span>
-      ) : run.state === "failed" ? (
-        <span className="text-sm text-error">{run.error}</span>
+function ProcessStep({ number, label }: { number: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="utility-label text-signal-teal/70">{number}</span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function RunPanel({
+  title,
+  subtitle,
+  count,
+  empty,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  count: number;
+  empty: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+      <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+        <div>
+          <h2 className="text-base font-semibold text-ink">{title}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{subtitle}</p>
+        </div>
+        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-surface-raised px-2 text-xs font-medium text-text-secondary">
+          {count}
+        </span>
+      </header>
+      {count === 0 ? (
+        <div className="px-6 py-10 text-center">
+          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-signal-teal">
+            <span className="h-2 w-2 rounded-full bg-current" />
+          </div>
+          <p className="mt-3 text-sm text-text-secondary">{empty}</p>
+        </div>
       ) : (
-        <span className="utility-label text-signal-teal">View company</span>
+        <ul className="divide-y divide-line">{children}</ul>
       )}
     </div>
   );
+}
 
-  if (run.state === "done" && run.companyId) {
-    return (
-      <Link
-        href={`/companies/${run.companyId}`}
-        className="block transition-colors hover:bg-surface-raised"
+function ActivityProgress({ label, startedAt }: { label: string; startedAt: number }) {
+  const elapsedSeconds = useElapsedSeconds(startedAt);
+  // The API does not expose phase completion. The bar therefore reflects
+  // real elapsed time against the observed 35-second upper end, and stops
+  // short of 100% until the server confirms completion.
+  const progress = Math.min(90, Math.max(4, (elapsedSeconds / 35) * 90));
+  const timingLabel =
+    elapsedSeconds > 35
+      ? `${elapsedSeconds}s elapsed - taking longer than usual`
+      : `${elapsedSeconds}s elapsed - usually 20-35 sec`;
+
+  return (
+    <div className="mt-3" role="status" aria-live="polite">
+      <div className="flex items-center justify-between gap-3 text-xs text-text-secondary">
+        <span>{label}</span>
+        <span>{timingLabel}</span>
+      </div>
+      <div
+        className="mt-2 h-1 overflow-hidden rounded-full bg-signal-teal/10"
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={35}
+        aria-valuenow={Math.min(elapsedSeconds, 35)}
+        aria-valuetext={`${elapsedSeconds} seconds elapsed. Still working.`}
       >
-        {body}
-      </Link>
-    );
-  }
+        <div
+          className="h-full rounded-full bg-signal-teal transition-[width] duration-500 ease-linear"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
-  return body;
+function useElapsedSeconds(startedAt: number) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(timer);
+  }, [startedAt]);
+
+  return Math.max(0, Math.floor((now - startedAt) / 1000));
+}
+
+function RunRow({ run }: { run: ResearchRun }) {
+  const content = (
+    <div className="px-6 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <StatusDot state={run.state} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-ink">{run.domain}</p>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              {run.state === "pending"
+                ? "Building company intelligence"
+                : run.state === "failed"
+                  ? "Research needs attention"
+                  : "Research brief ready"}
+            </p>
+          </div>
+        </div>
+        {run.state === "done" ? <span className="utility-label text-signal-teal">Open brief</span> : null}
+      </div>
+      {run.state === "pending" ? (
+        <ActivityProgress label="Research is running in the background" startedAt={run.startedAt} />
+      ) : null}
+      {run.state === "failed" && run.error ? (
+        <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">
+          {run.error}
+        </p>
+      ) : null}
+    </div>
+  );
+
+  return run.state === "done" && run.companyId ? (
+    <li>
+      <Link href={`/companies/${run.companyId}`} className="block transition-colors hover:bg-surface-raised/60">
+        {content}
+      </Link>
+    </li>
+  ) : (
+    <li>{content}</li>
+  );
 }
 
 function MatchRunRow({ run, onRetry }: { run: MatchRun; onRetry: (runId: string) => void }) {
   const inFlight = (run.status === "pending" || run.status === "running") && !run.timedOut;
   const dotState: CardState =
     run.timedOut || run.status === "failed" ? "failed" : inFlight ? "pending" : "done";
+  const title = run.timedOut
+    ? "Taking longer than expected"
+    : inFlight
+      ? "Searching for relevant companies"
+      : run.status === "failed"
+        ? "Match scan could not complete"
+        : run.matchedCompanyIds.length === 0
+          ? "No new matches today"
+          : `${run.matchedCompanyIds.length} ${run.matchedCompanyIds.length === 1 ? "company match" : "company matches"} found`;
 
   return (
-    <div className="px-6 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex items-center gap-3">
-          <StatusDot state={dotState} />
-          <span className="font-sans text-sm text-ink">
-            {run.timedOut
-              ? "Taking longer than expected"
-              : inFlight
-                ? "Searching for matches..."
+    <li className="px-6 py-5">
+      <div className="flex items-start gap-3">
+        <StatusDot state={dotState} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-ink">{title}</p>
+          <p className="mt-0.5 text-xs text-text-secondary">
+            {inFlight
+              ? "Using your profile and current hiring signals"
+              : run.timedOut
+                ? "The worker may still be processing this scan."
                 : run.status === "failed"
-                  ? "Could not complete"
-                  : run.matchedCompanyIds.length === 0
-                    ? "Nothing matched today"
-                    : `${run.matchedCompanyIds.length} ${
-                        run.matchedCompanyIds.length === 1 ? "match" : "matches"
-                      } found`}
-          </span>
-        </span>
-      </div>
-
-      {run.timedOut ? (
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <p className="text-sm text-text-secondary">
-            This is taking longer than expected. The background worker may not be running.
+                  ? "No changes were made to your profile."
+                  : "Based on your saved preferences"}
           </p>
-          <Button variant="quiet" onClick={() => onRetry(run.id)} className="px-4 py-2 text-xs">
-            Check again
-          </Button>
+          {inFlight ? (
+            <ActivityProgress label="Match scan is running in the background" startedAt={run.startedAt} />
+          ) : null}
+          {run.timedOut ? (
+            <div className="mt-3">
+              <Button variant="quiet" size="sm" onClick={() => onRetry(run.id)}>
+                Check status
+              </Button>
+            </div>
+          ) : null}
+          {!run.timedOut && run.status === "failed" && run.error ? (
+            <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">
+              {run.error}
+            </p>
+          ) : null}
+          {run.status === "completed" && run.matchedCompanyIds.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {run.matchedCompanyIds.map((companyId, index) => (
+                <Link
+                  key={companyId}
+                  href={`/companies/${companyId}`}
+                  className="rounded-full border border-signal-teal/20 bg-signal-teal-subtle px-3 py-1.5 text-xs font-medium text-signal-teal transition-colors hover:bg-signal-teal hover:text-surface"
+                >
+                  View match {index + 1}
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {!run.timedOut && run.status === "failed" && run.error ? (
-        <p className="mt-2 text-sm text-error">{run.error}</p>
-      ) : null}
-
-      {run.status === "completed" && run.matchedCompanyIds.length > 0 ? (
-        <ul className="mt-3 space-y-1.5 pl-5">
-          {run.matchedCompanyIds.map((companyId) => (
-            <li key={companyId}>
-              <Link
-                href={`/companies/${companyId}`}
-                className="text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-              >
-                View company
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
+      </div>
+    </li>
   );
 }
