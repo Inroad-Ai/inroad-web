@@ -1,276 +1,139 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useEffect, useState, type ReactNode } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { fetchOverviewStats } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import type { OverviewStats } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { PIPELINE_STAGES, STAGE_LABEL } from "@/components/ui/StatusBadge";
+import { PIPELINE_STAGES, STAGE_LABEL, type PipelineStage } from "@/components/ui/StatusBadge";
+import { fetchOverviewStats } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import type { OverviewStats } from "@/lib/types";
 
-const CONTACTED_WINDOW_DAYS = 30;
-
+const TEAL = "rgb(var(--color-signal-teal))";
+const AMBER = "rgb(var(--color-signal-amber))";
+const MUTED = "rgb(var(--color-surface-raised))";
+const LINE = "rgb(var(--color-line))";
+const TEXT = "rgb(var(--color-text-secondary))";
+const tooltipStyle = { background: "rgb(var(--color-surface))", border: "1px solid rgb(var(--color-line))", borderRadius: "var(--radius-sm)", boxShadow: "var(--shadow-card)", fontSize: "0.75rem" };
 type LoadState = "loading" | "error" | "empty" | "ready";
 
-function formatWeekLabel(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function formatDelta(current: number, prior: number): string {
-  const diff = current - prior;
-  if (diff === 0) return "no change";
-  return diff > 0 ? `+${diff}` : `${diff}`;
+function weekLabel(value: string) {
+  return new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function OverviewDashboard() {
   const [state, setState] = useState<LoadState>("loading");
   const [stats, setStats] = useState<OverviewStats | null>(null);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
-
     async function load() {
-      setState("loading");
       const token = await ensureValidAccessToken();
       if (!token) {
-        setErrorMessage("Your session expired. Sign in again to see your overview.");
+        setMessage("Your session expired. Sign in again to see your overview.");
         setState("error");
         return;
       }
-
       try {
-        const response = await fetchOverviewStats(
-          token,
-          controller.signal,
-          CONTACTED_WINDOW_DAYS,
-        );
-        setStats(response);
-        setState(response.total_companies === 0 ? "empty" : "ready");
-      } catch (err) {
-        if (controller.signal.aborted) return;
-        setErrorMessage(err instanceof Error ? err.message : "Could not load your overview.");
-        setState("error");
+        const result = await fetchOverviewStats(token, controller.signal, 30);
+        setStats(result);
+        setState(result.total_companies ? "ready" : "empty");
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setMessage(error instanceof Error ? error.message : "Could not load your overview.");
+          setState("error");
+        }
       }
     }
-
-    load();
+    void load();
     return () => controller.abort();
   }, []);
 
-  if (state === "error") {
-    return (
-      <div className="mt-6 rounded-md border border-line bg-surface">
-        <EmptyState className="px-6 py-16 text-center">{errorMessage}</EmptyState>
-      </div>
-    );
-  }
-
-  if (state === "loading") {
-    return <OverviewSkeleton />;
-  }
-
-  if (state === "empty") {
-    return (
-      <div className="mt-6 rounded-md border border-line bg-surface">
-        <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-          <EmptyState>
-            Nothing to show yet. Your overview fills in once you&apos;ve researched and saved a
-            company.
-          </EmptyState>
-          <Button href="/research">Research a company</Button>
-        </div>
-      </div>
-    );
-  }
-
+  if (state === "loading") return <OverviewSkeleton />;
+  if (state === "error") return <div className="mt-8 rounded-lg border border-line bg-surface shadow-card"><EmptyState className="px-6 py-16 text-center">{message}</EmptyState></div>;
+  if (state === "empty") return <EmptyOverview />;
   if (!stats) return null;
 
-  const researched = stats.by_stage.researched ?? 0;
-  const researchedShare =
-    stats.total_companies > 0 ? Math.round((researched / stats.total_companies) * 100) : 0;
+  const count = (stage: PipelineStage) => stats.by_stage[stage] ?? 0;
+  const researched = count("researched");
+  const active = count("contacted") + count("responded") + count("interviewing");
+  const progressed = count("responded") + count("interviewing") + count("closed");
+  const outreachBase = active + count("closed") + count("rejected");
+  const responseRate = outreachBase ? Math.round((progressed / outreachBase) * 100) : 0;
+  const activity = stats.companies_by_week.map((item) => ({ label: weekLabel(item.week_start), companies: item.count }));
+  const added = activity.reduce((total, item) => total + item.companies, 0);
+  const funnel = PIPELINE_STAGES.filter((stage) => stage !== "rejected").map((stage) => ({ label: STAGE_LABEL[stage], count: count(stage) }));
+  const responses = outreachBase ? [{ name: "Moved forward", value: progressed, color: TEAL }, { name: "Awaiting reply", value: Math.max(0, outreachBase - progressed), color: MUTED }] : [{ name: "No outreach yet", value: 1, color: MUTED }];
+  const outreachDelta = stats.contacted_within_window - stats.contacted_within_prior_window;
 
-  const funnelData = PIPELINE_STAGES.map((stage) => ({
-    stage,
-    label: STAGE_LABEL[stage],
-    count: stats.by_stage[stage] ?? 0,
-  }));
-
-  const weeklyData = stats.companies_by_week.map((bucket) => ({
-    label: formatWeekLabel(bucket.week_start),
-    count: bucket.count,
-  }));
-
-  return (
-    <div className="mt-6 flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <KpiCard
-          label="Total companies"
-          value={stats.total_companies}
-          context="Saved across every stage"
-        />
-        <KpiCard
-          label="Researched"
-          value={researched}
-          context={`${researchedShare}% of total`}
-        />
-        <KpiCard
-          label={`Reached out, last ${stats.contacted_window_days} days`}
-          value={stats.contacted_within_window}
-          context={`${formatDelta(stats.contacted_within_window, stats.contacted_within_prior_window)} vs the ${stats.contacted_window_days} days before that`}
-        />
+  return <div className="mt-8 space-y-6">
+    <section className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+      <div className="grid gap-6 px-6 py-6 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p className="utility-label text-signal-teal">Search momentum</p>
+          <h2 className="mt-2 text-2xl font-semibold text-ink">{active ? active + " companies are active in your pipeline" : "Turn research into conversations"}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">Track the companies you&apos;ve found, the outreach you&apos;ve started, and the responses moving your search forward.</p>
+        </div>
+        <Button href="/research" className="shrink-0">Research a company</Button>
       </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ChartCard title="Pipeline by stage" description="Where saved companies sit right now.">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={funnelData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="rgb(var(--color-line))" />
-              <XAxis
-                dataKey="label"
-                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
-                tickLine={false}
-                axisLine={{ stroke: "rgb(var(--color-line))" }}
-              />
-              <YAxis
-                allowDecimals={false}
-                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                width={28}
-              />
-              <Tooltip
-                cursor={{ fill: "rgb(var(--color-surface-raised))" }}
-                contentStyle={{
-                  background: "rgb(var(--color-surface))",
-                  border: "1px solid rgb(var(--color-line))",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: "0.75rem",
-                }}
-                labelStyle={{ color: "rgb(var(--color-ink))" }}
-              />
-              <Bar dataKey="count" fill="rgb(var(--color-signal-teal))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard
-          title="Companies added"
-          description={`Last ${weeklyData.length} weeks, by week saved.`}
-        >
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={weeklyData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid vertical={false} stroke="rgb(var(--color-line))" />
-              <XAxis
-                dataKey="label"
-                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
-                tickLine={false}
-                axisLine={{ stroke: "rgb(var(--color-line))" }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                allowDecimals={false}
-                tick={{ fill: "rgb(var(--color-text-secondary))", fontSize: 12 }}
-                tickLine={false}
-                axisLine={false}
-                width={28}
-              />
-              <Tooltip
-                cursor={{ stroke: "rgb(var(--color-line))" }}
-                contentStyle={{
-                  background: "rgb(var(--color-surface))",
-                  border: "1px solid rgb(var(--color-line))",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: "0.75rem",
-                }}
-                labelStyle={{ color: "rgb(var(--color-ink))" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="rgb(var(--color-signal-amber))"
-                strokeWidth={2}
-                dot={{ r: 3, fill: "rgb(var(--color-signal-amber))", strokeWidth: 0 }}
-                activeDot={{ r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <div className="grid border-t border-line sm:grid-cols-3">
+        <Metric label="Companies saved" value={stats.total_companies} context="Across your full search" />
+        <Metric label={"Outreach, last " + stats.contacted_window_days + " days"} value={stats.contacted_within_window} context={outreachDelta === 0 ? "No change from prior period" : (outreachDelta > 0 ? "+" : "") + outreachDelta + " from prior period"} bordered />
+        <Metric label="Still in research" value={researched} context={(stats.total_companies ? Math.round((researched / stats.total_companies) * 100) : 0) + "% ready for your next move"} bordered />
       </div>
-    </div>
-  );
+    </section>
+
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.85fr)]">
+      <ChartCard eyebrow="Weekly trend" title="Research activity" description="Companies added to your search over time." aside={added + " added"}>
+        <div className="h-[272px]" role="img" aria-label={added + " companies added over the displayed weeks."}>
+          <ResponsiveContainer width="100%" height="100%"><AreaChart data={activity} margin={{ top: 14, right: 8, left: -16, bottom: 0 }}>
+            <defs><linearGradient id="activity-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor={TEAL} stopOpacity={0.28} /><stop offset="100%" stopColor={TEAL} stopOpacity={0.02} /></linearGradient></defs>
+            <CartesianGrid vertical={false} stroke={LINE} strokeDasharray="3 4" />
+            <XAxis dataKey="label" tick={{ fill: TEXT, fontSize: 11 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+            <YAxis allowDecimals={false} tick={{ fill: TEXT, fontSize: 11 }} tickLine={false} axisLine={false} width={30} />
+            <Tooltip contentStyle={tooltipStyle} cursor={{ stroke: LINE }} />
+            <Area type="monotone" dataKey="companies" name="Companies added" stroke={TEAL} strokeWidth={2.5} fill="url(#activity-fill)" activeDot={{ r: 5, fill: TEAL, stroke: "rgb(var(--color-surface))", strokeWidth: 2 }} />
+          </AreaChart></ResponsiveContainer>
+        </div>
+      </ChartCard>
+      <ChartCard eyebrow="Outreach health" title="Response rate" description={outreachBase ? "Share of reached-out companies that moved beyond initial contact." : "Start outreach to see response performance."}>
+        <div className="relative h-[272px]" role="img" aria-label={"Response rate is " + responseRate + " percent."}>
+          <ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={tooltipStyle} /><Pie data={responses} dataKey="value" nameKey="name" innerRadius={72} outerRadius={96} paddingAngle={outreachBase ? 4 : 0} startAngle={90} endAngle={-270} stroke="none">{responses.map((entry) => <Cell key={entry.name} fill={entry.color} />)}</Pie></PieChart></ResponsiveContainer>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="font-display text-3xl font-semibold text-ink">{outreachBase ? responseRate + "%" : "-"}</span><span className="mt-1 text-xs text-text-secondary">response rate</span></div>
+        </div>
+        <div className="flex items-center justify-center gap-4 border-t border-line pt-4 text-xs text-text-secondary"><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-signal-teal" />Moved forward</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-surface-raised ring-1 ring-line" />Awaiting reply</span></div>
+      </ChartCard>
+    </section>
+
+    <ChartCard eyebrow="Current position" title="Pipeline funnel" description="Companies grouped by current stage. Rejected companies are excluded." aside={active + " active"}>
+      <div className="h-[300px]" role="img" aria-label={active + " companies are active in the pipeline."}>
+        <ResponsiveContainer width="100%" height="100%"><BarChart data={funnel} layout="vertical" margin={{ top: 8, right: 28, left: 26, bottom: 4 }}>
+          <CartesianGrid horizontal={false} stroke={LINE} />
+          <XAxis type="number" allowDecimals={false} tick={{ fill: TEXT, fontSize: 11 }} tickLine={false} axisLine={false} />
+          <YAxis type="category" dataKey="label" tick={{ fill: TEXT, fontSize: 12 }} tickLine={false} axisLine={false} width={84} />
+          <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgb(var(--color-surface-raised))" }} />
+          <Bar dataKey="count" name="Companies" radius={[0, 5, 5, 0]} barSize={24}>{funnel.map((entry, index) => <Cell key={entry.label} fill={index === 0 ? AMBER : TEAL} fillOpacity={index === 0 ? 1 : 0.9 - index * 0.1} />)}</Bar>
+        </BarChart></ResponsiveContainer>
+      </div>
+    </ChartCard>
+  </div>;
 }
 
-function KpiCard({
-  label,
-  value,
-  context,
-}: {
-  label: string;
-  value: number;
-  context: string;
-}) {
-  return (
-    <div className="rounded-md border border-line bg-surface p-6">
-      <p className="utility-label text-text-secondary">{label}</p>
-      <p className="mt-2 font-display text-3xl text-ink">{value}</p>
-      <p className="mt-1 text-sm text-text-secondary">{context}</p>
-    </div>
-  );
+function Metric({ label, value, context, bordered = false }: { label: string; value: number; context: string; bordered?: boolean }) {
+  return <div className={"px-6 py-5 sm:px-8 " + (bordered ? "border-t border-line sm:border-l sm:border-t-0" : "")}><p className="utility-label text-text-secondary">{label}</p><p className="mt-2 font-display text-3xl font-semibold text-ink">{value}</p><p className="mt-1 text-sm text-text-secondary">{context}</p></div>;
 }
 
-function ChartCard({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-md border border-line bg-surface p-6">
-      <p className="text-sm text-ink">{title}</p>
-      <p className="mt-1 text-sm text-text-secondary">{description}</p>
-      <div className="mt-4">{children}</div>
-    </div>
-  );
+function ChartCard({ title, eyebrow, description, aside, children }: { title: string; eyebrow: string; description: string; aside?: string; children: ReactNode }) {
+  return <section className="rounded-lg border border-line bg-surface p-6 shadow-card sm:p-7"><header className="flex flex-wrap items-start justify-between gap-4"><div><p className="utility-label text-signal-teal">{eyebrow}</p><h2 className="mt-1 text-lg font-semibold text-ink">{title}</h2><p className="mt-1 text-sm text-text-secondary">{description}</p></div>{aside ? <span className="utility-label rounded-full bg-surface-raised px-3 py-1.5 text-text-secondary">{aside}</span> : null}</header><div className="mt-5">{children}</div></section>;
+}
+
+function EmptyOverview() {
+  return <div className="mt-8 rounded-lg border border-line bg-surface shadow-card"><div className="flex flex-col items-center gap-4 px-6 py-16 text-center"><div className="flex h-11 w-11 items-center justify-center rounded-full bg-signal-teal-subtle"><span className="h-2.5 w-2.5 rounded-full bg-signal-teal" /></div><div><h2 className="text-lg font-semibold text-ink">Your dashboard is ready when you are</h2><EmptyState className="mt-2 max-w-sm">Research and save a company to start tracking your search momentum here.</EmptyState></div><Button href="/research">Research a company</Button></div></div>;
 }
 
 function OverviewSkeleton() {
-  return (
-    <div className="mt-6 flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="rounded-md border border-line bg-surface p-6">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="mt-3 h-8 w-16" />
-            <Skeleton className="mt-2 h-3 w-32" />
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, i) => (
-          <div key={i} className="rounded-md border border-line bg-surface p-6">
-            <Skeleton className="h-3 w-32" />
-            <Skeleton className="mt-2 h-3 w-48" />
-            <Skeleton className="mt-6 h-[260px] w-full" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <div className="mt-8 space-y-6"><div className="rounded-lg border border-line bg-surface p-8"><Skeleton className="h-3 w-28" /><Skeleton className="mt-3 h-8 w-72" /><Skeleton className="mt-3 h-4 w-full max-w-xl" /><div className="mt-8 grid gap-4 sm:grid-cols-3">{Array.from({ length: 3 }).map((_, index) => <div key={index} className="border-t border-line pt-5 sm:border-l sm:border-t-0 sm:pl-6"><Skeleton className="h-3 w-24" /><Skeleton className="mt-3 h-8 w-16" /><Skeleton className="mt-2 h-3 w-32" /></div>)}</div></div><div className="grid gap-6 xl:grid-cols-2">{Array.from({ length: 2 }).map((_, index) => <div key={index} className="rounded-lg border border-line bg-surface p-7"><Skeleton className="h-3 w-24" /><Skeleton className="mt-3 h-5 w-40" /><Skeleton className="mt-2 h-3 w-56" /><Skeleton className="mt-7 h-[272px] w-full" /></div>)}</div></div>;
 }
