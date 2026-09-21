@@ -27,7 +27,13 @@ export function WorkPreferenceScreen({
   }
 
   return (
-    <div>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        setTouched(true);
+        if (valid) onNext();
+      }}
+    >
       <h1 className="font-display text-2xl text-text-primary">How do you want to work?</h1>
       <p className="mt-2 text-sm text-text-secondary">
         This narrows which companies we search for. Pick as many as apply.
@@ -53,16 +59,9 @@ export function WorkPreferenceScreen({
         </p>
       ) : null}
 
-      <Button
-        type="button"
-        className="mt-8"
-        onClick={() => {
-          setTouched(true);
-          if (valid) onNext();
-        }}
-      >
+      <Button type="submit" className="mt-8">
         Continue
       </Button>
-    </div>
+    </form>
   );
 }

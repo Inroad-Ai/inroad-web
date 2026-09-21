@@ -134,11 +134,36 @@ function withManualSource<K extends FieldSourceKey>(
 
 interface ResumeState {
   fileName: string | null;
+  fileSize: number | null;
   state: UploadState;
   error: string | null;
 }
 
-const INITIAL_RESUME: ResumeState = { fileName: null, state: "idle", error: null };
+const INITIAL_RESUME: ResumeState = {
+  fileName: null,
+  fileSize: null,
+  state: "idle",
+  error: null,
+};
+
+const MAX_RESUME_BYTES = 10 * 1024 * 1024;
+const ACCEPTED_RESUME_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+function validateResumeFile(file: File): string | null {
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  const acceptedExtension = extension === "pdf" || extension === "doc" || extension === "docx";
+  if (!ACCEPTED_RESUME_TYPES.has(file.type) && !acceptedExtension) {
+    return "File must be PDF or DOCX.";
+  }
+  if (file.size > MAX_RESUME_BYTES) {
+    return "File is larger than 10MB.";
+  }
+  return null;
+}
 
 // Scoped per user, not global, so a shared machine can't resume one
 // account's half-finished onboarding into a different account's session.
@@ -271,13 +296,25 @@ export function OnboardingFlow() {
   }
 
   async function handleResumeSelect(file: File) {
-    setResume({ fileName: file.name, state: "uploading", error: null });
+    const validationError = validateResumeFile(file);
+    if (validationError) {
+      setResume({
+        fileName: file.name,
+        fileSize: file.size,
+        state: "error",
+        error: validationError,
+      });
+      return;
+    }
+
+    setResume({ fileName: file.name, fileSize: file.size, state: "uploading", error: null });
 
     try {
       const token = await ensureValidAccessToken();
       if (!token) {
         setResume({
           fileName: file.name,
+          fileSize: file.size,
           state: "error",
           error: "Your session expired. Sign in again to read your resume.",
         });
@@ -323,15 +360,13 @@ export function OnboardingFlow() {
           fieldSource,
         };
       });
-      setResume({ fileName: file.name, state: "done", error: null });
+      setResume({ fileName: file.name, fileSize: file.size, state: "done", error: null });
     } catch (error) {
       setResume({
         fileName: file.name,
+        fileSize: file.size,
         state: "error",
-        error:
-          error instanceof Error
-            ? error.message
-            : "Could not read that file. You can fill the next few screens in yourself.",
+        error: error instanceof Error ? error.message : "Upload failed — try again.",
       });
     }
   }
@@ -393,6 +428,7 @@ export function OnboardingFlow() {
       phases={PHASES}
       currentPhaseIndex={STEP_PHASE_INDEX[step]}
       onBack={onBack}
+      wide={step === "welcome"}
     >
       {!hydrated ? (
         // A saved draft, if there is one, only shows up after fetchMe and
@@ -415,12 +451,12 @@ export function OnboardingFlow() {
               accept={DOCUMENT_ACCEPT}
               optional={false}
               fileName={resume.fileName}
+              fileSize={resume.fileSize}
               state={resume.state}
-              progress={null}
-              statusLabel="Reading your resume"
               errorMessage={resume.error}
               onSelect={handleResumeSelect}
               onRemove={() => setResume(INITIAL_RESUME)}
+              onRetry={() => setResume(INITIAL_RESUME)}
               onNext={next}
               // Only offered once a parse has actually failed. Skipping outright
               // isn't the point of this step; not being stuck on it is.

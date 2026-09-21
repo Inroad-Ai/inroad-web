@@ -1,3 +1,5 @@
+import { CheckCircleIcon } from "@/components/ui/Icons";
+
 /** Phase labels (which section am I in) plus a thin fill bar underneath (how
  * far along overall) - a raw "Step X of N" answers neither question as
  * directly as naming the section does. currentPhaseIndex of -1 means no
@@ -13,13 +15,20 @@ export function ProgressIndicator({
   phases: readonly string[];
   currentPhaseIndex: number;
 }) {
-  const percent = Math.round((step / total) * 100);
+  // "welcome" (step 1 of total) is an intro, not form progress - counting it
+  // would start the bar at a jump instead of 0%, and end a step early.
+  const percent = total > 1 ? Math.round(((step - 1) / (total - 1)) * 100) : 0;
 
   return (
     <div className="w-full">
       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
         {phases.map((phase, index) => (
           <span key={phase} className="flex items-center gap-1.5">
+            {index < currentPhaseIndex ? (
+              <span className="text-signal-teal" aria-hidden="true">
+                <CheckCircleIcon />
+              </span>
+            ) : null}
             <span
               aria-current={index === currentPhaseIndex ? "step" : undefined}
               className={`utility-label ${
@@ -40,7 +49,7 @@ export function ProgressIndicator({
           </span>
         ))}
       </div>
-      <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-line">
+      <div className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-line">
         <div
           className="h-full bg-signal-amber transition-[width] duration-300 ease-out"
           style={{ width: `${percent}%` }}

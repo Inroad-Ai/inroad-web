@@ -10,12 +10,12 @@ export function UploadScreen({
   accept,
   optional,
   fileName,
+  fileSize,
   state,
-  progress,
-  statusLabel,
   errorMessage,
   onSelect,
   onRemove,
+  onRetry,
   onNext,
   onSkip,
   unavailable,
@@ -26,12 +26,12 @@ export function UploadScreen({
   accept: string;
   optional: boolean;
   fileName: string | null;
+  fileSize?: number | null;
   state: UploadState;
-  progress: number | null;
-  statusLabel?: string;
   errorMessage: string | null;
   onSelect: (file: File) => void;
   onRemove: () => void;
+  onRetry?: () => void;
   onNext: () => void;
   onSkip?: () => void;
   /** Shown instead of the file picker. Also releases Continue, so a required
@@ -60,12 +60,12 @@ export function UploadScreen({
           <FileUpload
             accept={accept}
             fileName={fileName}
+            fileSize={fileSize}
             state={state}
-            progress={progress}
-            statusLabel={statusLabel}
             errorMessage={errorMessage}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRetry={onRetry}
             autoFocus={autoFocus}
           />
         )}
