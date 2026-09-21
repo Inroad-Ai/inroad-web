@@ -47,7 +47,8 @@ export function SampleDossier() {
             Research should leave you with something you can use.
           </h2>
           <p className="mt-5 max-w-md text-base leading-relaxed text-text-secondary">
-            This is not a score or a black box. It is a clear record of what the company is saying and doing, so your next move has context.
+            This is not a score or a black box. It is a clear record of what the company is saying
+            and doing, so your next move has context.
           </p>
           <div className="mt-8 flex items-center gap-3 text-sm text-text-secondary">
             <span className="h-2 w-2 rounded-full bg-success" />
@@ -55,15 +56,26 @@ export function SampleDossier() {
           </div>
         </Reveal>
 
-        <Reveal className="overflow-hidden rounded-lg border border-line bg-surface shadow-card" offset={30} duration={0.7} delay={0.1}>
+        <Reveal
+          className="overflow-hidden rounded-lg border border-line bg-surface shadow-card"
+          offset={30}
+          duration={0.7}
+          delay={0.1}
+        >
           <div className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6">
             <div>
               <p className="utility-label text-text-secondary">Research dossier</p>
               <p className="mt-1 font-display text-base font-semibold text-ink">stripe.com</p>
             </div>
-            <span className="rounded-full bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success">Ready</span>
+            <span className="rounded-full bg-success-subtle px-2.5 py-1 text-xs font-semibold text-success">
+              Ready
+            </span>
           </div>
-          <div className="flex overflow-x-auto border-b border-line px-3 sm:px-5" role="tablist" aria-label="Dossier sources">
+          <div
+            className="flex overflow-x-auto border-b border-line px-3 sm:px-5"
+            role="tablist"
+            aria-label="Dossier sources"
+          >
             {DOSSIER_VIEWS.map((view) => {
               const selected = view.id === activeId;
               return (
@@ -76,7 +88,12 @@ export function SampleDossier() {
                   onClick={() => setActiveId(view.id)}
                 >
                   {view.label}
-                  {selected ? <motion.span layoutId="dossier-tab" className="absolute inset-x-3 bottom-0 h-0.5 bg-signal-amber" /> : null}
+                  {selected ? (
+                    <motion.span
+                      layoutId="dossier-tab"
+                      className="absolute inset-x-3 bottom-0 h-0.5 bg-signal-amber"
+                    />
+                  ) : null}
                 </button>
               );
             })}
@@ -94,10 +111,15 @@ export function SampleDossier() {
                 <h3 className="mt-4 max-w-xl font-display text-2xl font-semibold leading-tight tracking-tight text-ink">
                   {active.title}
                 </h3>
-                <p className="mt-4 max-w-xl text-sm leading-relaxed text-text-secondary sm:text-base">{active.body}</p>
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-text-secondary sm:text-base">
+                  {active.body}
+                </p>
                 <div className="mt-10 grid gap-2 sm:grid-cols-3">
                   {active.facts.map((fact) => (
-                    <div key={fact} className="rounded-sm border border-line bg-paper px-3 py-3 text-xs text-text-secondary">
+                    <div
+                      key={fact}
+                      className="rounded-sm border border-line bg-paper px-3 py-3 text-xs text-text-secondary"
+                    >
                       {fact}
                     </div>
                   ))}

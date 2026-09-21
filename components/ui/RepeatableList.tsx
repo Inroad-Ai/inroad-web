@@ -7,11 +7,7 @@ interface RepeatableListProps<T> {
   newItem: () => T;
   addLabel: string;
   emptyLabel: string;
-  children: (
-    item: T,
-    update: (patch: Partial<T>) => void,
-    index: number,
-  ) => ReactNode;
+  children: (item: T, update: (patch: Partial<T>) => void, index: number) => ReactNode;
 }
 
 /**

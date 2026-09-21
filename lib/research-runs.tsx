@@ -10,6 +10,9 @@ export interface ResearchRun {
   id: number;
   domain: string;
   state: CardState;
+  /** Actual client-side start time, used to show elapsed time while the
+   * synchronous research request is pending. */
+  startedAt: number;
   companyId: string | null;
   error: string | null;
 }
@@ -40,10 +43,17 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
   const startResearch = useCallback((domain: string): number => {
     const id = nextRunId++;
     setRuns((prev) =>
-      [{ id, domain, state: "pending" as CardState, companyId: null, error: null }, ...prev].slice(
-        0,
-        MAX_TRACKED_RUNS,
-      ),
+      [
+        {
+          id,
+          domain,
+          state: "pending" as CardState,
+          startedAt: Date.now(),
+          companyId: null,
+          error: null,
+        },
+        ...prev,
+      ].slice(0, MAX_TRACKED_RUNS),
     );
 
     function settle(update: Partial<ResearchRun>) {

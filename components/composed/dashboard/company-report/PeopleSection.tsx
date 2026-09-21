@@ -36,9 +36,7 @@ export function PeopleSection({
       const updated = await updatePersonStage(person.id, stage, await accessToken());
       setPeople((current) => current.map((p) => (p.id === updated.id ? updated : p)));
     } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Could not update that person's stage.",
-      );
+      setActionError(err instanceof Error ? err.message : "Could not update that person's stage.");
     } finally {
       setPendingId(null);
     }
@@ -66,10 +64,7 @@ export function PeopleSection({
       ) : (
         <ul className="divide-y divide-line">
           {people.map((person) => (
-            <li
-              key={person.id}
-              className="flex flex-wrap items-center justify-between gap-3 py-3"
-            >
+            <li key={person.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium text-ink">{person.name}</span>
@@ -81,9 +76,7 @@ export function PeopleSection({
                   ) : null}
                 </div>
                 <p className="mt-1 text-sm text-text-secondary">
-                  {person.title ?? (
-                    <span className="text-text-secondary/70">No title listed</span>
-                  )}
+                  {person.title ?? <span className="text-text-secondary/70">No title listed</span>}
                 </p>
                 <div className="mt-1 flex flex-wrap gap-3 text-xs">
                   {person.linkedin_url ? (

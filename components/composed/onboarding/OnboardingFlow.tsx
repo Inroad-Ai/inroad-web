@@ -366,10 +366,7 @@ export function OnboardingFlow() {
         fileName: file.name,
         fileSize: file.size,
         state: "error",
-        error:
-          error instanceof Error
-            ? error.message
-            : "Upload failed — try again.",
+        error: error instanceof Error ? error.message : "Upload failed — try again.",
       });
     }
   }

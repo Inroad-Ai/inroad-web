@@ -52,12 +52,9 @@ export function PipelineBoard() {
   const [movingId, setMovingId] = useState<string | null>(null);
   const [moveErrors, setMoveErrors] = useState<Record<string, string>>({});
 
-  const patchColumn = useCallback(
-    (stage: PipelineStage, patch: Partial<ColumnState>) => {
-      setBoard((prev) => ({ ...prev, [stage]: { ...prev[stage], ...patch } }));
-    },
-    [],
-  );
+  const patchColumn = useCallback((stage: PipelineStage, patch: Partial<ColumnState>) => {
+    setBoard((prev) => ({ ...prev, [stage]: { ...prev[stage], ...patch } }));
+  }, []);
 
   // One request per column. Each response's `total` is that column's header
   // count, so no second aggregation is needed for a number we already have.
@@ -96,8 +93,7 @@ export function PipelineBoard() {
             if (controller.signal.aborted) return;
             patchColumn(stage, {
               status: "error",
-              errorMessage:
-                err instanceof Error ? err.message : "Could not load this stage.",
+              errorMessage: err instanceof Error ? err.message : "Could not load this stage.",
             });
           }
         }),
@@ -243,7 +239,10 @@ function PipelineColumn({
     <section className="flex w-72 shrink-0 flex-col rounded-md border border-line bg-surface-raised p-3">
       <header className="flex items-center justify-between gap-2 pb-3">
         <StatusBadge stage={stage} />
-        <span className="utility-label text-text-secondary" aria-label={`${column.total} companies`}>
+        <span
+          className="utility-label text-text-secondary"
+          aria-label={`${column.total} companies`}
+        >
           {column.status === "loading" ? "" : column.total}
         </span>
       </header>
@@ -325,11 +324,7 @@ function PipelineCard({
       </p>
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        {moving ? (
-          <span className="utility-label text-text-secondary">Moving...</span>
-        ) : (
-          <span />
-        )}
+        {moving ? <span className="utility-label text-text-secondary">Moving...</span> : <span />}
         <Menu
           label={`Move ${company.domain} to another stage`}
           trigger="Move"

@@ -18,7 +18,9 @@ const MEET_MARGIN = 10;
  * fixed coordinates, since the preview panel's layout (padding, card
  * height, text wrapping) doesn't match any single hardcoded aspect ratio. */
 function measure(containerEl: HTMLElement): Geometry | null {
-  const startEls = Array.from(containerEl.querySelectorAll<HTMLElement>("[data-convergence-start]"));
+  const startEls = Array.from(
+    containerEl.querySelectorAll<HTMLElement>("[data-convergence-start]"),
+  );
   const targetEl = containerEl.querySelector<HTMLElement>("[data-convergence-target]");
   if (startEls.length === 0 || !targetEl) return null;
 

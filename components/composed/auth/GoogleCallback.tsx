@@ -67,7 +67,5 @@ export function GoogleCallback() {
     );
   }
 
-  return (
-    <p className="text-center font-sans text-sm text-text-secondary">Signing you in...</p>
-  );
+  return <p className="text-center font-sans text-sm text-text-secondary">Signing you in...</p>;
 }

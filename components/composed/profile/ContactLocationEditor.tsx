@@ -28,16 +28,13 @@ interface ParsedLocation {
 function parseLocation(value: string): ParsedLocation {
   const location = value.trim();
   const country =
-    countriesByNameLength.find(
-      ([name]) => location === name || location.endsWith(`, ${name}`),
-    ) ?? null;
+    countriesByNameLength.find(([name]) => location === name || location.endsWith(`, ${name}`)) ??
+    null;
 
   if (!country) return { address: location, country: null, region: "" };
 
   const remainder = location === country[0] ? "" : location.slice(0, -(country[0].length + 2));
-  const region = country[2].find(
-    ([name]) => remainder === name || remainder.endsWith(`, ${name}`),
-  );
+  const region = country[2].find(([name]) => remainder === name || remainder.endsWith(`, ${name}`));
 
   if (!region) return { address: remainder, country, region: "" };
 
@@ -99,9 +96,7 @@ export function ContactLocationEditor({
     const currentNationalNumber = nationalNumber(phone, countryCode);
     const nextCallingCode = callingCodeFor(nextCode);
 
-    onLocationChange(
-      composeLocation(parsedLocation.address, "", nextCountry?.[0] ?? ""),
-    );
+    onLocationChange(composeLocation(parsedLocation.address, "", nextCountry?.[0] ?? ""));
     onPhoneChange(
       nextCallingCode && currentNationalNumber
         ? `+${nextCallingCode} ${currentNationalNumber}`

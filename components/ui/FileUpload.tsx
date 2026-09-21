@@ -10,11 +10,7 @@ import type { UploadState } from "@/lib/onboarding";
 // per-field checklist the backend can't actually back up. Covers the wire
 // upload too - for a resume-sized file that leg is sub-second, not worth its
 // own fake percentage.
-const PARSE_PHASES = [
-  "Uploading…",
-  "Reading your resume…",
-  "Extracting your details…",
-];
+const PARSE_PHASES = ["Uploading…", "Reading your resume…", "Extracting your details…"];
 
 function useRotatingPhase(active: boolean, phases: readonly string[], intervalMs = 1400) {
   const [index, setIndex] = useState(0);
@@ -158,6 +154,7 @@ export function FileUpload({
             {isBusy ? (
               <p className="mt-1.5 text-xs font-medium text-signal-teal">{rotatingPhase}</p>
             ) : null}
+            {state === "done" ? <p className="mt-1 text-xs text-success">Uploaded</p> : null}
             {state === "error" && errorMessage ? (
               <p className="mt-1 text-xs text-error">{errorMessage}</p>
             ) : null}

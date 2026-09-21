@@ -20,11 +20,7 @@ export function Field({
 }) {
   return (
     <div>
-      <label
-        htmlFor={htmlFor}
-        id={labelId}
-        className="utility-label text-text-secondary"
-      >
+      <label htmlFor={htmlFor} id={labelId} className="utility-label text-text-secondary">
         {label}
       </label>
       <div className="mt-2">{children}</div>

@@ -10,13 +10,7 @@ const TONES: Record<Tone, string> = {
   success: "border-success/40 bg-success-subtle text-success",
 };
 
-export function Badge({
-  tone = "neutral",
-  children,
-}: {
-  tone?: Tone;
-  children: ReactNode;
-}) {
+export function Badge({ tone = "neutral", children }: { tone?: Tone; children: ReactNode }) {
   return (
     <span
       className={`utility-label inline-flex items-center gap-2 rounded-full border px-2.5 py-1 ${TONES[tone]}`}

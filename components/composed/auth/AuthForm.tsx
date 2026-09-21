@@ -117,8 +117,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
   const passwordsMatch = mode === "login" || password === confirmPassword;
-  const valid =
-    isValidEmail(email) && password.length >= MIN_PASSWORD_LENGTH && passwordsMatch;
+  const valid = isValidEmail(email) && password.length >= MIN_PASSWORD_LENGTH && passwordsMatch;
 
   function validationMessage(): string {
     if (!isValidEmail(email)) return "That doesn't look like a real email.";
@@ -159,9 +158,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         setUnverified(true);
       }
       setError(
-        submitError instanceof ApiError
-          ? submitError.message
-          : "Something went wrong. Try again.",
+        submitError instanceof ApiError ? submitError.message : "Something went wrong. Try again.",
       );
       setSubmitting(false);
     }

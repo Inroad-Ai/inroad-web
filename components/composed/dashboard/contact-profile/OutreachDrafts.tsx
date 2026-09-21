@@ -103,8 +103,8 @@ export function OutreachDrafts({
       ) : (
         <div className="flex flex-col items-start gap-3 rounded-md border border-line bg-surface p-6">
           <p className="text-sm text-text-secondary">
-            Written with the earlier messages in this sequence as context, shorter and more
-            direct than the last one.
+            Written with the earlier messages in this sequence as context, shorter and more direct
+            than the last one.
           </p>
           {readOnly ? (
             <p className="text-sm text-text-secondary">No message was prepared for this step.</p>

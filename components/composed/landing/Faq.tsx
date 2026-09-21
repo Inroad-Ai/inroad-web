@@ -9,19 +9,23 @@ import { LANDING_EASE, useLandingMotion } from "@/lib/landing-motion";
 const FAQS = [
   {
     question: "How is this different from Simplify or a job board?",
-    answer: "Job boards get you into a queue behind a thousand other applicants and an ATS filter. Inroad takes a different route: it researches a company and gives you specifics for a direct, thoughtful message.",
+    answer:
+      "Job boards get you into a queue behind a thousand other applicants and an ATS filter. Inroad takes a different route: it researches a company and gives you specifics for a direct, thoughtful message.",
   },
   {
     question: "Do you send emails automatically?",
-    answer: "No. Every message Inroad helps you draft is yours to read, edit, and send. Nothing goes out on your behalf.",
+    answer:
+      "No. Every message Inroad helps you draft is yours to read, edit, and send. Nothing goes out on your behalf.",
   },
   {
     question: "Is my data safe?",
-    answer: "Your data is stored in Inroad's Postgres database and every query is scoped to your account. Resumes are parsed and discarded rather than retained as files. Inroad is early, so treat it accordingly and do not add anything you would not want stored in a new service.",
+    answer:
+      "Your data is stored in Inroad's Postgres database and every query is scoped to your account. Resumes are parsed and discarded rather than retained as files. Inroad is early, so treat it accordingly and do not add anything you would not want stored in a new service.",
   },
   {
     question: "Is it free?",
-    answer: "It is free during early access. Pricing comes later, once the product has earned the right to charge for it.",
+    answer:
+      "It is free during early access. Pricing comes later, once the product has earned the right to charge for it.",
   },
 ] as const;
 
@@ -38,7 +42,8 @@ export function Faq() {
             Clear answers, <span className="text-signal-amber">before you start.</span>
           </h2>
           <p className="mt-5 max-w-sm text-sm leading-relaxed text-text-secondary sm:text-base">
-            Inroad is intentionally straightforward about what it does, what it does not automate, and where it is today.
+            Inroad is intentionally straightforward about what it does, what it does not automate,
+            and where it is today.
           </p>
         </Reveal>
 
@@ -63,12 +68,21 @@ export function Faq() {
                   aria-controls={panelId}
                   onClick={() => setOpenIndex(isOpen ? -1 : index)}
                 >
-                  <span className="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">{item.question}</span>
+                  <span className="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">
+                    {item.question}
+                  </span>
                   <motion.span
                     aria-hidden="true"
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line text-lg leading-none text-signal-teal"
-                    animate={{ rotate: isOpen ? 45 : 0, backgroundColor: isOpen ? "rgb(var(--color-signal-teal-subtle))" : "rgb(var(--color-surface))" }}
-                    transition={reduceMotion ? { duration: 0 } : { duration: 0.2, ease: LANDING_EASE }}
+                    animate={{
+                      rotate: isOpen ? 45 : 0,
+                      backgroundColor: isOpen
+                        ? "rgb(var(--color-signal-teal-subtle))"
+                        : "rgb(var(--color-surface))",
+                    }}
+                    transition={
+                      reduceMotion ? { duration: 0 } : { duration: 0.2, ease: LANDING_EASE }
+                    }
                   >
                     +
                   </motion.span>
@@ -83,9 +97,13 @@ export function Faq() {
                       initial={reduceMotion ? false : { height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: LANDING_EASE }}
+                      transition={
+                        reduceMotion ? { duration: 0 } : { duration: 0.28, ease: LANDING_EASE }
+                      }
                     >
-                      <p className="max-w-xl pb-5 text-sm leading-relaxed text-text-secondary sm:text-base">{item.answer}</p>
+                      <p className="max-w-xl pb-5 text-sm leading-relaxed text-text-secondary sm:text-base">
+                        {item.answer}
+                      </p>
                     </motion.div>
                   ) : null}
                 </AnimatePresence>

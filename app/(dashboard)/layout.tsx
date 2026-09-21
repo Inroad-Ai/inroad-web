@@ -12,11 +12,7 @@ import { verifyAccessToken } from "@/lib/auth-native/verify";
 // persist a refreshed cookie back to the browser anyway.
 export const dynamic = "force-dynamic";
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const accessToken = cookies().get(ACCESS_TOKEN_COOKIE)?.value;
   const userId = accessToken ? await verifyAccessToken(accessToken) : null;
 

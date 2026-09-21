@@ -67,8 +67,6 @@ export function VerifyEmail() {
   }
 
   return (
-    <p className="text-center font-sans text-sm text-text-secondary">
-      Confirming your email...
-    </p>
+    <p className="text-center font-sans text-sm text-text-secondary">Confirming your email...</p>
   );
 }

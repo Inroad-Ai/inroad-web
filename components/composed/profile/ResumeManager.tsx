@@ -90,9 +90,7 @@ export function ResumeManager({
             </p>
             <span
               className={`utility-label rounded-full px-2 py-1 ${
-                available
-                  ? "bg-success-subtle text-success"
-                  : "bg-surface text-text-secondary"
+                available ? "bg-success-subtle text-success" : "bg-surface text-text-secondary"
               }`}
             >
               {status}

@@ -6,7 +6,11 @@ import { VALUE_PROPS } from "@/lib/onboarding";
 
 // Matched to VALUE_PROPS by index - kept here rather than on the data array
 // itself, since lib/ has no business importing UI icon components.
-const VALUE_PROP_ICONS: ReactNode[] = [<TargetIcon key="target" />, <DocumentSearchIcon key="doc" />, <MessageIcon key="msg" />];
+const VALUE_PROP_ICONS: ReactNode[] = [
+  <TargetIcon key="target" />,
+  <DocumentSearchIcon key="doc" />,
+  <MessageIcon key="msg" />,
+];
 
 export function WelcomeScreen({
   phases,
@@ -69,7 +73,10 @@ function OnboardingVisual({ phases }: { phases: readonly string[] }) {
   return (
     <div className="hidden lg:block">
       <div className="relative pl-4">
-        <div className="absolute left-[calc(1rem+0.75rem)] top-3 bottom-3 w-px bg-line" aria-hidden="true">
+        <div
+          className="absolute left-[calc(1rem+0.75rem)] top-3 bottom-3 w-px bg-line"
+          aria-hidden="true"
+        >
           <div
             className="w-px bg-signal-teal transition-[height] duration-500 ease-out"
             style={{ height: `${(1 / phases.length) * 100}%` }}

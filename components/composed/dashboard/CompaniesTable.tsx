@@ -149,8 +149,7 @@ export function CompaniesTable() {
       {state === "ready" && data && data.items.length > 0 ? (
         <div className="mt-4 flex items-center justify-between text-sm text-text-secondary">
           <span>
-            {data.total} {data.total === 1 ? "company" : "companies"} - page {page} of{" "}
-            {totalPages}
+            {data.total} {data.total === 1 ? "company" : "companies"} - page {page} of {totalPages}
           </span>
           <div className="flex gap-2">
             <Button
@@ -211,9 +210,7 @@ function CompaniesTableBody({
   onRowClick: (id: string) => void;
 }) {
   if (state === "error") {
-    return (
-      <EmptyState className="px-6 py-16 text-center">{errorMessage}</EmptyState>
-    );
+    return <EmptyState className="px-6 py-16 text-center">{errorMessage}</EmptyState>;
   }
 
   if (state === "loading") {

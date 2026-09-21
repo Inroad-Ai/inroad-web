@@ -127,7 +127,9 @@ export function ConnectorCard({
       }`}
     >
       {/* Connected indicator bar */}
-      {connection && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-success to-signal-teal" />}
+      {connection && (
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-success to-signal-teal" />
+      )}
 
       <div className="flex flex-col p-6">
         {/* Header with logo and status */}
@@ -171,11 +173,7 @@ export function ConnectorCard({
           <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-line/40">
             {authMode === "oauth" ? "🔐" : "🔑"}
           </span>
-          <span>
-            {authMode === "oauth"
-              ? "Secure OAuth connection"
-              : "API key authentication"}
-          </span>
+          <span>{authMode === "oauth" ? "Secure OAuth connection" : "API key authentication"}</span>
         </div>
 
         {/* Action buttons */}

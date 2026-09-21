@@ -67,7 +67,9 @@ export function SummaryScreen({
   submitError: string | null;
 }) {
   const workPreferenceLabel = workPreference
-    .map((value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value)
+    .map(
+      (value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value,
+    )
     .join(", ");
 
   // Platform names, not the raw URLs - three full links joined together just
@@ -153,7 +155,9 @@ export function SummaryScreen({
       {resumeSourcedCount > 0 ? (
         <div className="mt-6 flex items-center gap-2 rounded-md border border-signal-teal/30 bg-signal-teal/5 px-4 py-3">
           <Badge tone="teal">{resumeSourcedCount} from your resume</Badge>
-          <span className="text-sm text-text-secondary">Worth a quick check before you submit.</span>
+          <span className="text-sm text-text-secondary">
+            Worth a quick check before you submit.
+          </span>
         </div>
       ) : null}
 
