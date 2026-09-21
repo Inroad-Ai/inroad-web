@@ -34,10 +34,12 @@ export function TargetRoleScreen({
         if (valid) onNext();
       }}
     >
-      <h1 className="font-display text-2xl text-text-primary">What roles should we find for you?</h1>
+      <h1 className="font-display text-2xl text-text-primary">
+        What roles should we find for you?
+      </h1>
       <p className="mt-2 text-sm text-text-secondary">
-        This is what we search for. Pick any that fit, or add your own below - the
-        more specific, the better the matches.
+        This is what we search for. Pick any that fit, or add your own below - the more specific,
+        the better the matches.
       </p>
       <div className="mt-6 flex flex-wrap gap-2">
         {COMMON_TARGET_ROLES.map((role, index) => {

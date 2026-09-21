@@ -16,9 +16,7 @@ export function PageShell({ eyebrow, title, description, action, children }: Pag
         <div>
           {eyebrow ? <p className="utility-label mb-2 text-signal-teal">{eyebrow}</p> : null}
           <h1 className="text-2xl text-ink">{title}</h1>
-          {description ? (
-            <p className="mt-1 text-sm text-text-secondary">{description}</p>
-          ) : null}
+          {description ? <p className="mt-1 text-sm text-text-secondary">{description}</p> : null}
         </div>
         {action ? <div className="w-full sm:w-auto">{action}</div> : null}
       </div>

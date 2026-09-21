@@ -46,7 +46,9 @@ export function Nav() {
       animate={{ y: 0, opacity: 1 }}
       transition={reduceMotion ? { duration: 0 } : { duration: 0.48, ease: LANDING_EASE }}
     >
-      <div className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-[padding] duration-200 ${scrolled ? "py-3" : "py-4"}`}>
+      <div
+        className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-[padding] duration-200 ${scrolled ? "py-3" : "py-4"}`}
+      >
         <Link href="/" aria-label="Inroad home">
           <Logo />
         </Link>
@@ -72,7 +74,10 @@ export function Nav() {
           </a>
         </div>
 
-        <motion.div whileHover={reduceMotion ? undefined : { y: -1 }} whileTap={reduceMotion ? undefined : { scale: 0.98 }}>
+        <motion.div
+          whileHover={reduceMotion ? undefined : { y: -1 }}
+          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+        >
           {signedIn ? (
             <Button href="/research" size="sm">
               Dashboard

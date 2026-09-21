@@ -9,7 +9,13 @@ import { useLandingMotion } from "@/lib/landing-motion";
 function CheckMark() {
   return (
     <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none">
-      <path d="M3 8.5 6.2 11.5 13 4.5" stroke="rgb(var(--color-signal-teal))" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3 8.5 6.2 11.5 13 4.5"
+        stroke="rgb(var(--color-signal-teal))"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -83,7 +89,15 @@ function ConvergeVisual() {
   ];
   return (
     <svg viewBox="0 0 200 200" className="h-40 w-40 sm:h-48 sm:w-48">
-      <circle cx={100} cy={100} r={86} fill="none" stroke="rgb(var(--color-line))" strokeWidth={1} strokeDasharray="3 6" />
+      <circle
+        cx={100}
+        cy={100}
+        r={86}
+        fill="none"
+        stroke="rgb(var(--color-line))"
+        strokeWidth={1}
+        strokeDasharray="3 6"
+      />
       <motion.circle
         cx={100}
         cy={100}
@@ -143,14 +157,21 @@ function WriteVisual() {
       <div className="flex flex-col gap-3.5">
         {lines.map((width, index) => (
           <div key={index} className="flex items-center gap-2.5">
-            <span className="w-3 shrink-0 text-right font-mono text-[10px] text-text-secondary/50">{index + 1}</span>
+            <span className="w-3 shrink-0 text-right font-mono text-[10px] text-text-secondary/50">
+              {index + 1}
+            </span>
             <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-line/60">
               <motion.div
                 className={`h-full rounded-full ${index === lines.length - 1 ? "bg-signal-amber" : "bg-ink/25"}`}
                 style={{ transformOrigin: "left center", width: `${width * 100}%` }}
                 initial={{ scaleX: 0 }}
                 animate={reduceMotion ? { scaleX: 1 } : { scaleX: [0, 1, 1, 0] }}
-                transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: index * 0.32 }}
+                transition={{
+                  duration: 3.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: index * 0.32,
+                }}
               />
             </div>
           </div>
@@ -175,7 +196,11 @@ const STEPS: Step[] = [
     number: "01",
     title: "Start with a company you are curious about.",
     copy: "Drop in a domain. Inroad gives the research a single, reusable home instead of another loose tab.",
-    bullets: ["One domain, one dossier", "No manual tab-juggling", "Reusable for every outreach draft"],
+    bullets: [
+      "One domain, one dossier",
+      "No manual tab-juggling",
+      "Reusable for every outreach draft",
+    ],
     tag: "stripe.com",
     visual: <PingVisual />,
     overlay: { eyebrow: "Live", label: "Research started", value: "stripe.com" },
@@ -184,7 +209,11 @@ const STEPS: Step[] = [
     number: "02",
     title: "Let the useful context come together.",
     copy: "Homepage, recent news, and hiring signals are checked at the same time. You see what came back and where it came from.",
-    bullets: ["Homepage, news, and hiring in parallel", "Every fact links back to its source", "Nothing goes in the draft unverified"],
+    bullets: [
+      "Homepage, news, and hiring in parallel",
+      "Every fact links back to its source",
+      "Nothing goes in the draft unverified",
+    ],
     tag: "3 sources checked",
     visual: <ConvergeVisual />,
     overlay: { eyebrow: "3/3", label: "Sources checked", value: "Homepage · News · Hiring" },
@@ -193,7 +222,11 @@ const STEPS: Step[] = [
     number: "03",
     title: "Write from evidence, then make it yours.",
     copy: "Use the dossier to build a message worth sending. You edit it, decide on it, and send it yourself.",
-    bullets: ["Draft grounded in the dossier, not a template", "You edit every line before it sends", "Nothing goes out without your review"],
+    bullets: [
+      "Draft grounded in the dossier, not a template",
+      "You edit every line before it sends",
+      "Nothing goes out without your review",
+    ],
     tag: "Always your call",
     visual: <WriteVisual />,
     overlay: { eyebrow: "Ready", label: "Draft grounded in evidence", value: "Always your call" },
@@ -203,7 +236,9 @@ const STEPS: Step[] = [
 function CardFace({ step, imageFirst }: { step: Step; imageFirst: boolean }) {
   return (
     <div className="grid w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-card md:grid-cols-2">
-      <div className={`${imageFirst ? "md:order-1" : "md:order-2"} relative flex aspect-[4/3] w-full items-center justify-center bg-surface-raised md:aspect-auto`}>
+      <div
+        className={`${imageFirst ? "md:order-1" : "md:order-2"} relative flex aspect-[4/3] w-full items-center justify-center bg-surface-raised md:aspect-auto`}
+      >
         {step.visual}
         <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-xl border border-line bg-surface/95 px-4 py-3 shadow-card backdrop-blur sm:inset-x-5 sm:bottom-5">
           <span className="shrink-0 rounded-full bg-signal-teal-subtle px-2.5 py-1 text-[11px] font-semibold text-signal-teal">
@@ -215,7 +250,9 @@ function CardFace({ step, imageFirst }: { step: Step; imageFirst: boolean }) {
           </div>
         </div>
       </div>
-      <div className={`${imageFirst ? "md:order-2" : "md:order-1"} flex flex-col justify-center px-8 py-10 sm:px-12 sm:py-12`}>
+      <div
+        className={`${imageFirst ? "md:order-2" : "md:order-1"} flex flex-col justify-center px-8 py-10 sm:px-12 sm:py-12`}
+      >
         <div className="flex items-center gap-3">
           <span className="utility-label text-signal-teal">Step {step.number}</span>
           <span aria-hidden className="h-px flex-1 bg-line" />
@@ -257,23 +294,34 @@ const RECEDE_SCALE = 0.94;
 function StackedSequence() {
   const outerRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useLandingMotion();
-  const { scrollYProgress: rawProgress } = useScroll({ target: outerRef, offset: ["start start", "end end"] });
+  const { scrollYProgress: rawProgress } = useScroll({
+    target: outerRef,
+    offset: ["start start", "end end"],
+  });
   const scrollYProgress = useSpring(rawProgress, { stiffness: 260, damping: 40, mass: 0.4 });
 
-  const scale0 = useTransform(scrollYProgress, [0, ENTER_1[0], ENTER_1[1], 1], [1, 1, RECEDE_SCALE, RECEDE_SCALE]);
+  const scale0 = useTransform(
+    scrollYProgress,
+    [0, ENTER_1[0], ENTER_1[1], 1],
+    [1, 1, RECEDE_SCALE, RECEDE_SCALE],
+  );
 
   const y1 = useTransform(
     scrollYProgress,
     [0, ENTER_1[0], ENTER_1[1], 1],
-    [TRAVEL_PX + PEEK_PX, TRAVEL_PX + PEEK_PX, PEEK_PX, PEEK_PX]
+    [TRAVEL_PX + PEEK_PX, TRAVEL_PX + PEEK_PX, PEEK_PX, PEEK_PX],
   );
   const opacity1 = useTransform(scrollYProgress, [0, ENTER_1[0], ENTER_1[1], 1], [0, 0, 1, 1]);
-  const scale1 = useTransform(scrollYProgress, [0, ENTER_2[0], ENTER_2[1], 1], [1, 1, RECEDE_SCALE, RECEDE_SCALE]);
+  const scale1 = useTransform(
+    scrollYProgress,
+    [0, ENTER_2[0], ENTER_2[1], 1],
+    [1, 1, RECEDE_SCALE, RECEDE_SCALE],
+  );
 
   const y2 = useTransform(
     scrollYProgress,
     [0, ENTER_2[0], ENTER_2[1], 1],
-    [TRAVEL_PX + PEEK_PX * 2, TRAVEL_PX + PEEK_PX * 2, PEEK_PX * 2, PEEK_PX * 2]
+    [TRAVEL_PX + PEEK_PX * 2, TRAVEL_PX + PEEK_PX * 2, PEEK_PX * 2, PEEK_PX * 2],
   );
   const opacity2 = useTransform(scrollYProgress, [0, ENTER_2[0], ENTER_2[1], 1], [0, 0, 1, 1]);
 
@@ -325,7 +373,8 @@ export function HowItWorks() {
             A calmer way <span className="text-signal-amber">to do the homework.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-text-secondary sm:text-base">
-            The work stays human. Inroad just removes the part that makes each good lead feel expensive.
+            The work stays human. Inroad just removes the part that makes each good lead feel
+            expensive.
           </p>
         </Reveal>
       </div>

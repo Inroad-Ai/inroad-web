@@ -51,7 +51,9 @@ export function Reveal({
     case "p":
       return <motion.p {...(sharedProps as HTMLMotionProps<"p">)}>{children}</motion.p>;
     case "article":
-      return <motion.article {...(sharedProps as HTMLMotionProps<"article">)}>{children}</motion.article>;
+      return (
+        <motion.article {...(sharedProps as HTMLMotionProps<"article">)}>{children}</motion.article>
+      );
     default:
       return <motion.div {...(sharedProps as HTMLMotionProps<"div">)}>{children}</motion.div>;
   }

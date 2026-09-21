@@ -53,8 +53,8 @@ export function SourcesSection() {
             duration={0.56}
             delay={0.12}
           >
-            The value is not another company database. It is having enough
-            current, specific context to decide whether a conversation is worth starting.
+            The value is not another company database. It is having enough current, specific context
+            to decide whether a conversation is worth starting.
           </Reveal>
         </div>
 
@@ -69,18 +69,27 @@ export function SourcesSection() {
               delay={index * 0.1}
               whileHover={reduceMotion ? undefined : { y: -5 }}
             >
-              <span className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 font-display text-sm font-semibold ${source.tone}`}>
+              <span
+                className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 font-display text-sm font-semibold ${source.tone}`}
+              >
                 {source.number}
               </span>
               <div className="relative mt-10 max-w-sm">
-                <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">{source.name}</h3>
+                <h3 className="font-display text-2xl font-semibold tracking-tight text-ink">
+                  {source.name}
+                </h3>
                 <p className="mt-3 text-base leading-relaxed text-text-secondary">{source.copy}</p>
               </div>
               <div className="relative mt-auto flex items-center justify-between gap-4 border-t border-line pt-4 sm:pt-6">
                 <span className="text-xs text-text-secondary">{source.note}</span>
-                <motion.span aria-hidden className="text-lg text-ink" whileHover={{ x: 3 }}>↗</motion.span>
+                <motion.span aria-hidden className="text-lg text-ink" whileHover={{ x: 3 }}>
+                  ↗
+                </motion.span>
               </div>
-              <div aria-hidden className={`absolute -right-10 -top-10 h-36 w-36 rounded-full opacity-60 ${source.tone.split(" ")[0]}`} />
+              <div
+                aria-hidden
+                className={`absolute -right-10 -top-10 h-36 w-36 rounded-full opacity-60 ${source.tone.split(" ")[0]}`}
+              />
             </Reveal>
           ))}
         </div>

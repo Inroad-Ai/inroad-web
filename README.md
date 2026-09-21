@@ -70,16 +70,16 @@ Eight colours, declared once as CSS custom properties in
 [globals.css](app/globals.css) and wired into Tailwind in
 [tailwind.config.ts](tailwind.config.ts). No component contains a hex value.
 
-| Token | Value | Used for |
-| --- | --- | --- |
-| `ink` | `#0E121B` | Page background |
-| `surface` | `#171D2B` | Cards, inputs |
-| `surface-raised` | `#1F273A` | Quiet buttons, loading blocks |
-| `paper` | `#EDEAE2` | Text |
-| `signal-amber` | `#E8A33D` | Resolved, done, primary action |
-| `signal-teal` | `#46B8AC` | In progress, live, focus rings |
-| `muted-rose` | `#C9645A` | Nothing found |
-| `line` | `#2A3244` | Borders, dividers |
+| Token            | Value     | Used for                       |
+| ---------------- | --------- | ------------------------------ |
+| `ink`            | `#0E121B` | Page background                |
+| `surface`        | `#171D2B` | Cards, inputs                  |
+| `surface-raised` | `#1F273A` | Quiet buttons, loading blocks  |
+| `paper`          | `#EDEAE2` | Text                           |
+| `signal-amber`   | `#E8A33D` | Resolved, done, primary action |
+| `signal-teal`    | `#46B8AC` | In progress, live, focus rings |
+| `muted-rose`     | `#C9645A` | Nothing found                  |
+| `line`           | `#2A3244` | Borders, dividers              |
 
 Two faces, both loaded with `next/font/google` in
 [layout.tsx](app/layout.tsx) and self-hosted at build time — no CDN link tag.
@@ -133,7 +133,7 @@ the honest thing instead of the specified thing:
   an integer. `lib/types.ts` mirrors the model as-is and `totalTimeSeconds()`
   divides for display. The large numeral on the dashboard is that value.
 - **Nothing in a dossier has a timestamp**, so "12m ago" cannot come from the
-  response. `lib/api.ts` records in `localStorage` when *this browser* last saw
+  response. `lib/api.ts` records in `localStorage` when _this browser_ last saw
   a domain fetched live, and that is the only source of the relative time. A
   history row from another browser or another session says "earlier" instead of
   inventing a number.
@@ -146,16 +146,16 @@ the honest thing instead of the specified thing:
 
 ### Routes
 
-| Route | What it is |
-| --- | --- |
-| `/` | Landing page, with a live input in the hero |
+| Route  | What it is                                       |
+| ------ | ------------------------------------------------ |
+| `/`    | Landing page, with a live input in the hero      |
 | `/app` | Dashboard: search, three cards, summary, history |
 
 ### Backend endpoints used
 
-| Call | Used by |
-| --- | --- |
-| `GET /api/research?domain=` | Hero input, dashboard search |
+| Call                        | Used by                                 |
+| --------------------------- | --------------------------------------- |
+| `GET /api/research?domain=` | Hero input, dashboard search            |
 | `GET /api/research/history` | `HistoryList`, refreshed after each run |
 
 Both are `GET`, which matches the backend's CORS config — it allows

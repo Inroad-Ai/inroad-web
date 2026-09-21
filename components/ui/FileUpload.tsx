@@ -76,9 +76,7 @@ export function FileUpload({
                 {statusLabel}
               </p>
             ) : null}
-            {state === "done" ? (
-              <p className="mt-1 text-xs text-success">Uploaded</p>
-            ) : null}
+            {state === "done" ? <p className="mt-1 text-xs text-success">Uploaded</p> : null}
           </div>
           {state === "done" && onRemove ? (
             <label

@@ -11,11 +11,7 @@ function withOpacity(variable: string) {
 }
 
 const config: Config = {
-  content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./lib/**/*.{ts,tsx}",
-  ],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
@@ -61,10 +57,7 @@ const config: Config = {
         "2xl": ["var(--text-2xl-size)", { lineHeight: "var(--text-2xl-line-height)" }],
         "3xl": ["var(--text-3xl-size)", { lineHeight: "var(--text-3xl-line-height)" }],
         "4xl": ["var(--text-4xl-size)", { lineHeight: "var(--text-4xl-line-height)" }],
-        wordmark: [
-          "var(--text-wordmark-size)",
-          { lineHeight: "var(--text-wordmark-line-height)" },
-        ],
+        wordmark: ["var(--text-wordmark-size)", { lineHeight: "var(--text-wordmark-line-height)" }],
         hero: ["var(--text-hero-size)", { lineHeight: "var(--text-hero-line-height)" }],
       },
       fontWeight: {

@@ -51,10 +51,5 @@ export function Button({
     );
   }
 
-  return (
-    <button
-      className={classes}
-      {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}
-    />
-  );
+  return <button className={classes} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} />;
 }

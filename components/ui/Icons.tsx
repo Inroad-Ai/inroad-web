@@ -62,7 +62,10 @@ export function BuildingIcon() {
   return (
     <Icon>
       <path d="M1.75 13.75h12.5" strokeLinecap="round" />
-      <path d="M3.5 13.75V3a.75.75 0 0 1 .75-.75h4.5A.75.75 0 0 1 9.5 3v10.75" strokeLinejoin="round" />
+      <path
+        d="M3.5 13.75V3a.75.75 0 0 1 .75-.75h4.5A.75.75 0 0 1 9.5 3v10.75"
+        strokeLinejoin="round"
+      />
       <path d="M9.5 6.75h2.25a.75.75 0 0 1 .75.75v6.25" strokeLinejoin="round" />
       <path d="M5.25 5h2M5.25 7.75h2" strokeLinecap="round" />
       <path d="M5.75 13.75v-2.5h1.5v2.5" strokeLinejoin="round" />
@@ -102,7 +105,11 @@ export function SlidersIcon() {
 export function ExternalLinkIcon() {
   return (
     <Icon>
-      <path d="M6.5 2.75H3.5a.75.75 0 0 0-.75.75v9c0 .414.336.75.75.75h9a.75.75 0 0 0 .75-.75v-3" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6.5 2.75H3.5a.75.75 0 0 0-.75.75v9c0 .414.336.75.75.75h9a.75.75 0 0 0 .75-.75v-3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <path d="M8.75 2.75h4.5v4.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M13.25 2.75 7 9" strokeLinecap="round" strokeLinejoin="round" />
     </Icon>
@@ -113,7 +120,10 @@ export function PlugIcon() {
   return (
     <Icon>
       <path d="M5.5 1.75v3M10.5 1.75v3" strokeLinecap="round" />
-      <path d="M3.75 4.75h8.5v2.5a4.25 4.25 0 0 1-4.25 4.25 4.25 4.25 0 0 1-4.25-4.25v-2.5Z" strokeLinejoin="round" />
+      <path
+        d="M3.75 4.75h8.5v2.5a4.25 4.25 0 0 1-4.25 4.25 4.25 4.25 0 0 1-4.25-4.25v-2.5Z"
+        strokeLinejoin="round"
+      />
       <path d="M8 11.5v2.75" strokeLinecap="round" />
     </Icon>
   );
@@ -122,8 +132,15 @@ export function PlugIcon() {
 export function SignOutIcon() {
   return (
     <Icon>
-      <path d="M6.25 2.75H3.5a.75.75 0 0 0-.75.75v9a.75.75 0 0 0 .75.75h2.75" strokeLinecap="round" />
-      <path d="M9.5 5.25 12.25 8 9.5 10.75M12.25 8H6.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6.25 2.75H3.5a.75.75 0 0 0-.75.75v9a.75.75 0 0 0 .75.75h2.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M9.5 5.25 12.25 8 9.5 10.75M12.25 8H6.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Icon>
   );
 }

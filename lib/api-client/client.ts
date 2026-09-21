@@ -44,9 +44,7 @@ export type ProjectEntry = components["schemas"]["ProjectEntry"];
 export type CertificateEntry = components["schemas"]["CertificateEntry"];
 export type LanguageEntry = components["schemas"]["LanguageEntry"];
 
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
-).replace(/\/$/, "");
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
 const client = createClient<paths>({ baseUrl: BASE_URL });
 
@@ -82,7 +80,11 @@ function errorEnvelope(body: unknown): { code?: string; message?: string } | nul
 function describeFailure(status: number, body: unknown): string {
   const envelope = errorEnvelope(body);
   if (envelope?.message) return envelope.message;
-  if (body && typeof body === "object" && typeof (body as { detail?: unknown }).detail === "string") {
+  if (
+    body &&
+    typeof body === "object" &&
+    typeof (body as { detail?: unknown }).detail === "string"
+  ) {
     return (body as { detail: string }).detail;
   }
   if (status === 422) return "That does not look like a usable domain.";
@@ -413,15 +415,12 @@ export async function saveOutreachDraft(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<OutreachDraft> {
-  const result = await client.PATCH(
-    "/api/people/{person_id}/outreach/{channel}/{sequence_index}",
-    {
-      params: { path: { person_id: personId, channel, sequence_index: sequenceIndex } },
-      body: draft,
-      headers: authHeaders(accessToken),
-      signal,
-    },
-  );
+  const result = await client.PATCH("/api/people/{person_id}/outreach/{channel}/{sequence_index}", {
+    params: { path: { person_id: personId, channel, sequence_index: sequenceIndex } },
+    body: draft,
+    headers: authHeaders(accessToken),
+    signal,
+  });
 
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft;
 }
@@ -436,11 +435,14 @@ export async function createGmailDraft(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<GmailDraft> {
-  const result = await client.POST("/api/people/{person_id}/outreach/gmail-draft/{sequence_index}", {
-    params: { path: { person_id: personId, sequence_index: sequenceIndex } },
-    headers: authHeaders(accessToken),
-    signal,
-  });
+  const result = await client.POST(
+    "/api/people/{person_id}/outreach/gmail-draft/{sequence_index}",
+    {
+      params: { path: { person_id: personId, sequence_index: sequenceIndex } },
+      headers: authHeaders(accessToken),
+      signal,
+    },
+  );
 
   return unwrap(result, OUTREACH_UNREACHABLE) as GmailDraft;
 }
@@ -565,10 +567,7 @@ export async function logoutNative(refreshToken: string): Promise<void> {
 }
 
 /** The signed-in account. The token says whose, so there's no id to pass. */
-export async function fetchMe(
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<CurrentUser> {
+export async function fetchMe(accessToken: string, signal?: AbortSignal): Promise<CurrentUser> {
   const result = await client.GET("/api/auth/me", {
     headers: authHeaders(accessToken),
     signal,

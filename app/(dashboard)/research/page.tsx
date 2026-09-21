@@ -180,9 +180,7 @@ export default function ResearchPage() {
         </div>
         <aside className="rounded-lg border border-signal-teal/20 bg-signal-teal-subtle/55 p-6 shadow-card sm:p-7">
           <p className="utility-label text-signal-teal">Profile-led discovery</p>
-          <h2 className="mt-2 text-xl font-semibold text-ink">
-            Find your next best-fit company
-          </h2>
+          <h2 className="mt-2 text-xl font-semibold text-ink">Find your next best-fit company</h2>
           <p className="mt-2 text-sm leading-6 text-text-secondary">
             Search current hiring signals against your target roles, skills, and work preferences.
           </p>
@@ -337,7 +335,9 @@ function RunRow({ run }: { run: ResearchRun }) {
             </p>
           </div>
         </div>
-        {run.state === "done" ? <span className="utility-label text-signal-teal">Open brief</span> : null}
+        {run.state === "done" ? (
+          <span className="utility-label text-signal-teal">Open brief</span>
+        ) : null}
       </div>
       {run.state === "pending" ? (
         <ActivityProgress label="Research is running in the background" startedAt={run.startedAt} />
@@ -352,7 +352,10 @@ function RunRow({ run }: { run: ResearchRun }) {
 
   return run.state === "done" && run.companyId ? (
     <li>
-      <Link href={`/companies/${run.companyId}`} className="block transition-colors hover:bg-surface-raised/60">
+      <Link
+        href={`/companies/${run.companyId}`}
+        className="block transition-colors hover:bg-surface-raised/60"
+      >
         {content}
       </Link>
     </li>
@@ -391,7 +394,10 @@ function MatchRunRow({ run, onRetry }: { run: MatchRun; onRetry: (runId: string)
                   : "Based on your saved preferences"}
           </p>
           {inFlight ? (
-            <ActivityProgress label="Match scan is running in the background" startedAt={run.startedAt} />
+            <ActivityProgress
+              label="Match scan is running in the background"
+              startedAt={run.startedAt}
+            />
           ) : null}
           {run.timedOut ? (
             <div className="mt-3">

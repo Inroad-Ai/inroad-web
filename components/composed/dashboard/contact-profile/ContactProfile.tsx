@@ -178,7 +178,8 @@ export function ContactProfile({ personId }: { personId: string }) {
           <div className="min-w-0">
             <h2 className="truncate font-display text-xl font-semibold text-ink">{detail.name}</h2>
             <p className="mt-1 text-sm text-text-secondary">
-              {detail.title ?? "Title not listed"} at {detail.company_homepage_title ?? detail.company_domain}
+              {detail.title ?? "Title not listed"} at{" "}
+              {detail.company_homepage_title ?? detail.company_domain}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge tone="neutral">{PERSON_ROLE_LABEL[detail.role_category]}</Badge>

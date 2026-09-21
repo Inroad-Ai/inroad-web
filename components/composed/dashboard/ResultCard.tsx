@@ -41,9 +41,7 @@ export function ResultCard({ source, state, dossier }: ResultCardProps) {
       <div className="flex flex-1 flex-col pt-5">
         {state === "pending" ? <Checking /> : null}
         {state === "idle" ? <Waiting /> : null}
-        {state === "failed" ? (
-          <Nothing source={source} reason={reason} />
-        ) : null}
+        {state === "failed" ? <Nothing source={source} reason={reason} /> : null}
         {state === "done" ? <Found source={source} dossier={dossier} /> : null}
       </div>
 
@@ -89,13 +87,7 @@ function Nothing({ source, reason }: { source: SourceKey; reason?: string }) {
   );
 }
 
-function Found({
-  source,
-  dossier,
-}: {
-  source: SourceKey;
-  dossier: CompanyDossier | null;
-}) {
+function Found({ source, dossier }: { source: SourceKey; dossier: CompanyDossier | null }) {
   if (!dossier) return null;
   if (source === "homepage") return <Homepage dossier={dossier} />;
   if (source === "news") return <News dossier={dossier} />;
@@ -132,9 +124,7 @@ function News({ dossier }: { dossier: CompanyDossier }) {
 
   if (news.items.length === 0) {
     return (
-      <p className="text-sm text-text-secondary">
-        Nothing published about this company recently.
-      </p>
+      <p className="text-sm text-text-secondary">Nothing published about this company recently.</p>
     );
   }
 
@@ -155,9 +145,7 @@ function News({ dossier }: { dossier: CompanyDossier }) {
             <span className="text-sm leading-snug text-ink">{item.title}</span>
           )}
           {item.source ? (
-            <span className="utility-label mt-1 block text-text-secondary/70">
-              {item.source}
-            </span>
+            <span className="utility-label mt-1 block text-text-secondary/70">{item.source}</span>
           ) : null}
         </li>
       ))}

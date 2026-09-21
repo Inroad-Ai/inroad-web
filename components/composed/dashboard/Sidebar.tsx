@@ -172,7 +172,13 @@ function NavGroupAccordion({
   );
 }
 
-function CollapseToggleButton({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+function CollapseToggleButton({
+  collapsed,
+  onToggle,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   return (
     <button
       type="button"

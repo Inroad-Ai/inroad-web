@@ -17,7 +17,15 @@ type Tool = {
  * (from simple-icons, CC0) are recolored to their real brand color; Gmail,
  * Apollo, Hunter, and ContactOut already have their own full-color logo
  * files under /public/logos, shared with the connected-accounts page. */
-function VectorMark({ path, viewBox = "0 0 24 24", color }: { path: string; viewBox?: string; color: string }) {
+function VectorMark({
+  path,
+  viewBox = "0 0 24 24",
+  color,
+}: {
+  path: string;
+  viewBox?: string;
+  color: string;
+}) {
   return (
     <svg viewBox={viewBox} className="h-5 w-5">
       <path d={path} fill={color} />
@@ -108,7 +116,11 @@ function ToolBadge({ tool, index }: { tool: Tool; index: number }) {
       initial={reduceMotion ? false : { opacity: 0, scale: 0.7 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={LANDING_VIEWPORT}
-      transition={reduceMotion ? { duration: 0 } : { duration: 0.4, delay: index * 0.08 + 0.35, ease: LANDING_EASE }}
+      transition={
+        reduceMotion
+          ? { duration: 0 }
+          : { duration: 0.4, delay: index * 0.08 + 0.35, ease: LANDING_EASE }
+      }
     >
       {tool.render()}
     </motion.div>
@@ -117,7 +129,9 @@ function ToolBadge({ tool, index }: { tool: Tool; index: number }) {
 
 function ToolColumn({ tools, side }: { tools: Tool[]; side: "left" | "right" }) {
   return (
-    <ul className={`flex flex-1 flex-col justify-between gap-6 sm:gap-8 ${side === "right" ? "items-end" : "items-start"}`}>
+    <ul
+      className={`flex flex-1 flex-col justify-between gap-6 sm:gap-8 ${side === "right" ? "items-end" : "items-start"}`}
+    >
       {tools.map((tool, index) => (
         <li key={tool.name}>
           <ToolBadge tool={tool} index={index} />
@@ -150,7 +164,8 @@ export function Integrations() {
                 Plugs into the tools <span className="text-signal-amber">you already use.</span>
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-text-secondary sm:text-base">
-                Inroad connects to your email, your contact-finding tools, and the rest of your search setup, so research and outreach live where you already work.
+                Inroad connects to your email, your contact-finding tools, and the rest of your
+                search setup, so research and outreach live where you already work.
               </p>
             </div>
           </Reveal>

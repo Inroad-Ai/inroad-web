@@ -184,9 +184,7 @@ export function ProfileForm() {
             workHistory: fields.workHistory.length ? fields.workHistory : previous.workHistory,
             education: fields.education.length ? fields.education : previous.education,
             projects: fields.projects.length ? fields.projects : previous.projects,
-            certificates: fields.certificates.length
-              ? fields.certificates
-              : previous.certificates,
+            certificates: fields.certificates.length ? fields.certificates : previous.certificates,
             languages: fields.languages.length ? fields.languages : previous.languages,
           }
         : previous,
@@ -270,11 +268,7 @@ export function ProfileForm() {
 
   if (loading) {
     return (
-      <div
-        role="status"
-        className="mt-6 max-w-5xl space-y-6"
-        aria-label="Loading your profile"
-      >
+      <div role="status" className="mt-6 max-w-5xl space-y-6" aria-label="Loading your profile">
         <div className="rounded-md border border-line bg-surface p-6 shadow-card">
           <div className="flex items-center gap-4">
             <Skeleton className="h-14 w-14" />
@@ -333,12 +327,12 @@ export function ProfileForm() {
   );
   const hasResume = Boolean(
     form.summary.trim() ||
-      form.skills.length ||
-      form.workHistory.length ||
-      form.education.length ||
-      form.projects.length ||
-      form.certificates.length ||
-      form.languages.length,
+    form.skills.length ||
+    form.workHistory.length ||
+    form.education.length ||
+    form.projects.length ||
+    form.certificates.length ||
+    form.languages.length,
   );
 
   return (
@@ -380,7 +374,8 @@ export function ProfileForm() {
         </div>
         <div className="mt-5 flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-text-secondary">
-            Your profile shapes company matching, research, and the outreach drafts prepared in Inroad.
+            Your profile shapes company matching, research, and the outreach drafts prepared in
+            Inroad.
           </p>
           <span className="utility-label whitespace-nowrap text-signal-teal">
             {completion}% complete
@@ -493,9 +488,7 @@ export function ProfileForm() {
               <UrlInput
                 id="profile-github"
                 aria-invalid={validationErrors.githubUrl ? true : undefined}
-                aria-describedby={
-                  validationErrors.githubUrl ? "profile-github-error" : undefined
-                }
+                aria-describedby={validationErrors.githubUrl ? "profile-github-error" : undefined}
                 value={form.githubUrl}
                 onChange={(event) => update("githubUrl", event.target.value)}
                 placeholder="https://github.com/you"
@@ -559,9 +552,7 @@ export function ProfileForm() {
             <p className="font-display text-sm font-semibold text-text-primary">
               {profile.career_arc_parsed_json ? "Career arc added" : "No career arc added"}
             </p>
-            <p className="mt-1 text-xs text-text-secondary">
-              {CAREER_ARC_PARSING_UNAVAILABLE}
-            </p>
+            <p className="mt-1 text-xs text-text-secondary">{CAREER_ARC_PARSING_UNAVAILABLE}</p>
           </div>
           <span className="utility-label shrink-0 text-text-secondary">
             {profile.career_arc_parsed_json ? "Parsed" : "Not added"}

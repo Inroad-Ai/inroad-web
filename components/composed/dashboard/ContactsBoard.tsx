@@ -42,7 +42,9 @@ const EMPTY_COLUMN: ColumnState = {
 };
 
 function initialBoard(): BoardState {
-  return Object.fromEntries(PERSON_STAGES.map((stage) => [stage, { ...EMPTY_COLUMN }])) as BoardState;
+  return Object.fromEntries(
+    PERSON_STAGES.map((stage) => [stage, { ...EMPTY_COLUMN }]),
+  ) as BoardState;
 }
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see your contacts.";
@@ -269,7 +271,9 @@ function ContactsColumn({
           disabled={column.loadingMore}
           className="mt-2 w-full"
         >
-          {column.loadingMore ? "Loading..." : `Show more (${column.total - column.items.length} left)`}
+          {column.loadingMore
+            ? "Loading..."
+            : `Show more (${column.total - column.items.length} left)`}
         </Button>
       ) : null}
     </section>

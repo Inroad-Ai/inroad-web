@@ -72,7 +72,11 @@ export function IntegrationsConnectors({ containerRef }: { containerRef: RefObje
           initial={reduceMotion ? false : { pathLength: 0, opacity: 0 }}
           whileInView={{ pathLength: 1, opacity: 0.5 }}
           viewport={{ once: true, amount: 0.4 }}
-          transition={reduceMotion ? { duration: 0 } : { duration: 0.7, delay: LINE_DELAY, ease: LANDING_EASE }}
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { duration: 0.7, delay: LINE_DELAY, ease: LANDING_EASE }
+          }
         />
       ))}
       <motion.circle

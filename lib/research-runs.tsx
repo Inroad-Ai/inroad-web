@@ -53,10 +53,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           error: null,
         },
         ...prev,
-      ].slice(
-        0,
-        MAX_TRACKED_RUNS,
-      ),
+      ].slice(0, MAX_TRACKED_RUNS),
     );
 
     function settle(update: Partial<ResearchRun>) {

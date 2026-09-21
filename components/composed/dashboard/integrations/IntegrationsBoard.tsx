@@ -155,7 +155,7 @@ export function IntegrationsBoard() {
       acc[cat]!.push(provider);
       return acc;
     },
-    {} as Record<string, typeof KNOWN_PROVIDERS[number][]>,
+    {} as Record<string, (typeof KNOWN_PROVIDERS)[number][]>,
   );
 
   return (
@@ -175,19 +175,23 @@ export function IntegrationsBoard() {
                 <PlugIcon />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Connected services</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Connected services
+                </p>
                 <h1 className="mt-1 text-2xl font-semibold text-ink">Your integration hub</h1>
               </div>
             </div>
             <p className="mt-4 max-w-2xl text-sm text-text-secondary">
-              Connect the tools you already use to build a richer, more automated outreach workflow. Each connection is
-              optional and only used for the work you explicitly start.
+              Connect the tools you already use to build a richer, more automated outreach workflow.
+              Each connection is optional and only used for the work you explicitly start.
             </p>
           </div>
-          
+
           {/* Progress Card */}
           <div className="flex flex-col rounded-lg border border-line/50 bg-surface p-6 lg:min-w-56">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Connected</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              Connected
+            </p>
             <div className="mt-4 flex items-baseline gap-2">
               <p className="text-4xl font-bold text-ink">{connectedCount}</p>
               <p className="text-sm text-text-secondary">of {KNOWN_PROVIDERS.length}</p>
@@ -199,7 +203,9 @@ export function IntegrationsBoard() {
                   style={{ width: `${(connectedCount / KNOWN_PROVIDERS.length) * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-text-secondary">{Math.round((connectedCount / KNOWN_PROVIDERS.length) * 100)}% complete</p>
+              <p className="text-xs text-text-secondary">
+                {Math.round((connectedCount / KNOWN_PROVIDERS.length) * 100)}% complete
+              </p>
             </div>
           </div>
         </div>
@@ -226,7 +232,9 @@ export function IntegrationsBoard() {
                 description={entry.description}
                 logoSrc={entry.logoSrc}
                 authMode={entry.authMode}
-                connection={connections.find((connection) => connection.provider === entry.provider) ?? null}
+                connection={
+                  connections.find((connection) => connection.provider === entry.provider) ?? null
+                }
                 onConnected={handleConnected}
                 onDisconnected={handleDisconnected}
               />
@@ -238,8 +246,9 @@ export function IntegrationsBoard() {
       {/* Footer Note */}
       <div className="rounded-lg border border-line/50 bg-surface-raised px-6 py-5">
         <p className="text-sm text-text-secondary">
-          💡 <span className="font-medium">Tip:</span> Connections are private to your account. Inroad accesses them
-          only during research or when you draft outreach—never in the background.
+          💡 <span className="font-medium">Tip:</span> Connections are private to your account.
+          Inroad accesses them only during research or when you draft outreach—never in the
+          background.
         </p>
       </div>
     </div>

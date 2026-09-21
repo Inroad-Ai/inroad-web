@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "generate-api-client": "openapi-typescript \"${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}/openapi.json\" -o lib/api-client/schema.d.ts"
   },
   "dependencies": {
@@ -32,6 +34,7 @@
     "eslint-config-next": "^14.2.35",
     "openapi-typescript": "^7.13.0",
     "postcss": "8.4.39",
+    "prettier": "^3.9.8",
     "tailwindcss": "3.4.6",
     "typescript": "5.5.3"
   }
