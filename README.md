@@ -1,6 +1,6 @@
 # Inroad — Web
 
-The frontend for [`inroad-api`](../inroad-api). One domain in, one
+The frontend for [`inroad-api`](https://github.com/Inroad-Ai/inroad-api). One domain in, one
 dossier out: homepage, recent news, and hiring signal, checked at the same
 time and rendered as three cards.
 

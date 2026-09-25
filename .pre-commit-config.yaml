@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: malware-scan
+        name: scan for hidden/obfuscated payloads
+        entry: python3 scripts/detect-malware.py
+        language: system
+        stages: [pre-commit, pre-push]
+        pass_filenames: false
+        always_run: true
+
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint (staged files only)
+        entry: node_modules/.bin/eslint --fix
+        language: system
+        files: \.(ts|tsx)$
