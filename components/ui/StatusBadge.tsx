@@ -1,14 +1,6 @@
-/** Mirrors the `companies.stage` CHECK constraint; update both together. */
-export const PIPELINE_STAGES = [
-  "researched",
-  "contacted",
-  "responded",
-  "interviewing",
-  "closed",
-  "rejected",
-] as const;
+import { PIPELINE_STAGES, type PipelineStage } from "@/lib/types";
 
-export type PipelineStage = (typeof PIPELINE_STAGES)[number];
+export { PIPELINE_STAGES, type PipelineStage };
 
 export const STAGE_LABEL: Record<PipelineStage, string> = {
   researched: "Researched",

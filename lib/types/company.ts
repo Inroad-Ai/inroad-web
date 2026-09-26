@@ -4,8 +4,19 @@
  * serialises the key, so a missing one is a bug.
  */
 
-import type { PipelineStage } from "@/components/ui/StatusBadge";
-import type { PersonStage } from "@/components/ui/PersonStageBadge";
+import type { DossierPerson, Person } from "@/lib/types/person";
+
+/** Mirrors the `companies.stage` CHECK constraint; update both together. */
+export const PIPELINE_STAGES = [
+  "researched",
+  "contacted",
+  "responded",
+  "interviewing",
+  "closed",
+  "rejected",
+] as const;
+
+export type PipelineStage = (typeof PIPELINE_STAGES)[number];
 
 export interface HomepageResult {
   url: string;
@@ -35,7 +46,7 @@ export interface NewsResult {
   items: NewsItem[];
 }
 
-export interface HiringResult {
+interface HiringResult {
   is_hiring: boolean;
   /** null means "could not count", not 0 ("counted, none open"). */
   open_roles: number | null;
@@ -74,38 +85,6 @@ export interface CompanyProfile {
   why_reach_out_now: string | null;
 }
 
-/** Mirrors the `people.role_category` CHECK constraint; update both together. */
-export const PERSON_ROLES = [
-  "founder",
-  "co_founder",
-  "executive",
-  "hr",
-  "recruiter",
-  "employee",
-] as const;
-export type PersonRole = (typeof PERSON_ROLES)[number];
-
-export const PERSON_ROLE_LABEL: Record<PersonRole, string> = {
-  founder: "Founder",
-  co_founder: "Co-Founder",
-  executive: "Executive",
-  hr: "HR",
-  recruiter: "Recruiter",
-  employee: "Employee",
-};
-
-/** Mirrors app/schemas/dossier.py Person - one research run's raw find, no
- * id and no pipeline stage. See `Person` below for the persisted row. */
-export interface DossierPerson {
-  name: string;
-  role_category: PersonRole;
-  title: string | null;
-  linkedin_url: string | null;
-  email: string | null;
-  /** "team-page" | "linkedin-search" */
-  source: string;
-}
-
 export interface PeopleResult {
   people: DossierPerson[];
 }
@@ -129,46 +108,8 @@ export interface CompanyDossier {
  * dossier shows them. Not used by the real Research page anymore - that
  * page now shows a run list, not per-source cards - but the marketing
  * mockup (Hero, SampleDossier) still renders this layout. */
-export const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
+const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
 export type SourceKey = (typeof SOURCE_KEYS)[number];
-
-/** Mirrors app/schemas/people.py PersonOut - a person's row as it persists
- * across research runs, with its own pipeline stage. See `DossierPerson`
- * above for one run's raw, unpersisted find. */
-export interface Person {
-  id: string;
-  company_id: string;
-  name: string;
-  role_category: PersonRole;
-  title: string | null;
-  email: string | null;
-  linkedin_url: string | null;
-  source: string | null;
-  stage: PersonStage;
-  contacted_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-/** GET /api/people - one row per person, across every company, for the
- * contacts board's columns. */
-export interface PersonListItem extends Person {
-  company_domain: string;
-}
-
-export interface PersonListResponse {
-  items: PersonListItem[];
-  page: number;
-  page_size: number;
-  total: number;
-}
-
-/** GET /api/people/{id} - a person's own row plus enough about their
- * company to show context and link back to it. */
-export interface PersonDetail extends Person {
-  company_domain: string;
-  company_homepage_title: string | null;
-}
 
 /** A saved company row. CompanyDossier above is a live, not necessarily saved, result. */
 export interface Company {
@@ -238,63 +179,3 @@ export interface CompanyListResponse {
   page_size: number;
   total: number;
 }
-
-/** Mirrors app/schemas/pipeline.py. */
-export const PIPELINE_RUN_STATUSES = ["pending", "running", "completed", "failed"] as const;
-export type PipelineRunStatus = (typeof PIPELINE_RUN_STATUSES)[number];
-
-export interface PipelineRunOut {
-  id: string;
-  status: PipelineRunStatus;
-  error: string | null;
-  created_at: string;
-  started_at: string | null;
-  finished_at: string | null;
-}
-
-/** GET /api/companies/match/{run_id}. Empty matched_company_ids until
- * status is "completed" - and it can stay empty on a completed run that
- * matched nothing, which is a valid outcome, not a failure. */
-export interface MatchRunResult extends PipelineRunOut {
-  matched_company_ids: string[];
-}
-
-/** One point on the Overview "companies added over time" chart. */
-export interface WeeklyCompanyCount {
-  week_start: string;
-  count: number;
-}
-
-/** Mirrors app/schemas/company.py OverviewStats, from GET /api/companies/overview. */
-export interface OverviewStats {
-  total_companies: number;
-  by_stage: Record<PipelineStage, number>;
-  contacted_window_days: number;
-  contacted_within_window: number;
-  contacted_within_prior_window: number;
-  companies_by_week: WeeklyCompanyCount[];
-}
-
-/**
- * What a single source card is doing right now. These are internal state
- * names — none of them appear on screen as written.
- */
-export type CardState = "idle" | "pending" | "done" | "failed";
-
-/** Onboarding fields the summary screen can badge as "from your resume" vs
- * "you typed this" - only the fields that show up as their own editable row
- * there, not summary/skills/workHistory/education/projects. Internal state
- * only, mirrors nothing on the backend. */
-export type FieldSourceKey =
-  | "firstName"
-  | "lastName"
-  | "email"
-  | "phone"
-  | "location"
-  | "linkedinUrl"
-  | "githubUrl"
-  | "portfolioUrl";
-
-export type FieldSource = "resume" | "manual";
-
-export type FieldSourceMap = Partial<Record<FieldSourceKey, FieldSource>>;

@@ -12,10 +12,10 @@ import type {
   Person,
   PersonDetail,
   PersonListResponse,
+  PersonStage,
   PipelineRunOut,
+  PipelineStage,
 } from "@/lib/types";
-import type { PipelineStage } from "@/components/ui/StatusBadge";
-import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];

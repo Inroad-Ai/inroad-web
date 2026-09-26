@@ -35,7 +35,7 @@ flowchart TB
     HIST["dashboard/HistoryList.tsx"]
 
     API["lib/api.ts<br/><i>typed fetch wrapper</i>"]
-    TYPES["lib/types.ts<br/><i>mirrors dossier.py</i>"]
+    TYPES["lib/types/<br/><i>mirrors dossier.py</i>"]
     BE(["FastAPI backend<br/>NEXT_PUBLIC_API_URL"])
 
     LP --> HERO
@@ -130,7 +130,7 @@ Called out rather than papered over, because in each case the interface does
 the honest thing instead of the specified thing:
 
 - **`total_time_seconds` does not exist.** `CompanyDossier` has `elapsed_ms`,
-  an integer. `lib/types.ts` mirrors the model as-is and `totalTimeSeconds()`
+  an integer. `lib/types/` mirrors the model as-is and `totalTimeSeconds()`
   divides for display. The large numeral on the dashboard is that value.
 - **Nothing in a dossier has a timestamp**, so "12m ago" cannot come from the
   response. `lib/api.ts` records in `localStorage` when _this browser_ last saw
@@ -164,11 +164,19 @@ Both are `GET`, which matches the backend's CORS config — it allows
 ## Running locally
 
 Requires **Node 18.17 or newer**, **pnpm 11** (see `packageManager` in
-`package.json`), and a running backend.
+`package.json`), and a running backend, which in turn needs Postgres and
+Redis. If you only cloned this repo, clone
+[`inroad-api`](https://github.com/Inroad-Ai/inroad-api) and
+[`inroad-docs`](https://github.com/Inroad-Ai/inroad-docs) as siblings and
+follow `inroad-docs`'s README Quickstart, which covers all three repos in
+order.
 
-Start the backend first:
+Start the database, Redis, and backend first:
 
 ```bash
+cd ../inroad-docs
+docker compose up -d
+
 cd ../inroad-api
 source .venv/bin/activate
 uvicorn app.main:app --reload --port 8000

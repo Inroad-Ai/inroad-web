@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   ApiError,
@@ -9,8 +9,7 @@ import {
   type OutreachDraft,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-
-const SESSION_EXPIRED = "Your session expired. Sign in again.";
+import { SESSION_EXPIRED, useAsyncResource } from "@/hooks/useAsyncResource";
 
 /** The backend's own message is the one to show for most of these - it says
  * what to do next. profile_not_found is the exception: "No profile yet for
@@ -49,45 +48,31 @@ function mergeDrafts(current: OutreachDraft[], updated: OutreachDraft[]): Outrea
 }
 
 export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
-  const [drafts, setDrafts] = useState<OutreachDraft[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: drafts,
+    setData: setDrafts,
+    loading,
+    error: loadError,
+  } = useAsyncResource<OutreachDraft[]>(
+    [],
+    (token, signal) => fetchOutreachDrafts(personId, token, signal),
+    [personId],
+    describe,
+  );
   const [drafting, setDrafting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function load() {
-      try {
-        const token = await ensureValidAccessToken();
-        if (!token) {
-          setError(SESSION_EXPIRED);
-          return;
-        }
-        setDrafts(await fetchOutreachDrafts(personId, token, controller.signal));
-      } catch (caught) {
-        if (controller.signal.aborted) return;
-        setError(describe(caught));
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => controller.abort();
-  }, [personId]);
+  const [draftError, setDraftError] = useState<string | null>(null);
 
   const draft = useCallback(
     async (sequenceIndex = 0) => {
       setDrafting(true);
-      setError(null);
+      setDraftError(null);
       try {
         const token = await ensureValidAccessToken();
         if (!token) throw new Error(SESSION_EXPIRED);
         const updated = await draftOutreach(personId, sequenceIndex, token);
         setDrafts((current) => mergeDrafts(current, updated));
       } catch (caught) {
-        setError(describe(caught));
+        setDraftError(describe(caught));
       } finally {
         setDrafting(false);
       }
@@ -101,5 +86,5 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
     );
   }, []);
 
-  return { drafts, loading, drafting, error, draft, replaceDraft };
+  return { drafts, loading, drafting, error: draftError ?? loadError, draft, replaceDraft };
 }

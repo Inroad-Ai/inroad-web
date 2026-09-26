@@ -49,6 +49,7 @@ const config: Config = {
         sans: ["var(--font-body)", "ui-sans-serif", "system-ui"],
       },
       fontSize: {
+        "2xs": ["var(--text-2xs-size)", { lineHeight: "var(--text-2xs-line-height)" }],
         xs: ["var(--text-xs-size)", { lineHeight: "var(--text-xs-line-height)" }],
         sm: ["var(--text-sm-size)", { lineHeight: "var(--text-sm-line-height)" }],
         base: ["var(--text-base-size)", { lineHeight: "var(--text-base-line-height)" }],
@@ -71,6 +72,13 @@ const config: Config = {
         md: "var(--radius-md)",
         lg: "var(--radius-lg)",
         full: "var(--radius-full)",
+      },
+      height: {
+        "chart-sm": "var(--chart-height-sm)",
+        "chart-md": "var(--chart-height-md)",
+      },
+      maxWidth: {
+        wide: "68.75rem" /* 1100px, ScreenShell's wide onboarding layout */,
       },
       boxShadow: {
         overlay: "var(--shadow-overlay)",
