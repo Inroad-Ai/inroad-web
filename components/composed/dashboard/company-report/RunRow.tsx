@@ -8,7 +8,6 @@ export function RunRow({ run }: { run: ResearchRunSummary }) {
       <span className="text-sm text-ink">{formatTimestamp(run.created_at)}</span>
       <span className="flex flex-wrap items-center gap-3">
         {run.partial ? <Badge tone="rose">Partial</Badge> : <Badge tone="neutral">Complete</Badge>}
-        <Badge tone={run.from_cache ? "amber" : "teal"}>{run.from_cache ? "Cached" : "Live"}</Badge>
         <span className="utility-label text-text-secondary/70">
           {totalTimeSeconds(run.elapsed_ms)}s
         </span>

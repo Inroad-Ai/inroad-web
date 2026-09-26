@@ -1,6 +1,5 @@
 import { totalTimeSeconds } from "@/lib/format";
 import type { CompanyDetail } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Section } from "@/components/ui/Section";
 
@@ -24,14 +23,9 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
     <Section
       title="Latest research"
       meta={
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge tone={research.from_cache ? "amber" : "teal"}>
-            {research.from_cache ? "Served from cache" : "Fetched live"}
-          </Badge>
-          <span className="utility-label text-text-secondary/70">
-            {totalTimeSeconds(research.elapsed_ms)}s
-          </span>
-        </div>
+        <span className="utility-label text-text-secondary/70">
+          {totalTimeSeconds(research.elapsed_ms)}s
+        </span>
       }
     >
       {/* A partial run is still a 200 with nulls in it. Say so plainly rather
