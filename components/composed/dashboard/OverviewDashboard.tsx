@@ -209,7 +209,7 @@ export function OverviewDashboard() {
           aside={`${added} added`}
         >
           <div
-            className="h-[272px]"
+            className="h-chart-sm"
             role="img"
             aria-label={`${added} companies added over the displayed weeks.`}
           >
@@ -269,7 +269,7 @@ export function OverviewDashboard() {
           }
         >
           <div
-            className="relative h-[272px]"
+            className="relative h-chart-sm"
             role="img"
             aria-label={`Response rate is ${responseRate} percent.`}
           >
@@ -323,7 +323,7 @@ export function OverviewDashboard() {
         aside={`${active} active`}
       >
         <div
-          className="h-[300px]"
+          className="h-chart-md"
           role="img"
           aria-label={`${active} companies are active in the pipeline.`}
         >
@@ -497,7 +497,7 @@ function OverviewSkeleton() {
             <Skeleton className="h-3 w-24" />
             <Skeleton className="mt-3 h-5 w-40" />
             <Skeleton className="mt-2 h-3 w-56" />
-            <Skeleton className="mt-7 h-[272px] w-full" />
+            <Skeleton className="mt-7 h-chart-sm w-full" />
           </div>
         ))}
       </div>

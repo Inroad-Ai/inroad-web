@@ -29,7 +29,7 @@ export function ScreenShell({
 }) {
   return (
     <div
-      className={`animate-fade-up mx-auto flex min-h-screen w-full flex-col justify-center px-6 py-16 ${wide ? "max-w-[1100px]" : "max-w-xl"}`}
+      className={`animate-fade-up mx-auto flex min-h-screen w-full flex-col justify-center px-6 py-16 ${wide ? "max-w-wide" : "max-w-xl"}`}
     >
       <div className="mb-10">
         <ProgressIndicator

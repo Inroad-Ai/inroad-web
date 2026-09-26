@@ -1,7 +1,6 @@
-/** Mirrors the `people.stage` CHECK constraint; update both together. */
-export const PERSON_STAGES = ["found", "contacted", "replied", "closed"] as const;
+import { PERSON_STAGES, type PersonStage } from "@/lib/types";
 
-export type PersonStage = (typeof PERSON_STAGES)[number];
+export { PERSON_STAGES, type PersonStage };
 
 export const PERSON_STAGE_LABEL: Record<PersonStage, string> = {
   found: "Found",
