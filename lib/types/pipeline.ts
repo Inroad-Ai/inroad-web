@@ -21,6 +21,12 @@ export interface MatchRunResult extends PipelineRunOut {
   matched_company_ids: string[];
 }
 
+/** POST/GET /api/companies/research. company_id is set immediately, before
+ * research finishes - the row exists as soon as the run is created. */
+export interface ResearchRunResult extends PipelineRunOut {
+  company_id: string;
+}
+
 /** One point on the Overview "companies added over time" chart. */
 interface WeeklyCompanyCount {
   week_start: string;

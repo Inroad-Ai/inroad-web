@@ -15,6 +15,7 @@ import type {
   PersonStage,
   PipelineRunOut,
   PipelineStage,
+  ResearchRunResult,
 } from "@/lib/types";
 import type { components, paths } from "./schema";
 
@@ -171,18 +172,35 @@ export async function fetchCompany(
 /** Researches a domain and saves it in one call - there is no preview step.
  * Upserts on (user_id, domain) and appends a research_runs row; pipeline
  * state on an existing company row is left alone. */
+/** Returns immediately with a pending run - poll getResearchRun for the
+ * result. Reuses an active run for the same domain instead of starting a
+ * second one if one is already in flight. */
 export async function researchCompanyDomain(
   domain: string,
   accessToken: string,
   signal?: AbortSignal,
-): Promise<Company> {
+): Promise<ResearchRunResult> {
   const result = await client.POST("/api/companies/research", {
     params: { query: { domain: domain.trim() } },
     headers: authHeaders(accessToken),
     signal,
   });
 
-  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+  return unwrap(result, COMPANIES_UNREACHABLE) as ResearchRunResult;
+}
+
+export async function getResearchRun(
+  runId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<ResearchRunResult> {
+  const result = await client.GET("/api/companies/research/{run_id}", {
+    params: { path: { run_id: runId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as ResearchRunResult;
 }
 
 /** No domain: searches for companies matching the caller's own profile.

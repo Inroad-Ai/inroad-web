@@ -2,16 +2,19 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
-import { ApiError, researchCompanyDomain } from "@/lib/api-client/client";
+import { ApiError, getResearchRun, researchCompanyDomain } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { CardState } from "@/lib/types";
+
+const RESEARCH_POLL_INTERVAL_MS = 3000;
+const RESEARCH_POLL_MAX_ATTEMPTS = 40;
 
 export interface ResearchRun {
   id: number;
   domain: string;
   state: CardState;
   /** Actual client-side start time, used to show elapsed time while the
-   * synchronous research request is pending. */
+   * background research run is in progress. */
   startedAt: number;
   companyId: string | null;
   error: string | null;
@@ -60,6 +63,36 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
       setRuns((prev) => prev.map((r) => (r.id === id ? { ...r, ...update } : r)));
     }
 
+    async function poll(runId: string, token: string, attempt = 0) {
+      try {
+        const result = await getResearchRun(runId, token);
+        if (result.status === "completed") {
+          settle({ state: "done", companyId: result.company_id });
+          return;
+        }
+        if (result.status === "failed") {
+          settle({
+            state: "failed",
+            error: result.error ?? "Research could not complete.",
+          });
+          return;
+        }
+        if (attempt + 1 >= RESEARCH_POLL_MAX_ATTEMPTS) {
+          settle({
+            state: "failed",
+            error: "This is taking longer than expected. Check back on it shortly.",
+          });
+          return;
+        }
+        setTimeout(() => void poll(runId, token, attempt + 1), RESEARCH_POLL_INTERVAL_MS);
+      } catch (error) {
+        settle({
+          state: "failed",
+          error: error instanceof ApiError ? error.message : "Lost track of this run's progress.",
+        });
+      }
+    }
+
     (async () => {
       try {
         const token = await ensureValidAccessToken();
@@ -67,8 +100,9 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           settle({ state: "failed", error: "Your session expired. Sign in again to run this." });
           return;
         }
-        const company = await researchCompanyDomain(domain, token);
-        settle({ state: "done", companyId: company.id });
+        const run = await researchCompanyDomain(domain, token);
+        settle({ companyId: run.company_id });
+        void poll(run.id, token);
       } catch (error) {
         settle({
           state: "failed",

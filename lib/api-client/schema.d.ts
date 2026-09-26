@@ -83,10 +83,28 @@ export interface paths {
         put?: never;
         /**
          * Research Domain
-         * @description Researches the domain and saves it in one call - there is no preview
-         *     step, entering a domain is what puts it in the caller's companies list.
+         * @description Creates the company and a research run, then enqueues the research job
+         *     and returns immediately - entering a domain is what puts it in the
+         *     caller's companies list, but the research itself runs in the background.
          */
         post: operations["research_domain_api_companies_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/research/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Research */
+        get: operations["get_research_api_companies_research__run_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1588,6 +1606,31 @@ export interface components {
              */
             token_type: string;
         };
+        /** ResearchRunResult */
+        ResearchRunResult: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["PipelineRunStatus"];
+            /** Error */
+            error?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+        };
         /**
          * ResearchRunSummary
          * @description One research_runs row without its raw_response, for the history list.
@@ -1914,12 +1957,45 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            201: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CompanyOut"];
+                    "application/json": components["schemas"]["ResearchRunResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_research_api_companies_research__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchRunResult"];
                 };
             };
             /** @description Validation Error */
@@ -2335,6 +2411,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"][];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2374,6 +2457,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2408,6 +2498,13 @@ export interface operations {
                     "application/json": components["schemas"]["GmailDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2441,6 +2538,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GmailSendOut"];
                 };
+            };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
