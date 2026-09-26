@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest a new feature or an improvement to an existing one
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What's missing or doesn't work well today? Be concrete about the actual situation, not a hypothetical one.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you solve it? Sketch the flow if that helps.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does this belong?
+      options:
+        - inroad-api (backend)
+        - inroad-web (frontend)
+        - Both / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Anything else you thought about and ruled out, and why.
+    validations:
+      required: false

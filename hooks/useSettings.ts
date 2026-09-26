@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   fetchSettings,
@@ -9,6 +9,7 @@ import {
   type UserSettings,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { SESSION_EXPIRED, useAsyncResource } from "@/hooks/useAsyncResource";
 
 interface UseSettingsResult {
   settings: UserSettings | null;
@@ -19,52 +20,33 @@ interface UseSettingsResult {
 }
 
 export function useSettings(): UseSettingsResult {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: settings,
+    setData: setSettings,
+    loading,
+    error: loadError,
+  } = useAsyncResource<UserSettings | null>(
+    null,
+    (token, signal) => fetchSettings(token, signal),
+    [],
+    "Could not load your settings.",
+  );
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const token = await ensureValidAccessToken();
-        if (!token) {
-          if (!cancelled) setError("Your session expired. Sign in again.");
-          return;
-        }
-
-        const loaded = await fetchSettings(token);
-        if (!cancelled) setSettings(loaded);
-      } catch (caught) {
-        if (!cancelled) {
-          setError(caught instanceof Error ? caught.message : "Could not load your settings.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const update = useCallback(async (cadence: FollowUpCadence) => {
     setSaving(true);
-    setError(null);
+    setSaveError(null);
     try {
       const token = await ensureValidAccessToken();
-      if (!token) throw new Error("Your session expired. Sign in again.");
+      if (!token) throw new Error(SESSION_EXPIRED);
       setSettings(await updateSettings(cadence, token));
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not save your settings.");
+      setSaveError(caught instanceof Error ? caught.message : "Could not save your settings.");
     } finally {
       setSaving(false);
     }
   }, []);
 
-  return { settings, loading, saving, error, update };
+  return { settings, loading, saving, error: saveError ?? loadError, update };
 }
