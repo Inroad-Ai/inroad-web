@@ -1,3 +1,4 @@
 .next/
 node_modules/
 lib/api-client/schema.d.ts
+pnpm-lock.yaml

@@ -53,6 +53,7 @@ silently is not.
 ## Architecture rules, non-negotiable
 
 **Two-tier components (`components/`):**
+
 - `ui/` — design-system primitives only (Button, Input, Card, etc). The only
   components allowed to reference raw design tokens directly.
 - `composed/` — feature components, built entirely out of ui/ primitives.
@@ -108,6 +109,7 @@ and commit the result before committing anything that depends on it.
 ## What's tracked vs local only
 
 Tracked in git, every one of these must exist in this repo:
+
 - All source code in `app/`, `components/`, `lib/`, `styles/`, `hooks/`
 - `.env.example` (the template, with placeholder values, never real
   secrets)
@@ -116,6 +118,7 @@ Tracked in git, every one of these must exist in this repo:
 - `CLAUDE.md`, `README.md`
 
 Never tracked, local only, confirm these are in `.gitignore`:
+
 - `.env`, `.env.local` (the real ones, with real values, actual secrets)
 - `node_modules/`, `.next/`
 - Any generated file that gets rebuilt from source. `lib/api-client/`
@@ -141,11 +144,13 @@ repo. Land the API side first so the generated client has something to
 point at.
 
 Before every commit:
+
 1. Run `next build` (see Testing above).
 2. Confirm no `.env` / `.env.local` file, secret, or credential is staged.
 3. Confirm no debug `console.log()` statements were left in.
 
 Commit message rules:
+
 - Plain, direct, written like an engineer describing what changed and why,
   not like generated documentation.
 - Format: short imperative summary line (under ~60 chars), blank line, then
