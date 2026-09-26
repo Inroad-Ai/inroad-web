@@ -5,8 +5,39 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      # Only routine version updates are grouped. Security updates are left
+      # out of every group on purpose, each one stays its own PR so it's
+      # never buried in a batch and never waits on an unrelated package.
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "recharts"
+    # Majors are never grouped and never ignored, they always land as their
+    # own PR requiring a human look. next, react, react-dom, and recharts are
+    # excluded from npm-minor-patch above too, so any bump to them, major or
+    # not, always surfaces individually rather than riding along in a batch.
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
