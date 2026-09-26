@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "country-region-data": "^4.1.0",
-    "framer-motion": "^13.2.0",
+    "framer-motion": "^13.4.1",
     "jose": "^6.2.8",
     "libphonenumber-js": "^1.13.12",
     "lucide-react": "^1.48.0",
