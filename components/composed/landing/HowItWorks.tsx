@@ -157,7 +157,7 @@ function WriteVisual() {
       <div className="flex flex-col gap-3.5">
         {lines.map((width, index) => (
           <div key={index} className="flex items-center gap-2.5">
-            <span className="w-3 shrink-0 text-right font-mono text-[10px] text-text-secondary/50">
+            <span className="w-3 shrink-0 text-right font-mono text-2xs text-text-secondary/50">
               {index + 1}
             </span>
             <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-line/60">
@@ -241,12 +241,12 @@ function CardFace({ step, imageFirst }: { step: Step; imageFirst: boolean }) {
       >
         {step.visual}
         <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-xl border border-line bg-surface/95 px-4 py-3 shadow-card backdrop-blur sm:inset-x-5 sm:bottom-5">
-          <span className="shrink-0 rounded-full bg-signal-teal-subtle px-2.5 py-1 text-[11px] font-semibold text-signal-teal">
+          <span className="shrink-0 rounded-full bg-signal-teal-subtle px-2.5 py-1 text-2xs font-semibold text-signal-teal">
             {step.overlay.eyebrow}
           </span>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium text-ink">{step.overlay.label}</p>
-            <p className="truncate text-[11px] text-text-secondary">{step.overlay.value}</p>
+            <p className="truncate text-2xs text-text-secondary">{step.overlay.value}</p>
           </div>
         </div>
       </div>
