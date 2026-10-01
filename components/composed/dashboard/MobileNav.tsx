@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { SidebarAccount } from "@/components/composed/dashboard/SidebarAccount";
 import { Drawer } from "@/components/ui/Drawer";
 import { CloseIcon } from "@/components/ui/Icons";
 import { IconButton } from "@/components/ui/IconButton";
@@ -23,12 +22,9 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
             <CloseIcon />
           </IconButton>
         </div>
-        <nav className="flex-1 overflow-y-auto px-2 pt-4">
+        <nav className="flex-1 overflow-y-auto px-2 py-4">
           <SidebarNav collapsed={false} onNavigate={onClose} />
         </nav>
-        <div className="border-t border-line p-2">
-          <SidebarAccount collapsed={false} />
-        </div>
       </div>
     </Drawer>
   );

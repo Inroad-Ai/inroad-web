@@ -39,6 +39,8 @@ export function NavGroupAccordion({
         onClick={() => setOpen((v) => !v)}
         title={group.label}
         className={`utility-label sidebar-row w-full text-left ${
+          collapsed ? "sidebar-row-collapsed" : ""
+        } ${
           active
             ? "bg-signal-teal-subtle text-signal-teal"
             : "text-text-secondary hover:bg-surface-raised hover:text-signal-teal"
