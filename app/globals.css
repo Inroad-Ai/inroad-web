@@ -22,7 +22,7 @@
 
   ::selection {
     background-color: rgb(var(--color-signal-amber));
-    color: rgb(var(--color-ink));
+    color: rgb(var(--color-on-amber));
   }
 
   :focus-visible {

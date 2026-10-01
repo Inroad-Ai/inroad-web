@@ -36,7 +36,7 @@ export function Drawer({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-ink/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-scrim/40" onClick={onClose}>
       <div
         ref={panelRef}
         role="dialog"
