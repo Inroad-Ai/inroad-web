@@ -234,3 +234,19 @@ export function SignOutIcon() {
     </Icon>
   );
 }
+
+export function MenuIcon() {
+  return (
+    <Icon>
+      <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
+export function CloseIcon() {
+  return (
+    <Icon>
+      <path d="M3.75 3.75 12.25 12.25M12.25 3.75 3.75 12.25" strokeLinecap="round" />
+    </Icon>
+  );
+}
