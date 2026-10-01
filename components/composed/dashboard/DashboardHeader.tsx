@@ -6,24 +6,7 @@ import { usePathname } from "next/navigation";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { useResearchRuns } from "@/lib/research-runs";
 
-const TITLES: Record<string, string> = {
-  "/overview": "Overview",
-  "/profile": "Profile",
-  "/research": "Research",
-  "/companies/pipeline": "Pipeline",
-  "/companies": "Companies",
-  "/contacts": "People",
-  "/settings": "Settings",
-};
-
-function pageTitle(pathname: string | null): string {
-  if (!pathname) return "";
-  // Longest prefix first, so "/companies/pipeline" wins over "/companies".
-  const match = Object.keys(TITLES)
-    .sort((a, b) => b.length - a.length)
-    .find((prefix) => pathname.startsWith(prefix));
-  return match ? TITLES[match] : "";
-}
+import { getPageTitle } from "./nav/nav-utils";
 
 export function DashboardHeader() {
   const pathname = usePathname();
@@ -32,7 +15,7 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-line bg-surface px-6">
-      <span className="font-display text-lg text-ink">{pageTitle(pathname)}</span>
+      <span className="font-display text-lg text-ink">{getPageTitle(pathname)}</span>
       {pendingCount > 0 ? (
         <Link
           href="/research"
