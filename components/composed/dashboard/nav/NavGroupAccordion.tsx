@@ -47,7 +47,7 @@ export function NavGroupAccordion({
         <Icon />
         <RowLabel collapsed={collapsed}>{group.label}</RowLabel>
         {collapsed ? null : (
-          <span className="ml-auto hidden lg:inline-flex">
+          <span className="ml-auto inline-flex">
             <ChevronDownIcon open={open} />
           </span>
         )}
@@ -56,13 +56,11 @@ export function NavGroupAccordion({
       {open ? (
         // Icon-only rail has no room to indent, so nesting reads instead as
         // a visually distinct, contained cluster (tinted, rounded) directly
-        // under the trigger. Once there's room for labels and real
-        // indentation (lg and up, not js-collapsed), the tint drops and a
-        // left indent takes over - the label text is what carries the
-        // hierarchy at that point, not a background.
+        // under the trigger. With labels showing, a left indent carries the
+        // hierarchy instead of a background.
         <ul
-          className={`mt-1 flex flex-col gap-1 rounded-md bg-surface-raised/70 py-1 ${
-            collapsed ? "" : "lg:bg-transparent lg:py-0 lg:pl-4"
+          className={`mt-1 flex flex-col gap-1 ${
+            collapsed ? "rounded-md bg-surface-raised/70 py-1" : "pl-4"
           }`}
         >
           {group.items.map((item) => (
