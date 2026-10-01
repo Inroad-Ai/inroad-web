@@ -1,29 +1,14 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { DashboardHeader } from "@/components/composed/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/composed/dashboard/Sidebar";
+import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { ResearchRunsProvider } from "@/lib/research-runs";
 
-const COLLAPSE_KEY = "inroad:sidebar-collapsed";
-
 export function DashboardShell({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  // Read the saved preference after mount only, so server and first client
-  // render match and there is no hydration flash.
-  useEffect(() => {
-    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
-  }, []);
-
-  function toggle() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }
+  const { collapsed, toggle } = useSidebarCollapsed();
 
   return (
     <ResearchRunsProvider>
