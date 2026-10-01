@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { SidebarAccount } from "@/components/composed/dashboard/SidebarAccount";
 import { ChevronIcon } from "@/components/ui/Icons";
 import { IconButton } from "@/components/ui/IconButton";
 import { Logo } from "@/components/ui/Logo";
@@ -52,10 +51,6 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       <nav className={`flex-1 px-2 pb-4 ${collapsed ? "pt-2" : "pt-4"}`}>
         <SidebarNav collapsed={collapsed} />
       </nav>
-
-      <div className="border-t border-line p-2">
-        <SidebarAccount collapsed={collapsed} />
-      </div>
     </aside>
   );
 }

@@ -20,7 +20,7 @@ export function NavItem({
       href={link.href}
       title={link.label}
       onClick={onNavigate}
-      className={`utility-label sidebar-row ${
+      className={`utility-label sidebar-row ${collapsed ? "sidebar-row-collapsed" : ""} ${
         active
           ? "bg-signal-teal-subtle text-signal-teal"
           : "text-text-secondary hover:bg-surface-raised hover:text-signal-teal"
