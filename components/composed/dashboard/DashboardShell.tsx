@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { DashboardFooter } from "@/components/composed/dashboard/DashboardFooter";
 import { DashboardHeader } from "@/components/composed/dashboard/DashboardHeader";
 import { MobileNav } from "@/components/composed/dashboard/MobileNav";
 import { Sidebar } from "@/components/composed/dashboard/Sidebar";
@@ -23,6 +24,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <DashboardHeader onOpenNav={mobileNav.openNav} />
           <main className="flex-1">{children}</main>
+          <DashboardFooter />
         </div>
       </div>
     </ResearchRunsProvider>
