@@ -32,6 +32,8 @@ const config: Config = {
         "success-subtle": withOpacity("--color-success-subtle"),
         warning: withOpacity("--color-warning"),
         "warning-subtle": withOpacity("--color-warning-subtle"),
+        "on-amber": withOpacity("--color-on-amber"),
+        scrim: withOpacity("--color-scrim"),
         line: withOpacity("--color-line"),
         // Semantic aliases — same values as above, named by role.
         bg: withOpacity("--color-bg"),

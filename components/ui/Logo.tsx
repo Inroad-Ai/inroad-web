@@ -20,7 +20,7 @@ export function Logo({
       <g
         transform="translate(1.5 0)"
         fill="none"
-        className="stroke-ink"
+        className="stroke-on-amber"
         strokeWidth={3}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -28,7 +28,7 @@ export function Logo({
         <path d="M9 21.5V15.5A5 5 0 0 1 14 10.5H20.5" />
         <path d="M17.25 6.75 21.75 10.5 17.25 14.25" />
       </g>
-      <rect x="8.75" y="23.5" width="3.5" height="3.5" rx="1" className="fill-ink" />
+      <rect x="8.75" y="23.5" width="3.5" height="3.5" rx="1" className="fill-on-amber" />
     </svg>
   );
 
