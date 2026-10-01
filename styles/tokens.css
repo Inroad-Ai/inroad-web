@@ -170,3 +170,60 @@
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+/*
+ * Dark theme. Applied by setting data-theme="dark" on the dashboard shell,
+ * so the marketing site and auth screens stay light. Same token names, second
+ * set of values. The semantic aliases are redeclared on purpose: a var()
+ * alias resolves where it is declared, so the :root aliases above would keep
+ * the light values for everything under this selector.
+ * Every text and background pair used by the UI clears WCAG AA (4.5:1).
+ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-ink: 243 236 227;
+  --color-ink-muted: 176 165 154;
+
+  --color-paper: 24 20 18;
+
+  --color-surface: 33 28 25;
+  --color-surface-raised: 45 39 35;
+
+  --color-line: 62 55 49;
+
+  --color-signal-amber: 242 169 28;
+  --color-signal-amber-hover: 250 187 56;
+  --color-signal-amber-subtle: 58 44 18;
+
+  --color-signal-teal: 109 190 180;
+  --color-signal-teal-hover: 143 208 199;
+  --color-signal-teal-subtle: 28 52 49;
+
+  --color-muted-rose: 224 128 116;
+  --color-muted-rose-subtle: 66 36 33;
+
+  --color-success: 124 178 142;
+  --color-success-subtle: 31 48 37;
+
+  --color-warning: 214 170 82;
+  --color-warning-subtle: 60 47 22;
+
+  --color-scrim: 0 0 0;
+
+  --color-bg: var(--color-paper);
+  --color-text-primary: var(--color-ink);
+  --color-text-secondary: var(--color-ink-muted);
+  --color-border: var(--color-line);
+  --color-accent-primary: var(--color-signal-amber);
+  --color-accent-primary-hover: var(--color-signal-amber-hover);
+  --color-accent-secondary: var(--color-signal-teal);
+  --color-accent-secondary-hover: var(--color-signal-teal-hover);
+  --color-error: var(--color-muted-rose);
+  --color-error-subtle: var(--color-muted-rose-subtle);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-overlay:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 20px -6px rgba(0, 0, 0, 0.5),
+    0 24px 48px -12px rgba(0, 0, 0, 0.45);
+}
