@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 
 import { AccountMenu } from "@/components/composed/dashboard/AccountMenu";
 import { ResearchStatusPill } from "@/components/composed/dashboard/ResearchStatusPill";
+import { ThemeToggle } from "@/components/composed/dashboard/ThemeToggle";
 import { MenuIcon } from "@/components/ui/Icons";
 import { IconButton } from "@/components/ui/IconButton";
 
@@ -22,6 +23,7 @@ export function DashboardHeader({ onOpenNav }: { onOpenNav: () => void }) {
       </div>
       <div className="flex shrink-0 items-center gap-3">
         <ResearchStatusPill />
+        <ThemeToggle />
         <AccountMenu />
       </div>
     </header>
