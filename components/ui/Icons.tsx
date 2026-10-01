@@ -235,6 +235,35 @@ export function SignOutIcon() {
   );
 }
 
+export function SunIcon() {
+  return (
+    <Icon>
+      <circle cx="8" cy="8" r="2.75" />
+      <path
+        d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1.05 1.05M11.55 11.55l1.05 1.05M3.4 12.6l1.05-1.05M11.55 4.45l1.05-1.05"
+        strokeLinecap="round"
+      />
+    </Icon>
+  );
+}
+
+export function MoonIcon() {
+  return (
+    <Icon>
+      <path d="M13.25 9.5A5.5 5.5 0 0 1 6.5 2.75a5.5 5.5 0 1 0 6.75 6.75Z" strokeLinejoin="round" />
+    </Icon>
+  );
+}
+
+export function MonitorIcon() {
+  return (
+    <Icon>
+      <rect x="2" y="2.5" width="12" height="8" rx="1.25" />
+      <path d="M5.5 13.5h5M8 10.5v3" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
 export function MenuIcon() {
   return (
     <Icon>
