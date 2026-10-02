@@ -201,6 +201,14 @@ export function CheckCircleIcon() {
   );
 }
 
+export function SpinnerIcon() {
+  return (
+    <Icon className="animate-spin">
+      <path d="M8 1.75a6.25 6.25 0 1 1-6.25 6.25" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
 export function AlertCircleIcon() {
   return (
     <Icon>

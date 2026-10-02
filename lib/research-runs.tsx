@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
-import { ApiError, researchCompanyDomain } from "@/lib/api-client/client";
+import { ApiError, streamResearchCompanyDomain } from "@/lib/api-client/client";
+import type { ResearchPhase, ResearchSource } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { CardState } from "@/lib/types";
 
@@ -10,11 +11,10 @@ export interface ResearchRun {
   id: number;
   domain: string;
   state: CardState;
-  /** Actual client-side start time, used to show elapsed time while the
-   * synchronous research request is pending. */
-  startedAt: number;
   companyId: string | null;
   error: string | null;
+  phase: ResearchPhase | null;
+  sources: Record<ResearchSource, CardState>;
 }
 
 interface ResearchRunsContextValue {
@@ -42,19 +42,16 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
 
   const startResearch = useCallback((domain: string): number => {
     const id = nextRunId++;
-    setRuns((prev) =>
-      [
-        {
-          id,
-          domain,
-          state: "pending" as CardState,
-          startedAt: Date.now(),
-          companyId: null,
-          error: null,
-        },
-        ...prev,
-      ].slice(0, MAX_TRACKED_RUNS),
-    );
+    const run: ResearchRun = {
+      id,
+      domain,
+      state: "pending",
+      companyId: null,
+      error: null,
+      phase: null,
+      sources: { homepage: "idle", news: "idle", hiring: "idle" },
+    };
+    setRuns((prev) => [run, ...prev].slice(0, MAX_TRACKED_RUNS));
 
     function settle(update: Partial<ResearchRun>) {
       setRuns((prev) => prev.map((r) => (r.id === id ? { ...r, ...update } : r)));
@@ -67,15 +64,27 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           settle({ state: "failed", error: "Your session expired. Sign in again to run this." });
           return;
         }
-        const company = await researchCompanyDomain(domain, token);
-        settle({ state: "done", companyId: company.id });
+        const companyId = await streamResearchCompanyDomain(domain, token, (event) => {
+          if (event.type === "phase") {
+            settle({ phase: event.phase });
+          } else {
+            setRuns((prev) =>
+              prev.map((run) =>
+                run.id === id
+                  ? { ...run, sources: { ...run.sources, [event.source]: event.status } }
+                  : run,
+              ),
+            );
+          }
+        });
+        settle({ state: "done", companyId });
       } catch (error) {
         settle({
           state: "failed",
           error:
             error instanceof ApiError
               ? error.message
-              : "Something went wrong before the check could run.",
+              : "Research stopped unexpectedly. Please try again.",
         });
       }
     })();

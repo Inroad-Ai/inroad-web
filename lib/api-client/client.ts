@@ -168,21 +168,115 @@ export async function fetchCompany(
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
 }
 
-/** Researches a domain and saves it in one call - there is no preview step.
- * Upserts on (user_id, domain) and appends a research_runs row; pipeline
- * state on an existing company row is left alone. */
-export async function researchCompanyDomain(
+export type ResearchPhase = "verified" | "gathering" | "creating_brief" | "saving";
+export type ResearchSource = "homepage" | "news" | "hiring";
+export type ResearchProgressEvent =
+  | { type: "phase"; phase: ResearchPhase }
+  | { type: "source"; source: ResearchSource; status: "done" | "failed" };
+
+type ResearchStreamEvent =
+  | ResearchProgressEvent
+  | { type: "complete"; company_id: string }
+  | { type: "error"; message: string };
+
+function parseResearchStreamEvent(data: string): ResearchStreamEvent {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(data);
+  } catch {
+    throw new ApiError("The research progress response was invalid.", 0);
+  }
+  if (!payload || typeof payload !== "object") {
+    throw new ApiError("The research progress response was invalid.", 0);
+  }
+  const event = payload as Record<string, unknown>;
+  if (event.type === "complete" && typeof event.company_id === "string") {
+    return { type: "complete", company_id: event.company_id };
+  }
+  if (event.type === "error" && typeof event.message === "string") {
+    return { type: "error", message: event.message };
+  }
+  if (
+    event.type === "phase" &&
+    (event.phase === "verified" ||
+      event.phase === "gathering" ||
+      event.phase === "creating_brief" ||
+      event.phase === "saving")
+  ) {
+    return { type: "phase", phase: event.phase };
+  }
+  if (
+    event.type === "source" &&
+    (event.source === "homepage" || event.source === "news" || event.source === "hiring") &&
+    (event.status === "done" || event.status === "failed")
+  ) {
+    return { type: "source", source: event.source, status: event.status };
+  }
+  throw new ApiError("The research progress response was invalid.", 0);
+}
+
+/** The progress endpoint streams real pipeline transitions and ends only after
+ * the company and its research run have been saved. */
+export async function streamResearchCompanyDomain(
   domain: string,
   accessToken: string,
-  signal?: AbortSignal,
-): Promise<Company> {
-  const result = await client.POST("/api/companies/research", {
-    params: { query: { domain: domain.trim() } },
-    headers: authHeaders(accessToken),
-    signal,
-  });
+  onProgress: (event: ResearchProgressEvent) => void,
+): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(
+      `${BASE_URL}/api/companies/research/stream?domain=${encodeURIComponent(domain.trim())}`,
+      {
+        method: "POST",
+        headers: { ...authHeaders(accessToken), Accept: "text/event-stream" },
+        cache: "no-store",
+      },
+    );
+  } catch {
+    throw new ApiError(COMPANIES_UNREACHABLE, 0);
+  }
+  if (!response.ok) {
+    const body: unknown = await response.json().catch(() => null);
+    throw new ApiError(
+      describeFailure(response.status, body),
+      response.status,
+      errorEnvelope(body)?.code,
+    );
+  }
+  if (!response.body) throw new ApiError("Research progress is unavailable.", 0);
 
-  return unwrap(result, COMPANIES_UNREACHABLE) as Company;
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let companyId: string | null = null;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      buffer = buffer.replace(/\r\n/g, "\n");
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary !== -1) {
+        const frame = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        const data = frame
+          .split("\n")
+          .find((line) => line.startsWith("data: "))
+          ?.slice(6);
+        if (data) {
+          const event = parseResearchStreamEvent(data);
+          if (event.type === "complete") companyId = event.company_id;
+          else if (event.type === "error") throw new ApiError(event.message, 500);
+          else onProgress(event);
+        }
+        boundary = buffer.indexOf("\n\n");
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  if (!companyId) throw new ApiError("Research stopped before the brief was saved.", 0);
+  return companyId;
 }
 
 /** No domain: searches for companies matching the caller's own profile.
