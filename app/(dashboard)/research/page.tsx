@@ -206,7 +206,7 @@ export default function ResearchPage() {
           empty="Research a company to create your first brief."
         >
           {runs.map((run) => (
-            <RunRow key={run.id} run={run} />
+            <RunStatusRow key={run.id} kind="research" run={run} />
           ))}
         </RunPanel>
         <RunPanel
@@ -216,7 +216,7 @@ export default function ResearchPage() {
           empty="Run a match scan to surface companies aligned with your profile."
         >
           {matchRuns.map((run) => (
-            <MatchRunRow key={run.id} run={run} onRetry={retryMatchPoll} />
+            <RunStatusRow key={run.id} kind="match" run={run} onRetry={retryMatchPoll} />
           ))}
         </RunPanel>
       </section>
@@ -318,114 +318,127 @@ function useElapsedSeconds(startedAt: number) {
   return Math.max(0, Math.floor((now - startedAt) / 1000));
 }
 
-function RunRow({ run }: { run: ResearchRun }) {
+type RunStatusRowProps =
+  | { kind: "research"; run: ResearchRun }
+  | { kind: "match"; run: MatchRun; onRetry: (runId: string) => void };
+
+function RunStatusRow(props: RunStatusRowProps) {
+  const isResearch = props.kind === "research";
+  const inFlight = isResearch
+    ? props.run.state === "pending"
+    : (props.run.status === "pending" || props.run.status === "running") && !props.run.timedOut;
+  const dotState: CardState = isResearch
+    ? props.run.state
+    : props.run.timedOut || props.run.status === "failed"
+      ? "failed"
+      : inFlight
+        ? "pending"
+        : "done";
+  const title = isResearch
+    ? props.run.domain
+    : props.run.timedOut
+      ? "Taking longer than expected"
+      : inFlight
+        ? "Searching for relevant companies"
+        : props.run.status === "failed"
+          ? "Match scan could not complete"
+          : props.run.matchedCompanyIds.length === 0
+            ? "No new matches today"
+            : `${props.run.matchedCompanyIds.length} ${props.run.matchedCompanyIds.length === 1 ? "company match" : "company matches"} found`;
+  const description = isResearch
+    ? props.run.state === "pending"
+      ? "Building company intelligence"
+      : props.run.state === "failed"
+        ? "Research needs attention"
+        : "Research brief ready"
+    : inFlight
+      ? "Using your profile and current hiring signals"
+      : props.run.timedOut
+        ? "The worker may still be processing this scan."
+        : props.run.status === "failed"
+          ? "No changes were made to your profile."
+          : "Based on your saved preferences";
+  const error = isResearch
+    ? props.run.state === "failed"
+      ? props.run.error
+      : null
+    : !props.run.timedOut && props.run.status === "failed"
+      ? props.run.error
+      : null;
+
+  const details = (
+    <>
+      {inFlight ? (
+        <ActivityProgress
+          label={
+            isResearch
+              ? "Research is running in the background"
+              : "Match scan is running in the background"
+          }
+          startedAt={props.run.startedAt}
+        />
+      ) : null}
+      {props.kind === "match" && props.run.timedOut ? (
+        <div className="mt-3">
+          <Button variant="quiet" size="sm" onClick={() => props.onRetry(props.run.id)}>
+            Check status
+          </Button>
+        </div>
+      ) : null}
+      {error ? (
+        <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">{error}</p>
+      ) : null}
+      {props.kind === "match" &&
+      props.run.status === "completed" &&
+      props.run.matchedCompanyIds.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {props.run.matchedCompanyIds.map((companyId, index) => (
+            <Link
+              key={companyId}
+              href={`/companies/${companyId}`}
+              className="rounded-full border border-signal-teal/20 bg-signal-teal-subtle px-3 py-1.5 text-xs font-medium text-signal-teal transition-colors hover:bg-signal-teal hover:text-surface"
+            >
+              View match {index + 1}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
+
   const content = (
     <div className="px-6 py-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <StatusDot state={run.state} />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-ink">{run.domain}</p>
-            <p className="mt-0.5 text-xs text-text-secondary">
-              {run.state === "pending"
-                ? "Building company intelligence"
-                : run.state === "failed"
-                  ? "Research needs attention"
-                  : "Research brief ready"}
-            </p>
+      <div
+        className={`flex flex-wrap justify-between gap-3 ${isResearch ? "items-center" : "items-start"}`}
+      >
+        <div className={`flex min-w-0 gap-3 ${isResearch ? "items-center" : "flex-1 items-start"}`}>
+          <StatusDot state={dotState} />
+          <div className={isResearch ? "min-w-0" : "min-w-0 flex-1"}>
+            <p className="truncate text-sm font-medium text-ink">{title}</p>
+            <p className="mt-0.5 text-xs text-text-secondary">{description}</p>
+            {!isResearch ? details : null}
           </div>
         </div>
-        {run.state === "done" ? (
+        {isResearch && props.run.state === "done" ? (
           <span className="utility-label text-signal-teal">Open brief</span>
         ) : null}
       </div>
-      {run.state === "pending" ? (
-        <ActivityProgress label="Research is running in the background" startedAt={run.startedAt} />
-      ) : null}
-      {run.state === "failed" && run.error ? (
-        <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">
-          {run.error}
-        </p>
-      ) : null}
+      {isResearch ? details : null}
     </div>
   );
 
-  return run.state === "done" && run.companyId ? (
-    <li>
-      <Link
-        href={`/companies/${run.companyId}`}
-        className="block transition-colors hover:bg-surface-raised/60"
-      >
-        {content}
-      </Link>
-    </li>
-  ) : (
-    <li>{content}</li>
-  );
-}
-
-function MatchRunRow({ run, onRetry }: { run: MatchRun; onRetry: (runId: string) => void }) {
-  const inFlight = (run.status === "pending" || run.status === "running") && !run.timedOut;
-  const dotState: CardState =
-    run.timedOut || run.status === "failed" ? "failed" : inFlight ? "pending" : "done";
-  const title = run.timedOut
-    ? "Taking longer than expected"
-    : inFlight
-      ? "Searching for relevant companies"
-      : run.status === "failed"
-        ? "Match scan could not complete"
-        : run.matchedCompanyIds.length === 0
-          ? "No new matches today"
-          : `${run.matchedCompanyIds.length} ${run.matchedCompanyIds.length === 1 ? "company match" : "company matches"} found`;
-
   return (
-    <li className="px-6 py-5">
-      <div className="flex items-start gap-3">
-        <StatusDot state={dotState} />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-ink">{title}</p>
-          <p className="mt-0.5 text-xs text-text-secondary">
-            {inFlight
-              ? "Using your profile and current hiring signals"
-              : run.timedOut
-                ? "The worker may still be processing this scan."
-                : run.status === "failed"
-                  ? "No changes were made to your profile."
-                  : "Based on your saved preferences"}
-          </p>
-          {inFlight ? (
-            <ActivityProgress
-              label="Match scan is running in the background"
-              startedAt={run.startedAt}
-            />
-          ) : null}
-          {run.timedOut ? (
-            <div className="mt-3">
-              <Button variant="quiet" size="sm" onClick={() => onRetry(run.id)}>
-                Check status
-              </Button>
-            </div>
-          ) : null}
-          {!run.timedOut && run.status === "failed" && run.error ? (
-            <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">
-              {run.error}
-            </p>
-          ) : null}
-          {run.status === "completed" && run.matchedCompanyIds.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {run.matchedCompanyIds.map((companyId, index) => (
-                <Link
-                  key={companyId}
-                  href={`/companies/${companyId}`}
-                  className="rounded-full border border-signal-teal/20 bg-signal-teal-subtle px-3 py-1.5 text-xs font-medium text-signal-teal transition-colors hover:bg-signal-teal hover:text-surface"
-                >
-                  View match {index + 1}
-                </Link>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
+    <li>
+      {isResearch && props.run.state === "done" && props.run.companyId ? (
+        <Link
+          href={`/companies/${props.run.companyId}`}
+          className="block transition-colors hover:bg-surface-raised/60"
+        >
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
     </li>
   );
 }
