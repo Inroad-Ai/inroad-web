@@ -172,11 +172,10 @@
 }
 
 /*
- * Dark theme. Applied by setting data-theme="dark" on the dashboard shell,
- * so the marketing site and auth screens stay light. Same token names, second
- * set of values. The semantic aliases are redeclared on purpose: a var()
- * alias resolves where it is declared, so the :root aliases above would keep
- * the light values for everything under this selector.
+ * Dark theme. ThemeSync sets data-theme="dark" on <html> while the dashboard is
+ * mounted, so the marketing site and auth screens stay light. Same token names,
+ * second set of values. Keep this block after :root: both match <html> with the
+ * same specificity, so source order decides which wins.
  * Every text and background pair used by the UI clears WCAG AA (4.5:1).
  */
 [data-theme="dark"] {
@@ -210,17 +209,6 @@
   --color-warning-subtle: 60 47 22;
 
   --color-scrim: 0 0 0;
-
-  --color-bg: var(--color-paper);
-  --color-text-primary: var(--color-ink);
-  --color-text-secondary: var(--color-ink-muted);
-  --color-border: var(--color-line);
-  --color-accent-primary: var(--color-signal-amber);
-  --color-accent-primary-hover: var(--color-signal-amber-hover);
-  --color-accent-secondary: var(--color-signal-teal);
-  --color-accent-secondary-hover: var(--color-signal-teal-hover);
-  --color-error: var(--color-muted-rose);
-  --color-error-subtle: var(--color-muted-rose-subtle);
 
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
   --shadow-overlay:

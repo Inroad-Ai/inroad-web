@@ -6,13 +6,17 @@ import type { ThemePreference } from "./theme.types";
 
 const listeners = new Set<() => void>();
 
+// Blocked storage (private mode) cannot hold the choice, so keep it here for the session.
+let sessionPreference: ThemePreference | null = null;
+
 function notify() {
   listeners.forEach((listener) => listener());
 }
 
 export function getStoredPreference(): ThemePreference {
   const stored = readStorage(THEME_STORAGE_KEY);
-  return isThemePreference(stored) ? stored : DEFAULT_THEME_PREFERENCE;
+  if (isThemePreference(stored)) return stored;
+  return sessionPreference ?? DEFAULT_THEME_PREFERENCE;
 }
 
 export function getServerPreference(): ThemePreference {
@@ -20,6 +24,7 @@ export function getServerPreference(): ThemePreference {
 }
 
 export function setStoredPreference(preference: ThemePreference): void {
+  sessionPreference = preference;
   writeStorage(THEME_STORAGE_KEY, preference);
   notify();
 }
