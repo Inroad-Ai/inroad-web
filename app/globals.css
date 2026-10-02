@@ -22,7 +22,7 @@
 
   ::selection {
     background-color: rgb(var(--color-signal-amber));
-    color: rgb(var(--color-ink));
+    color: rgb(var(--color-on-amber));
   }
 
   :focus-visible {
@@ -57,19 +57,6 @@
   }
 
   .sidebar-row-collapsed {
-    justify-content: center;
-    gap: 0;
-    padding-inline: 0;
-  }
-}
-
-/* Below `lg`, the desktop rail always reads as collapsed regardless of the
-   user's stored preference - the JS `collapsed` prop can't know the
-   viewport width, so this is what actually forces icon-only at tablet
-   widths. Scoped to .sidebar-desktop so the mobile off-canvas nav (always
-   full labels) is untouched. */
-@media (max-width: 1023.98px) {
-  .sidebar-desktop .sidebar-row {
     justify-content: center;
     gap: 0;
     padding-inline: 0;
