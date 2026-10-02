@@ -5,8 +5,8 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
+import { AlertCircleIcon, CheckCircleIcon, SpinnerIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
-import { StatusDot } from "@/components/ui/StatusDot";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
@@ -27,7 +27,8 @@ const MATCH_POLL_MAX_ATTEMPTS = 40;
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
   const { runs, startResearch } = useResearchRuns();
-  const busy = runs.some((run) => run.state === "pending");
+  const activeRun = runs.find((run) => run.state === "pending");
+  const busy = Boolean(activeRun);
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
@@ -171,11 +172,14 @@ export default function ResearchPage() {
                 {busy ? "Research in progress" : "Research company"}
               </Button>
             </div>
-            <div className="mt-5 grid gap-3 border-t border-line pt-5 text-sm text-text-secondary sm:grid-cols-3">
-              <ProcessStep number="01" label="Verify company" />
-              <ProcessStep number="02" label="Gather signals" />
-              <ProcessStep number="03" label="Create brief" />
-            </div>
+            {activeRun ? (
+              <ResearchProgress run={activeRun} />
+            ) : (
+              <p className="mt-5 border-t border-line pt-5 text-sm text-text-secondary">
+                We&apos;ll check the company&apos;s website, news, and hiring information, then
+                create a brief.
+              </p>
+            )}
           </form>
         </div>
         <aside className="rounded-lg border border-signal-teal/20 bg-signal-teal-subtle/55 p-6 shadow-card sm:p-7">
@@ -224,15 +228,6 @@ export default function ResearchPage() {
   );
 }
 
-function ProcessStep({ number, label }: { number: string; label: string }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="utility-label text-signal-teal/70">{number}</span>
-      <span>{label}</span>
-    </div>
-  );
-}
-
 function RunPanel({
   title,
   subtitle,
@@ -271,38 +266,92 @@ function RunPanel({
   );
 }
 
-function ActivityProgress({ label, startedAt }: { label: string; startedAt: number }) {
+function MatchElapsedStatus({ startedAt }: { startedAt: number }) {
   const elapsedSeconds = useElapsedSeconds(startedAt);
-  // The API does not expose phase completion. The bar therefore reflects
-  // real elapsed time against the observed 35-second upper end, and stops
-  // short of 100% until the server confirms completion.
-  const progress = Math.min(90, Math.max(4, (elapsedSeconds / 35) * 90));
   const timingLabel =
     elapsedSeconds > 35
       ? `${elapsedSeconds}s elapsed - taking longer than usual`
       : `${elapsedSeconds}s elapsed - usually 20-35 sec`;
 
   return (
-    <div className="mt-3" role="status" aria-live="polite">
-      <div className="flex items-center justify-between gap-3 text-xs text-text-secondary">
-        <span>{label}</span>
-        <span>{timingLabel}</span>
-      </div>
-      <div
-        className="mt-2 h-1 overflow-hidden rounded-full bg-signal-teal/10"
-        role="progressbar"
-        aria-label={label}
-        aria-valuemin={0}
-        aria-valuemax={35}
-        aria-valuenow={Math.min(elapsedSeconds, 35)}
-        aria-valuetext={`${elapsedSeconds} seconds elapsed. Still working.`}
-      >
-        <div
-          className="h-full rounded-full bg-signal-teal transition-[width] duration-500 ease-linear"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+    <p className="mt-3 text-xs text-text-secondary" role="status" aria-live="polite">
+      Match scan is running. {timingLabel}
+    </p>
+  );
+}
+
+const RESEARCH_SOURCES = [
+  { key: "homepage", label: "Website" },
+  { key: "news", label: "News" },
+  { key: "hiring", label: "Hiring" },
+] as const;
+
+function ResearchProgress({ run }: { run: ResearchRun }) {
+  const phaseLabel =
+    run.phase === "verified"
+      ? "Website address accepted. Getting started..."
+      : run.phase === "gathering"
+        ? "Checking website, news, and hiring information"
+        : run.phase === "creating_brief"
+          ? "Putting your research brief together"
+          : run.phase === "saving"
+            ? "Saving your research brief"
+            : "Starting research";
+
+  return (
+    <div className="mt-5 border-t border-line pt-5" role="status" aria-live="polite">
+      <p className="text-sm font-medium text-ink">{phaseLabel}</p>
+      <p className="mt-1 text-xs text-text-secondary">{run.domain}</p>
+      <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-secondary">
+        {RESEARCH_SOURCES.map(({ key, label }) => {
+          const state =
+            run.sources[key] === "idle" && run.phase === "gathering" ? "pending" : run.sources[key];
+          const status =
+            state === "done"
+              ? "Checked"
+              : state === "failed"
+                ? "Failed"
+                : state === "pending"
+                  ? "Checking"
+                  : "Waiting";
+          return (
+            <li key={key} className="flex items-center gap-2">
+              <ProgressIcon state={state} />
+              <span>
+                {label}: {status}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
+  );
+}
+
+function ProgressIcon({ state }: { state: CardState }) {
+  if (state === "pending") {
+    return (
+      <span className="text-signal-teal">
+        <SpinnerIcon />
+      </span>
+    );
+  }
+  if (state === "done") {
+    return (
+      <span className="text-success">
+        <CheckCircleIcon />
+      </span>
+    );
+  }
+  if (state === "failed") {
+    return (
+      <span className="text-error">
+        <AlertCircleIcon />
+      </span>
+    );
+  }
+  return (
+    <span aria-hidden="true" className="mx-1 inline-block h-2 w-2 shrink-0 rounded-full bg-line" />
   );
 }
 
@@ -347,7 +396,7 @@ function RunStatusRow(props: RunStatusRowProps) {
             : `${props.run.matchedCompanyIds.length} ${props.run.matchedCompanyIds.length === 1 ? "company match" : "company matches"} found`;
   const description = isResearch
     ? props.run.state === "pending"
-      ? "Building company intelligence"
+      ? "Research in progress"
       : props.run.state === "failed"
         ? "Research needs attention"
         : "Research brief ready"
@@ -368,15 +417,8 @@ function RunStatusRow(props: RunStatusRowProps) {
 
   const details = (
     <>
-      {inFlight ? (
-        <ActivityProgress
-          label={
-            isResearch
-              ? "Research is running in the background"
-              : "Match scan is running in the background"
-          }
-          startedAt={props.run.startedAt}
-        />
+      {inFlight && props.kind === "match" ? (
+        <MatchElapsedStatus startedAt={props.run.startedAt} />
       ) : null}
       {props.kind === "match" && props.run.timedOut ? (
         <div className="mt-3">
@@ -412,7 +454,7 @@ function RunStatusRow(props: RunStatusRowProps) {
         className={`flex flex-wrap justify-between gap-3 ${isResearch ? "items-center" : "items-start"}`}
       >
         <div className={`flex min-w-0 gap-3 ${isResearch ? "items-center" : "flex-1 items-start"}`}>
-          <StatusDot state={dotState} />
+          <ProgressIcon state={dotState} />
           <div className={isResearch ? "min-w-0" : "min-w-0 flex-1"}>
             <p className="truncate text-sm font-medium text-ink">{title}</p>
             <p className="mt-0.5 text-xs text-text-secondary">{description}</p>
