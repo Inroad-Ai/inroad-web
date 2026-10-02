@@ -1,37 +1,30 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
+import { DashboardFooter } from "@/components/composed/dashboard/DashboardFooter";
 import { DashboardHeader } from "@/components/composed/dashboard/DashboardHeader";
+import { MobileNav } from "@/components/composed/dashboard/MobileNav";
 import { Sidebar } from "@/components/composed/dashboard/Sidebar";
+import { ThemeSync } from "@/components/composed/dashboard/ThemeSync";
+import { useMobileNav } from "@/hooks/useMobileNav";
+import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { ResearchRunsProvider } from "@/lib/research-runs";
 
-const COLLAPSE_KEY = "inroad:sidebar-collapsed";
-
 export function DashboardShell({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  // Read the saved preference after mount only, so server and first client
-  // render match and there is no hydration flash.
-  useEffect(() => {
-    setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
-  }, []);
-
-  function toggle() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }
+  const { collapsed, toggle } = useSidebarCollapsed();
+  const mobileNav = useMobileNav();
 
   return (
     <ResearchRunsProvider>
+      <ThemeSync />
       <div className="flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={toggle} />
+        <MobileNav open={mobileNav.open} onClose={mobileNav.closeNav} />
         <div className="flex min-w-0 flex-1 flex-col">
-          <DashboardHeader />
+          <DashboardHeader onOpenNav={mobileNav.openNav} />
           <main className="flex-1">{children}</main>
+          <DashboardFooter />
         </div>
       </div>
     </ResearchRunsProvider>

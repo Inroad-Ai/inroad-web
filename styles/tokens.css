@@ -47,6 +47,13 @@
   --color-warning: 126 87 16;
   --color-warning-subtle: 244 234 214;
 
+  /* text and glyphs sitting on an amber fill. Fixed rather than --color-ink,
+     which flips light in the dark theme and would leave light-on-amber. */
+  --color-on-amber: 43 33 29;
+
+  /* modal and drawer backdrop. */
+  --color-scrim: 43 33 29;
+
   /* ---- Color: semantic aliases — reach for these when the choice is about
      role, not palette family. ---- */
 
@@ -162,4 +169,49 @@
   --motion-duration-slow: 640ms;
   --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+ * Dark theme. ThemeSync sets data-theme="dark" on <html> while the dashboard is
+ * mounted, so the marketing site and auth screens stay light. Same token names,
+ * second set of values. Keep this block after :root: both match <html> with the
+ * same specificity, so source order decides which wins.
+ * Every text and background pair used by the UI clears WCAG AA (4.5:1).
+ */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-ink: 243 236 227;
+  --color-ink-muted: 176 165 154;
+
+  --color-paper: 24 20 18;
+
+  --color-surface: 33 28 25;
+  --color-surface-raised: 45 39 35;
+
+  --color-line: 62 55 49;
+
+  --color-signal-amber: 242 169 28;
+  --color-signal-amber-hover: 250 187 56;
+  --color-signal-amber-subtle: 58 44 18;
+
+  --color-signal-teal: 109 190 180;
+  --color-signal-teal-hover: 143 208 199;
+  --color-signal-teal-subtle: 28 52 49;
+
+  --color-muted-rose: 224 128 116;
+  --color-muted-rose-subtle: 66 36 33;
+
+  --color-success: 124 178 142;
+  --color-success-subtle: 31 48 37;
+
+  --color-warning: 214 170 82;
+  --color-warning-subtle: 60 47 22;
+
+  --color-scrim: 0 0 0;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-overlay:
+    0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 20px -6px rgba(0, 0, 0, 0.5),
+    0 24px 48px -12px rgba(0, 0, 0, 0.45);
 }
