@@ -1,5 +1,7 @@
 "use client";
 
+import type { Dispatch, SetStateAction } from "react";
+
 import { fetchConnections, type Connection } from "@/lib/api-client/client";
 import { useAsyncResource } from "@/hooks/useAsyncResource";
 
@@ -7,7 +9,7 @@ interface UseConnectionsResult {
   connections: Connection[];
   /** save/delete return the new state directly, so this updates without a
    * refetch - same convention as useProfile's setProfile. */
-  setConnections: (connections: Connection[]) => void;
+  setConnections: Dispatch<SetStateAction<Connection[]>>;
   loading: boolean;
   error: string | null;
 }
