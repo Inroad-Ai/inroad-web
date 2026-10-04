@@ -7,6 +7,7 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
@@ -265,12 +266,7 @@ function RunPanel({
         </span>
       </header>
       {count === 0 ? (
-        <div className="px-6 py-10 text-center">
-          <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-signal-teal">
-            <span className="h-2 w-2 rounded-full bg-current" />
-          </div>
-          <p className="mt-3 text-sm text-text-secondary">{empty}</p>
-        </div>
+        <EmptyState className="px-6 py-10 text-center">{empty}</EmptyState>
       ) : (
         <ul className="divide-y divide-line">{children}</ul>
       )}
