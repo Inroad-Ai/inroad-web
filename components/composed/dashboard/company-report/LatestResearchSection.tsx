@@ -11,10 +11,12 @@ export function LatestResearchSection({
   detail,
   onRetry,
   rerunning,
+  retryDisabled,
 }: {
   detail: CompanyDetail;
   onRetry: () => void;
   rerunning: boolean;
+  retryDisabled: boolean;
 }) {
   const research = detail.latest_research;
 
@@ -46,7 +48,12 @@ export function LatestResearchSection({
       {/* A partial run is still a 200 with nulls in it. Say so plainly rather
           than letting the empty fields below read as "nothing to report". */}
       {research.partial ? (
-        <PartialRunNotice errors={research.errors} onRetry={onRetry} rerunning={rerunning} />
+        <PartialRunNotice
+          errors={research.errors}
+          onRetry={onRetry}
+          rerunning={rerunning}
+          retryDisabled={retryDisabled}
+        />
       ) : null}
 
       <div className="grid gap-8">

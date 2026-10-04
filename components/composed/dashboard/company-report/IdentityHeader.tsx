@@ -16,6 +16,7 @@ export function IdentityHeader({
   onCompanyChange,
   onRetry,
   rerunning,
+  retryDisabled,
   rerunError,
 }: {
   detail: CompanyDetail;
@@ -23,6 +24,7 @@ export function IdentityHeader({
   onCompanyChange: (company: Company) => void;
   onRetry: () => void;
   rerunning: boolean;
+  retryDisabled: boolean;
   rerunError: string;
 }) {
   const [movingStage, setMovingStage] = useState(false);
@@ -85,7 +87,7 @@ export function IdentityHeader({
               }))}
             />
           </div>
-          <Button size="sm" onClick={onRetry} disabled={rerunning}>
+          <Button size="sm" onClick={onRetry} disabled={retryDisabled}>
             {rerunning ? "Checking again..." : "Run research again"}
           </Button>
           <p className="utility-label text-text-secondary/70">

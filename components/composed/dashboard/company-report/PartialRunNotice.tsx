@@ -23,10 +23,12 @@ export function PartialRunNotice({
   errors,
   onRetry,
   rerunning,
+  retryDisabled,
 }: {
   errors: Record<string, string>;
   onRetry: () => void;
   rerunning: boolean;
+  retryDisabled: boolean;
 }) {
   const failedSources = Object.entries(errors);
   const onlyMissingRoleTitles =
@@ -59,7 +61,7 @@ export function PartialRunNotice({
           ))}
         </ul>
       ) : null}
-      <Button variant="quiet" size="sm" onClick={onRetry} disabled={rerunning} className="mt-4">
+      <Button variant="quiet" size="sm" onClick={onRetry} disabled={retryDisabled} className="mt-4">
         {rerunning ? "Checking again..." : "Retry research"}
       </Button>
     </div>

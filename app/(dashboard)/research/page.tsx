@@ -11,7 +11,11 @@ import { Input } from "@/components/ui/Input";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
+import {
+  MAX_CONCURRENT_RESEARCH_RUNS,
+  useResearchRuns,
+  type ResearchRun,
+} from "@/lib/research-runs";
 import type { CardState, PipelineRunStatus } from "@/lib/types";
 
 interface MatchRun {
@@ -28,16 +32,17 @@ const MATCH_POLL_MAX_ATTEMPTS = 40;
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
-  const { runs, startResearch } = useResearchRuns();
-  const activeRun = runs.find((run) => run.state === "pending");
-  const busy = Boolean(activeRun);
+  const { runs, canStartResearch, startResearch } = useResearchRuns();
+  const activeRuns = runs.filter((run) => run.state === "pending");
+  const atCapacity = activeRuns.length >= MAX_CONCURRENT_RESEARCH_RUNS;
+  const domainAlreadyRunning = activeRuns.some((run) => run.domain === domain.trim().toLowerCase());
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
   function runResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextDomain = domain.trim();
-    if (nextDomain && !busy) startResearch(nextDomain);
+    if (startResearch(nextDomain) !== null) setDomain("");
   }
 
   function settleMatch(runId: string, update: Partial<MatchRun>) {
@@ -163,19 +168,18 @@ export default function ResearchPage() {
                 autoComplete="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                disabled={busy}
                 className="min-w-0 flex-1"
               />
-              <Button
-                type="submit"
-                disabled={busy || domain.trim().length === 0}
-                className="shrink-0 px-6"
-              >
-                {busy ? "Research in progress" : "Research company"}
+              <Button type="submit" disabled={!canStartResearch(domain)} className="shrink-0 px-6">
+                {domainAlreadyRunning
+                  ? "Already researching"
+                  : atCapacity
+                    ? `${MAX_CONCURRENT_RESEARCH_RUNS} runs in progress`
+                    : "Research company"}
               </Button>
             </div>
-            {activeRun ? (
-              <ResearchProgress run={activeRun} />
+            {activeRuns.length > 0 ? (
+              activeRuns.map((run) => <ResearchProgress key={run.id} run={run} />)
             ) : (
               <p className="mt-5 border-t border-line pt-5 text-sm text-text-secondary">
                 We&apos;ll check the company&apos;s website, news, and hiring information, then
@@ -217,7 +221,7 @@ export default function ResearchPage() {
               kind="research"
               run={run}
               onRetry={() => startResearch(run.domain)}
-              retryDisabled={busy}
+              retryDisabled={!canStartResearch(run.domain)}
             />
           ))}
         </RunPanel>

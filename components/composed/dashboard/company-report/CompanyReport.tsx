@@ -28,9 +28,12 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   const [rerunError, setRerunError] = useState("");
   const [activeRunId, setActiveRunId] = useState<number | null>(null);
   const handledRunId = useRef<number | null>(null);
-  const { runs, startResearch } = useResearchRuns();
+  const { runs, canStartResearch, startResearch } = useResearchRuns();
   const activeRun = runs.find((run) => run.id === activeRunId);
-  const rerunning = activeRun?.state === "pending";
+  const rerunning = runs.some(
+    (run) => run.state === "pending" && run.domain === detail?.domain.trim().toLowerCase(),
+  );
+  const retryDisabled = !canStartResearch(detail?.domain ?? "");
 
   const accessToken = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -79,9 +82,10 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   }
 
   function rerunResearch() {
-    if (!detail || rerunning) return;
+    if (!detail || retryDisabled) return;
     setRerunError("");
-    setActiveRunId(startResearch(detail.domain));
+    const runId = startResearch(detail.domain);
+    if (runId !== null) setActiveRunId(runId);
   }
 
   if (loadState === "loading") return <CompanyReportSkeleton />;
@@ -102,9 +106,15 @@ export function CompanyReport({ companyId }: { companyId: string }) {
         onCompanyChange={mergeCompany}
         onRetry={rerunResearch}
         rerunning={rerunning}
+        retryDisabled={retryDisabled}
         rerunError={rerunError}
       />
-      <LatestResearchSection detail={detail} onRetry={rerunResearch} rerunning={rerunning} />
+      <LatestResearchSection
+        detail={detail}
+        onRetry={rerunResearch}
+        rerunning={rerunning}
+        retryDisabled={retryDisabled}
+      />
       <ProfileSection detail={detail} />
       <HiringSection detail={detail} />
       <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
