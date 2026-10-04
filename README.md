@@ -304,7 +304,6 @@ inroad-web/
 │   │   ├── SpeedComparison.tsx      # two divs, real measured numbers
 │   │   └── Footer.tsx
 │   ├── dashboard/
-│   │   ├── SearchBar.tsx
 │   │   ├── ResultCard.tsx           # one source; idle/pending/done/failed
 │   │   ├── DossierSummary.tsx       # elapsed time + cache badge
 │   │   └── HistoryList.tsx

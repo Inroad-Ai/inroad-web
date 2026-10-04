@@ -281,7 +281,11 @@ export default function ResearchPage() {
                 spellCheck={false}
                 className="min-w-0 flex-1"
               />
-              <Button type="submit" disabled={!canStartResearch(domain)} className="shrink-0 px-6">
+              <Button
+                type="submit"
+                disabled={!canStartResearch(domain)}
+                className="w-full shrink-0 px-6 sm:w-auto"
+              >
                 {domainAlreadyRunning
                   ? "Already researching"
                   : atCapacity
@@ -484,8 +488,8 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
   return (
     <div className="mt-5 border-t border-line pt-5" role="status" aria-live="polite">
       <p className="text-sm font-medium text-ink">{phaseLabel}</p>
-      <p className="mt-1 text-xs text-text-secondary">{run.domain}</p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <p className="mt-1 break-words text-xs text-text-secondary">{run.domain}</p>
+      <div className="mt-4 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
         {RESEARCH_SOURCES.map((source) => {
           const state =
             run.sources[source] === "idle" && run.phase === "gathering"
