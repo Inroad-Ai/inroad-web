@@ -129,6 +129,11 @@ export interface FetchCompaniesParams {
   sort?: CompanySort;
   page?: number;
   pageSize?: number;
+  updatedBefore?: string;
+  source?: "job_match" | "manual";
+  hasContact?: boolean;
+  contactedAfter?: string;
+  contactedOnly?: boolean;
 }
 
 export async function fetchCompanies(
@@ -144,6 +149,11 @@ export async function fetchCompanies(
         sort: params.sort,
         page: params.page,
         page_size: params.pageSize,
+        updated_before: params.updatedBefore,
+        source: params.source,
+        has_contact: params.hasContact,
+        contacted_after: params.contactedAfter,
+        contacted_only: params.contactedOnly,
       },
     },
     headers: authHeaders(accessToken),
@@ -378,6 +388,31 @@ export async function fetchOverviewStats(
   return unwrap(result, COMPANIES_UNREACHABLE) as OverviewStats;
 }
 
+export type OverviewActions = components["schemas"]["OverviewActions"];
+export type PeopleOverview = components["schemas"]["PeopleOverview"];
+
+export async function fetchOverviewActions(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OverviewActions> {
+  const result = await client.GET("/api/companies/overview/actions", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+  return unwrap(result, COMPANIES_UNREACHABLE);
+}
+
+export async function fetchPeopleOverview(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<PeopleOverview> {
+  const result = await client.GET("/api/people/overview", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+  return unwrap(result, PEOPLE_UNREACHABLE);
+}
+
 // --- people ---
 
 const PEOPLE_UNREACHABLE =
@@ -387,6 +422,8 @@ export interface FetchPeopleParams {
   stage?: PersonStage;
   page?: number;
   pageSize?: number;
+  contactedBefore?: string;
+  contactedOnly?: boolean;
 }
 
 /** One row per person, across every company - what the contacts board's
@@ -398,7 +435,13 @@ export async function fetchPeople(
 ): Promise<PersonListResponse> {
   const result = await client.GET("/api/people", {
     params: {
-      query: { stage: params.stage, page: params.page, page_size: params.pageSize },
+      query: {
+        stage: params.stage,
+        page: params.page,
+        page_size: params.pageSize,
+        contacted_before: params.contactedBefore,
+        contacted_only: params.contactedOnly,
+      },
     },
     headers: authHeaders(accessToken),
     signal,

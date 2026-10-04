@@ -3,7 +3,10 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 
 export default function OverviewPage() {
   return (
-    <PageShell title="Overview" description="Where your search stands, at a glance.">
+    <PageShell
+      title="Overview"
+      description="See what needs attention, then check how your search is moving."
+    >
       <OverviewDashboard />
     </PageShell>
   );

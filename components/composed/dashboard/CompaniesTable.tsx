@@ -36,12 +36,40 @@ function formatDate(iso: string): string {
   });
 }
 
-export function CompaniesTable() {
+export function CompaniesTable({
+  initialFilters = {},
+}: {
+  initialFilters?: Record<string, string | string[] | undefined>;
+}) {
   const router = useRouter();
+
+  const requestedStage = initialFilters.stage;
+  const initialStage =
+    typeof requestedStage === "string" && PIPELINE_STAGES.includes(requestedStage as PipelineStage)
+      ? (requestedStage as PipelineStage)
+      : "all";
+  const requestedSource = initialFilters.source;
+  const source =
+    requestedSource === "job_match" || requestedSource === "manual" ? requestedSource : undefined;
+  const hasContact = initialFilters.has_contact === "true" ? true : undefined;
+  const updatedBefore =
+    typeof initialFilters.updated_before === "string" &&
+    !Number.isNaN(Date.parse(initialFilters.updated_before))
+      ? initialFilters.updated_before
+      : undefined;
+  const contactedAfter =
+    typeof initialFilters.contacted_after === "string" &&
+    !Number.isNaN(Date.parse(initialFilters.contacted_after))
+      ? initialFilters.contacted_after
+      : undefined;
+  const contactedOnly = initialFilters.contacted_only === "true" ? true : undefined;
+  const hasOverviewFilter = Boolean(
+    source || hasContact || updatedBefore || contactedAfter || contactedOnly,
+  );
 
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
-  const [stage, setStage] = useState<PipelineStage | "all">("all");
+  const [stage, setStage] = useState<PipelineStage | "all">(initialStage);
   const [sort, setSort] = useState<CompanySort>("updated_desc");
   const [page, setPage] = useState(1);
 
@@ -80,6 +108,11 @@ export function CompaniesTable() {
             sort,
             page,
             pageSize: PAGE_SIZE,
+            source,
+            hasContact,
+            updatedBefore,
+            contactedAfter,
+            contactedOnly,
           },
           token,
           controller.signal,
@@ -95,13 +128,21 @@ export function CompaniesTable() {
 
     load();
     return () => controller.abort();
-  }, [search, stage, sort, page]);
+  }, [search, stage, sort, page, source, hasContact, updatedBefore, contactedAfter, contactedOnly]);
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
-  const hasFilters = search !== "" || stage !== "all";
+  const hasFilters = search !== "" || stage !== "all" || hasOverviewFilter;
 
   return (
     <div>
+      {hasOverviewFilter ? (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-line bg-surface p-4 text-sm text-text-secondary">
+          <span>Showing companies matching your Overview action.</span>
+          <Button href="/companies" variant="quiet" size="sm">
+            Clear filters
+          </Button>
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-3">
         <Input
           value={searchInput}

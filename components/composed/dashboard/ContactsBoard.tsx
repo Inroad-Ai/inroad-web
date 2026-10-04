@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { fetchPeople, updatePersonStage } from "@/lib/api-client/client";
@@ -49,8 +49,24 @@ function initialBoard(): BoardState {
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see your contacts.";
 
-export function ContactsBoard() {
+export function ContactsBoard({
+  initialFilters = {},
+}: {
+  initialFilters?: Record<string, string | string[] | undefined>;
+}) {
   const router = useRouter();
+  const requestedStage = initialFilters.stage;
+  const filterStage =
+    typeof requestedStage === "string" && PERSON_STAGES.includes(requestedStage as PersonStage)
+      ? (requestedStage as PersonStage)
+      : null;
+  const contactedBefore =
+    typeof initialFilters.contacted_before === "string" &&
+    !Number.isNaN(Date.parse(initialFilters.contacted_before))
+      ? initialFilters.contacted_before
+      : undefined;
+  const contactedOnly = initialFilters.contacted_only === "true" ? true : undefined;
+  const visibleStages = useMemo(() => (filterStage ? [filterStage] : PERSON_STAGES), [filterStage]);
 
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [movingId, setMovingId] = useState<string | null>(null);
@@ -78,10 +94,10 @@ export function ContactsBoard() {
       }
 
       await Promise.all(
-        PERSON_STAGES.map(async (stage) => {
+        visibleStages.map(async (stage) => {
           try {
             const response = await fetchPeople(
-              { stage, page: 1, pageSize: COLUMN_PAGE_SIZE },
+              { stage, page: 1, pageSize: COLUMN_PAGE_SIZE, contactedBefore, contactedOnly },
               token,
               controller.signal,
             );
@@ -104,7 +120,7 @@ export function ContactsBoard() {
 
     load();
     return () => controller.abort();
-  }, [patchColumn]);
+  }, [patchColumn, contactedBefore, contactedOnly, visibleStages]);
 
   async function loadMore(stage: PersonStage) {
     const column = board[stage];
@@ -119,7 +135,13 @@ export function ContactsBoard() {
 
     try {
       const response = await fetchPeople(
-        { stage, page: column.pagesLoaded + 1, pageSize: COLUMN_PAGE_SIZE },
+        {
+          stage,
+          page: column.pagesLoaded + 1,
+          pageSize: COLUMN_PAGE_SIZE,
+          contactedBefore,
+          contactedOnly,
+        },
         token,
       );
       setBoard((prev) => {
@@ -191,8 +213,16 @@ export function ContactsBoard() {
 
   return (
     <div className="mt-6 overflow-x-auto pb-32">
+      {filterStage || contactedBefore || contactedOnly ? (
+        <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-text-secondary">
+          <span>Showing people matching your Overview selection.</span>
+          <Button href="/contacts" variant="quiet" size="sm">
+            Show everyone
+          </Button>
+        </div>
+      ) : null}
       <div className="flex min-w-max gap-4">
-        {PERSON_STAGES.map((stage) => (
+        {visibleStages.map((stage) => (
           <ContactsColumn
             key={stage}
             stage={stage}

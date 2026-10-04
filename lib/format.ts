@@ -1,5 +1,7 @@
 /** Display formatting for values the API sends raw. Pure functions only. */
 
+export const MILLISECONDS_PER_DAY = 86_400_000;
+
 /** 1615 -> "1.62" seconds. */
 export function totalTimeSeconds(elapsedMs: number): string {
   return (elapsedMs / 1000).toFixed(2);
@@ -18,7 +20,7 @@ export function formatTimestamp(iso: string): string {
 
 /** An ISO timestamp as "today" / "3 days ago" / "2 weeks ago". */
 export function formatRelativeDays(iso: string): string {
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / MILLISECONDS_PER_DAY);
   if (days <= 0) return "today";
   if (days === 1) return "1 day ago";
   if (days < 14) return `${days} days ago`;

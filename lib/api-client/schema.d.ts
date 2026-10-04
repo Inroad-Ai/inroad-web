@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/overview/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Overview Actions */
+        get: operations["get_overview_actions_api_companies_overview_actions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/research": {
         parameters: {
             query?: never;
@@ -87,6 +104,29 @@ export interface paths {
          *     step, entering a domain is what puts it in the caller's companies list.
          */
         post: operations["research_domain_api_companies_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/research/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream Research Domain
+         * @description Emit actual research phase/source transitions, then the saved company ID.
+         *
+         *     The worker owns its DB session so research can finish and save even if the
+         *     browser closes the progress stream while navigating to another page.
+         */
+        post: operations["stream_research_domain_api_companies_research_stream_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -194,6 +234,23 @@ export interface paths {
         };
         /** List People */
         get: operations["list_people_api_people_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get People Overview */
+        get: operations["get_people_overview_api_people_overview_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -906,6 +963,11 @@ export interface components {
          */
         CompanySort: "updated_desc" | "updated_asc" | "created_desc" | "created_asc" | "domain_asc" | "domain_desc";
         /**
+         * CompanySource
+         * @enum {string}
+         */
+        CompanySource: "job_match" | "manual";
+        /**
          * CompanyStage
          * @enum {string}
          */
@@ -1216,6 +1278,31 @@ export interface components {
              */
             updated_at: string;
         };
+        /** OverviewActions */
+        OverviewActions: {
+            /** Follow Up After Days */
+            follow_up_after_days: number;
+            /** Follow Up Companies */
+            follow_up_companies: components["schemas"]["CompanyOut"][];
+            /** Follow Up Companies Total */
+            follow_up_companies_total: number;
+            /** Follow Up People */
+            follow_up_people: components["schemas"]["PersonListItem"][];
+            /** Follow Up People Total */
+            follow_up_people_total: number;
+            /** New Matches */
+            new_matches: components["schemas"]["CompanyOut"][];
+            /** New Matches Total */
+            new_matches_total: number;
+            /** Never Contacted */
+            never_contacted: components["schemas"]["CompanyOut"][];
+            /** Never Contacted Total */
+            never_contacted_total: number;
+            /** Replies */
+            replies: components["schemas"]["PersonListItem"][];
+            /** Replies Total */
+            replies_total: number;
+        };
         /** OverviewStats */
         OverviewStats: {
             /** Total Companies */
@@ -1230,8 +1317,25 @@ export interface components {
             contacted_within_window: number;
             /** Contacted Within Prior Window */
             contacted_within_prior_window: number;
+            /** Contacted Companies */
+            contacted_companies: number;
+            /** Replied Companies */
+            replied_companies: number;
+            /** Response Rate Percent */
+            response_rate_percent: number;
+            /** Sent Outreach Count */
+            sent_outreach_count: number;
             /** Companies By Week */
             companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
+        };
+        /** PeopleOverview */
+        PeopleOverview: {
+            /** By Stage */
+            by_stage: {
+                [key: string]: number;
+            };
+            /** Contacted People */
+            contacted_people: number;
         };
         /** PeopleResult */
         PeopleResult: {
@@ -1837,6 +1941,11 @@ export interface operations {
                 sort?: components["schemas"]["CompanySort"];
                 page?: number;
                 page_size?: number;
+                updated_before?: string | null;
+                source?: components["schemas"]["CompanySource"] | null;
+                has_contact?: boolean | null;
+                contacted_after?: string | null;
+                contacted_only?: boolean | null;
             };
             header?: {
                 authorization?: string | null;
@@ -1899,6 +2008,37 @@ export interface operations {
             };
         };
     };
+    get_overview_actions_api_companies_overview_actions_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewActions"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     research_domain_api_companies_research_post: {
         parameters: {
             query: {
@@ -1920,6 +2060,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_research_domain_api_companies_research_stream_post: {
+        parameters: {
+            query: {
+                domain: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -2147,6 +2320,8 @@ export interface operations {
                 stage?: components["schemas"]["PersonStage"] | null;
                 page?: number;
                 page_size?: number;
+                contacted_before?: string | null;
+                contacted_only?: boolean | null;
             };
             header?: {
                 authorization?: string | null;
@@ -2163,6 +2338,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_people_overview_api_people_overview_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PeopleOverview"];
                 };
             };
             /** @description Validation Error */
@@ -2335,6 +2541,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"][];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2374,6 +2587,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2408,6 +2628,13 @@ export interface operations {
                     "application/json": components["schemas"]["GmailDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2441,6 +2668,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GmailSendOut"];
                 };
+            };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

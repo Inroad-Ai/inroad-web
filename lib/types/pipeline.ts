@@ -30,9 +30,13 @@ interface WeeklyCompanyCount {
 /** Mirrors app/schemas/company.py OverviewStats, from GET /api/companies/overview. */
 export interface OverviewStats {
   total_companies: number;
-  by_stage: Record<PipelineStage, number>;
+  by_stage: Record<string, number>;
   contacted_window_days: number;
   contacted_within_window: number;
   contacted_within_prior_window: number;
+  contacted_companies: number;
+  replied_companies: number;
+  response_rate_percent: number;
+  sent_outreach_count: number;
   companies_by_week: WeeklyCompanyCount[];
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { fetchCompanies, updateCompanyStage } from "@/lib/api-client/client";
@@ -45,8 +45,26 @@ function initialBoard(): BoardState {
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see your pipeline.";
 
-export function PipelineBoard() {
+export function PipelineBoard({
+  initialFilters = {},
+}: {
+  initialFilters?: Record<string, string | string[] | undefined>;
+}) {
   const router = useRouter();
+  const requestedStage = initialFilters.stage;
+  const filterStage =
+    typeof requestedStage === "string" && PIPELINE_STAGES.includes(requestedStage as PipelineStage)
+      ? (requestedStage as PipelineStage)
+      : null;
+  const updatedBefore =
+    typeof initialFilters.updated_before === "string" &&
+    !Number.isNaN(Date.parse(initialFilters.updated_before))
+      ? initialFilters.updated_before
+      : undefined;
+  const visibleStages = useMemo(
+    () => (filterStage ? [filterStage] : PIPELINE_STAGES),
+    [filterStage],
+  );
 
   const [board, setBoard] = useState<BoardState>(initialBoard);
   const [movingId, setMovingId] = useState<string | null>(null);
@@ -76,10 +94,10 @@ export function PipelineBoard() {
       }
 
       await Promise.all(
-        PIPELINE_STAGES.map(async (stage) => {
+        visibleStages.map(async (stage) => {
           try {
             const response = await fetchCompanies(
-              { stage, sort: "updated_desc", page: 1, pageSize: COLUMN_PAGE_SIZE },
+              { stage, sort: "updated_desc", page: 1, pageSize: COLUMN_PAGE_SIZE, updatedBefore },
               token,
               controller.signal,
             );
@@ -102,7 +120,7 @@ export function PipelineBoard() {
 
     load();
     return () => controller.abort();
-  }, [patchColumn]);
+  }, [patchColumn, updatedBefore, visibleStages]);
 
   // Cards moving between stages shift the underlying offsets, so a page
   // fetched after a move can repeat a row. De-duplicate rather than refetch.
@@ -124,6 +142,7 @@ export function PipelineBoard() {
           sort: "updated_desc",
           page: column.pagesLoaded + 1,
           pageSize: COLUMN_PAGE_SIZE,
+          updatedBefore,
         },
         token,
       );
@@ -198,8 +217,16 @@ export function PipelineBoard() {
 
   return (
     <div className="mt-6 overflow-x-auto pb-32">
+      {filterStage || updatedBefore ? (
+        <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-text-secondary">
+          <span>Showing the stage selected from Overview.</span>
+          <Button href="/companies/pipeline" variant="quiet" size="sm">
+            Show all stages
+          </Button>
+        </div>
+      ) : null}
       <div className="flex min-w-max gap-4">
-        {PIPELINE_STAGES.map((stage) => (
+        {visibleStages.map((stage) => (
           <PipelineColumn
             key={stage}
             stage={stage}
