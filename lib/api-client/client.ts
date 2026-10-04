@@ -169,14 +169,19 @@ export async function fetchCompany(
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
 }
 
+export interface FetchResearchHistoryParams {
+  offset: number;
+  limit: number;
+  search?: string;
+}
+
 export async function fetchResearchHistory(
-  offset: number,
-  limit: number,
+  params: FetchResearchHistoryParams,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<ResearchHistoryResponse> {
   const result = await client.GET("/api/companies/research/history", {
-    params: { query: { offset, limit } },
+    params: { query: { offset: params.offset, limit: params.limit, search: params.search } },
     headers: authHeaders(accessToken),
     signal,
   });

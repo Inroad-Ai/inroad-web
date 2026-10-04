@@ -37,10 +37,13 @@ const MATCH_POLL_INTERVAL_MS = 3000;
 const MATCH_POLL_MAX_ATTEMPTS = 40;
 const INITIAL_HISTORY_LIMIT = 20;
 const MORE_HISTORY_LIMIT = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 type DisplayResearchRun = Omit<ResearchRun, "id"> & { id: number | string };
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const { runs, canStartResearch, startResearch } = useResearchRuns();
   const activeRuns = runs.filter((run) => run.state === "pending");
   const atCapacity = activeRuns.length >= MAX_CONCURRENT_RESEARCH_RUNS;
@@ -49,6 +52,7 @@ export default function ResearchPage() {
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
   const [history, setHistory] = useState<ResearchHistoryItem[]>([]);
   const [historyTotal, setHistoryTotal] = useState(0);
+  const [loadedSearch, setLoadedSearch] = useState("");
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
   const [historyError, setHistoryError] = useState("");
@@ -57,6 +61,14 @@ export default function ResearchPage() {
     .filter((run) => run.state === "done")
     .map((run) => run.id)
     .join(",");
+  const displayedHistory = loadedSearch === search ? history : [];
+  const displayedHistoryTotal = loadedSearch === search ? historyTotal : 0;
+  const isHistoryLoading = historyLoading || loadedSearch !== search;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -69,16 +81,19 @@ export default function ResearchPage() {
         const token = await ensureValidAccessToken();
         if (!token) throw new Error("Your session expired. Sign in again to view research.");
         const response = await fetchResearchHistory(
-          0,
-          INITIAL_HISTORY_LIMIT,
+          { offset: 0, limit: INITIAL_HISTORY_LIMIT, search: search || undefined },
           token,
           controller.signal,
         );
         if (controller.signal.aborted || version !== historyVersion.current) return;
         setHistory(response.items);
         setHistoryTotal(response.total);
+        setLoadedSearch(search);
       } catch (error) {
         if (controller.signal.aborted || version !== historyVersion.current) return;
+        setHistory([]);
+        setHistoryTotal(0);
+        setLoadedSearch(search);
         setHistoryError(
           error instanceof Error ? error.message : "Could not load research history.",
         );
@@ -90,17 +105,26 @@ export default function ResearchPage() {
 
     void loadHistory();
     return () => controller.abort();
-  }, [completedRunIds]);
+  }, [completedRunIds, search]);
 
   async function showMoreHistory() {
-    if (historyLoadingMore || history.length >= historyTotal) return;
+    if (
+      historyLoading ||
+      historyLoadingMore ||
+      loadedSearch !== search ||
+      history.length >= historyTotal
+    )
+      return;
     const version = historyVersion.current;
     setHistoryLoadingMore(true);
     setHistoryError("");
     try {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error("Your session expired. Sign in again to view research.");
-      const response = await fetchResearchHistory(history.length, MORE_HISTORY_LIMIT, token);
+      const response = await fetchResearchHistory(
+        { offset: history.length, limit: MORE_HISTORY_LIMIT, search: search || undefined },
+        token,
+      );
       if (version !== historyVersion.current) return;
       setHistory((previous) => [...previous, ...response.items]);
       setHistoryTotal(response.total);
@@ -114,11 +138,14 @@ export default function ResearchPage() {
   }
 
   const visibleResearch = [
-    ...runs.map((run) => {
-      const saved = !historyLoading && history.find((item) => item.domain === run.domain);
-      return run.state === "done" && saved ? { ...run, partial: saved.partial } : run;
-    }),
-    ...history
+    ...runs
+      .filter((run) => run.domain.includes(search.toLowerCase()))
+      .map((run) => {
+        const saved =
+          !isHistoryLoading && displayedHistory.find((item) => item.domain === run.domain);
+        return run.state === "done" && saved ? { ...run, partial: saved.partial } : run;
+      }),
+    ...displayedHistory
       .filter((item) => !runs.some((run) => run.domain === item.domain))
       .map(researchRunFromHistory),
   ];
@@ -298,21 +325,35 @@ export default function ResearchPage() {
           subtitle="Your recent intelligence requests"
           count={visibleResearch.length}
           scrollable
+          toolbar={
+            <div className="border-b border-line px-6 py-4">
+              <Input
+                type="search"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search by domain..."
+                aria-label="Search company research by domain"
+                maxLength={253}
+              />
+            </div>
+          }
           empty={
-            historyLoading
+            isHistoryLoading
               ? "Loading research..."
               : historyError
                 ? "Research history is unavailable."
-                : "Research a company to create your first brief."
+                : search
+                  ? "No research found for this domain."
+                  : "Research a company to create your first brief."
           }
           footer={
-            historyLoading || historyError || history.length < historyTotal ? (
+            isHistoryLoading || historyError || displayedHistory.length < displayedHistoryTotal ? (
               <div className="border-t border-line px-6 py-4">
-                {historyLoading && visibleResearch.length > 0 ? (
+                {isHistoryLoading && visibleResearch.length > 0 ? (
                   <p className="text-sm text-text-secondary">Loading research...</p>
                 ) : null}
                 {historyError ? <p className="text-sm text-error">{historyError}</p> : null}
-                {!historyLoading && history.length < historyTotal ? (
+                {!isHistoryLoading && displayedHistory.length < displayedHistoryTotal ? (
                   <Button
                     variant="quiet"
                     size="sm"
@@ -359,6 +400,7 @@ function RunPanel({
   empty,
   children,
   footer,
+  toolbar,
   scrollable = false,
 }: {
   title: string;
@@ -367,6 +409,7 @@ function RunPanel({
   empty: string;
   children: ReactNode;
   footer?: ReactNode;
+  toolbar?: ReactNode;
   scrollable?: boolean;
 }) {
   return (
@@ -380,6 +423,7 @@ function RunPanel({
           {count}
         </span>
       </header>
+      {toolbar}
       {count === 0 ? (
         <EmptyState className="px-6 py-10 text-center">{empty}</EmptyState>
       ) : (

@@ -1975,6 +1975,8 @@ export interface operations {
     list_research_history_api_companies_research_history_get: {
         parameters: {
             query?: {
+                /** @description Substring match on domain */
+                search?: string | null;
                 offset?: number;
                 limit?: number;
             };
