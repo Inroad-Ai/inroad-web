@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
-import { ApiError, streamResearchCompanyDomain } from "@/lib/api-client/client";
+import { ApiError, fetchCompany, streamResearchCompanyDomain } from "@/lib/api-client/client";
 import type { ResearchPhase, ResearchSource } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { CardState } from "@/lib/types";
@@ -12,6 +12,7 @@ export interface ResearchRun {
   domain: string;
   state: CardState;
   companyId: string | null;
+  partial: boolean | null;
   error: string | null;
   phase: ResearchPhase | null;
   sources: Record<ResearchSource, CardState>;
@@ -47,6 +48,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
       domain,
       state: "pending",
       companyId: null,
+      partial: null,
       error: null,
       phase: null,
       sources: { homepage: "idle", news: "idle", hiring: "idle" },
@@ -78,6 +80,12 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           }
         });
         settle({ state: "done", companyId });
+        try {
+          const company = await fetchCompany(companyId, token);
+          settle({ partial: company.latest_research?.partial ?? null });
+        } catch {
+          // The brief is saved even if its detail request fails.
+        }
       } catch (error) {
         settle({
           state: "failed",

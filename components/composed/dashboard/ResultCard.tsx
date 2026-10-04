@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusDot } from "@/components/ui/StatusDot";
 import type { CardState, CompanyDossier, SourceKey } from "@/lib/types";
 
-/** Labels are the same three the landing page uses, so the preview matches the tool. */
 const SOURCES: Record<SourceKey, { code: string; name: string }> = {
   homepage: { code: "SOURCE_01", name: "Homepage" },
   news: { code: "SOURCE_02", name: "News" },
@@ -20,18 +19,18 @@ const NOTHING_FOUND: Record<SourceKey, string> = {
 interface ResultCardProps {
   source: SourceKey;
   state: CardState;
-  dossier: CompanyDossier | null;
+  dossier?: CompanyDossier | null;
+  progress?: boolean;
 }
 
-export function ResultCard({ source, state, dossier }: ResultCardProps) {
+export function ResultCard({ source, state, dossier = null, progress = false }: ResultCardProps) {
   const { code, name } = SOURCES[source];
   const reason = dossier?.errors?.[source];
 
   return (
     <article
-      // Fixed minimum height: a card that fails must not shrink and drag the
-      // row of cards next to it around.
-      className="flex min-h-72 flex-col rounded-md border border-line bg-surface p-6 shadow-card transition-colors hover:border-signal-teal/40"
+      // Keep neighboring cards aligned when one source has less to show.
+      className={`flex flex-col rounded-md border border-line bg-surface shadow-card transition-colors hover:border-signal-teal/40 ${progress ? "min-h-40 p-4" : "min-h-72 p-6"}`}
     >
       <header className="flex items-baseline justify-between gap-3 border-b border-line pb-4">
         <span className="utility-label text-text-secondary">{code}</span>
@@ -40,28 +39,34 @@ export function ResultCard({ source, state, dossier }: ResultCardProps) {
 
       <div className="flex flex-1 flex-col pt-5">
         {state === "pending" ? <Checking /> : null}
-        {state === "idle" ? <Waiting /> : null}
-        {state === "failed" ? <Nothing source={source} reason={reason} /> : null}
+        {state === "idle" ? <Waiting progress={progress} /> : null}
+        {state === "failed" ? (
+          <Nothing source={source} reason={reason} progress={progress} />
+        ) : null}
         {state === "done" ? <Found source={source} dossier={dossier} /> : null}
       </div>
 
       <footer className="flex items-center gap-2 pt-4">
         <StatusDot state={state} />
-        <span className="utility-label text-text-secondary">{footerLabel(state)}</span>
+        <span className="utility-label text-text-secondary">{footerLabel(state, progress)}</span>
       </footer>
     </article>
   );
 }
 
-function footerLabel(state: CardState): string {
+function footerLabel(state: CardState, progress: boolean): string {
   if (state === "pending") return "Still checking";
-  if (state === "done") return "Found";
-  if (state === "failed") return "Nothing found";
+  if (state === "done") return progress ? "Checked" : "Found";
+  if (state === "failed") return progress ? "Check failed" : "Nothing found";
   return "Not started";
 }
 
-function Waiting() {
-  return <p className="text-sm text-text-secondary/70">Enter a domain to check this.</p>;
+function Waiting({ progress }: { progress: boolean }) {
+  return (
+    <p className="text-sm text-text-secondary/70">
+      {progress ? "Waiting to check." : "Enter a domain to check this."}
+    </p>
+  );
 }
 
 function Checking() {
@@ -74,10 +79,20 @@ function Checking() {
   );
 }
 
-function Nothing({ source, reason }: { source: SourceKey; reason?: string }) {
+function Nothing({
+  source,
+  reason,
+  progress,
+}: {
+  source: SourceKey;
+  reason?: string;
+  progress: boolean;
+}) {
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-rose">{NOTHING_FOUND[source]}</p>
+      <p className="text-sm text-muted-rose">
+        {progress ? "This check failed." : NOTHING_FOUND[source]}
+      </p>
       {reason ? (
         // The backend's own words, kept as secondary detail rather than as the
         // headline — it is written for whoever debugs this, not for the reader.
@@ -88,7 +103,7 @@ function Nothing({ source, reason }: { source: SourceKey; reason?: string }) {
 }
 
 function Found({ source, dossier }: { source: SourceKey; dossier: CompanyDossier | null }) {
-  if (!dossier) return null;
+  if (!dossier) return <p className="text-sm text-text-secondary">Source checked.</p>;
   if (source === "homepage") return <Homepage dossier={dossier} />;
   if (source === "news") return <News dossier={dossier} />;
   return <Hiring dossier={dossier} />;

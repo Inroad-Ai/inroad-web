@@ -104,10 +104,7 @@ export interface CompanyDossier {
   elapsed_ms: number;
 }
 
-/** The three mechanical sources, in the order the landing page's sample
- * dossier shows them. Not used by the real Research page anymore - that
- * page now shows a run list, not per-source cards - but the marketing
- * mockup (Hero, SampleDossier) still renders this layout. */
+/** The three mechanical sources shown during a research run. */
 const SOURCE_KEYS = ["homepage", "news", "hiring"] as const;
 export type SourceKey = (typeof SOURCE_KEYS)[number];
 

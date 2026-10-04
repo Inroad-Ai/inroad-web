@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageShell } from "@/components/composed/dashboard/PageShell";
+import { ResultCard } from "@/components/composed/dashboard/ResultCard";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { AlertCircleIcon, CheckCircleIcon, SpinnerIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
+import { StatusDot } from "@/components/ui/StatusDot";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
@@ -210,7 +212,13 @@ export default function ResearchPage() {
           empty="Research a company to create your first brief."
         >
           {runs.map((run) => (
-            <RunStatusRow key={run.id} kind="research" run={run} />
+            <RunStatusRow
+              key={run.id}
+              kind="research"
+              run={run}
+              onRetry={() => startResearch(run.domain)}
+              retryDisabled={busy}
+            />
           ))}
         </RunPanel>
         <RunPanel
@@ -280,11 +288,7 @@ function MatchElapsedStatus({ startedAt }: { startedAt: number }) {
   );
 }
 
-const RESEARCH_SOURCES = [
-  { key: "homepage", label: "Website" },
-  { key: "news", label: "News" },
-  { key: "hiring", label: "Hiring" },
-] as const;
+const RESEARCH_SOURCES = ["homepage", "news", "hiring"] as const;
 
 function ResearchProgress({ run }: { run: ResearchRun }) {
   const phaseLabel =
@@ -302,56 +306,16 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
     <div className="mt-5 border-t border-line pt-5" role="status" aria-live="polite">
       <p className="text-sm font-medium text-ink">{phaseLabel}</p>
       <p className="mt-1 text-xs text-text-secondary">{run.domain}</p>
-      <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-secondary">
-        {RESEARCH_SOURCES.map(({ key, label }) => {
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {RESEARCH_SOURCES.map((source) => {
           const state =
-            run.sources[key] === "idle" && run.phase === "gathering" ? "pending" : run.sources[key];
-          const status =
-            state === "done"
-              ? "Checked"
-              : state === "failed"
-                ? "Failed"
-                : state === "pending"
-                  ? "Checking"
-                  : "Waiting";
-          return (
-            <li key={key} className="flex items-center gap-2">
-              <ProgressIcon state={state} />
-              <span>
-                {label}: {status}
-              </span>
-            </li>
-          );
+            run.sources[source] === "idle" && run.phase === "gathering"
+              ? "pending"
+              : run.sources[source];
+          return <ResultCard key={source} source={source} state={state} progress />;
         })}
-      </ul>
+      </div>
     </div>
-  );
-}
-
-function ProgressIcon({ state }: { state: CardState }) {
-  if (state === "pending") {
-    return (
-      <span className="text-signal-teal">
-        <SpinnerIcon />
-      </span>
-    );
-  }
-  if (state === "done") {
-    return (
-      <span className="text-success">
-        <CheckCircleIcon />
-      </span>
-    );
-  }
-  if (state === "failed") {
-    return (
-      <span className="text-error">
-        <AlertCircleIcon />
-      </span>
-    );
-  }
-  return (
-    <span aria-hidden="true" className="mx-1 inline-block h-2 w-2 shrink-0 rounded-full bg-line" />
   );
 }
 
@@ -368,7 +332,7 @@ function useElapsedSeconds(startedAt: number) {
 }
 
 type RunStatusRowProps =
-  | { kind: "research"; run: ResearchRun }
+  | { kind: "research"; run: ResearchRun; onRetry: () => void; retryDisabled: boolean }
   | { kind: "match"; run: MatchRun; onRetry: (runId: string) => void };
 
 function RunStatusRow(props: RunStatusRowProps) {
@@ -399,7 +363,9 @@ function RunStatusRow(props: RunStatusRowProps) {
       ? "Research in progress"
       : props.run.state === "failed"
         ? "Research needs attention"
-        : "Research brief ready"
+        : props.run.partial
+          ? "Research brief ready with incomplete sources"
+          : "Research brief ready"
     : inFlight
       ? "Using your profile and current hiring signals"
       : props.run.timedOut
@@ -424,6 +390,13 @@ function RunStatusRow(props: RunStatusRowProps) {
         <div className="mt-3">
           <Button variant="quiet" size="sm" onClick={() => props.onRetry(props.run.id)}>
             Check status
+          </Button>
+        </div>
+      ) : null}
+      {props.kind === "research" && props.run.state === "failed" ? (
+        <div className="mt-3">
+          <Button variant="quiet" size="sm" onClick={props.onRetry} disabled={props.retryDisabled}>
+            Retry research
           </Button>
         </div>
       ) : null}
@@ -454,7 +427,7 @@ function RunStatusRow(props: RunStatusRowProps) {
         className={`flex flex-wrap justify-between gap-3 ${isResearch ? "items-center" : "items-start"}`}
       >
         <div className={`flex min-w-0 gap-3 ${isResearch ? "items-center" : "flex-1 items-start"}`}>
-          <ProgressIcon state={dotState} />
+          <StatusDot state={dotState} />
           <div className={isResearch ? "min-w-0" : "min-w-0 flex-1"}>
             <p className="truncate text-sm font-medium text-ink">{title}</p>
             <p className="mt-0.5 text-xs text-text-secondary">{description}</p>
@@ -462,7 +435,14 @@ function RunStatusRow(props: RunStatusRowProps) {
           </div>
         </div>
         {isResearch && props.run.state === "done" ? (
-          <span className="utility-label text-signal-teal">Open brief</span>
+          <span className="flex items-center gap-3">
+            {props.run.partial !== null ? (
+              <Badge tone={props.run.partial ? "rose" : "neutral"}>
+                {props.run.partial ? "Partial" : "Complete"}
+              </Badge>
+            ) : null}
+            <span className="utility-label text-signal-teal">Open brief</span>
+          </span>
         ) : null}
       </div>
       {isResearch ? details : null}
