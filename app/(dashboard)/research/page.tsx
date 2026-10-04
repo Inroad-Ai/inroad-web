@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { ResultCard } from "@/components/composed/dashboard/ResultCard";
@@ -10,14 +10,19 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { StatusDot } from "@/components/ui/StatusDot";
-import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
+import {
+  ApiError,
+  fetchResearchHistory,
+  getMatchRun,
+  startMatchRun,
+} from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import {
   MAX_CONCURRENT_RESEARCH_RUNS,
   useResearchRuns,
   type ResearchRun,
 } from "@/lib/research-runs";
-import type { CardState, PipelineRunStatus } from "@/lib/types";
+import type { CardState, PipelineRunStatus, ResearchHistoryItem } from "@/lib/types";
 
 interface MatchRun {
   id: string;
@@ -30,6 +35,9 @@ interface MatchRun {
 
 const MATCH_POLL_INTERVAL_MS = 3000;
 const MATCH_POLL_MAX_ATTEMPTS = 40;
+const INITIAL_HISTORY_LIMIT = 20;
+const MORE_HISTORY_LIMIT = 10;
+type DisplayResearchRun = Omit<ResearchRun, "id"> & { id: number | string };
 
 export default function ResearchPage() {
   const [domain, setDomain] = useState("");
@@ -39,6 +47,81 @@ export default function ResearchPage() {
   const domainAlreadyRunning = activeRuns.some((run) => run.domain === domain.trim().toLowerCase());
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
+  const [history, setHistory] = useState<ResearchHistoryItem[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyLoadingMore, setHistoryLoadingMore] = useState(false);
+  const [historyError, setHistoryError] = useState("");
+  const historyVersion = useRef(0);
+  const completedRunIds = runs
+    .filter((run) => run.state === "done")
+    .map((run) => run.id)
+    .join(",");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const version = ++historyVersion.current;
+
+    async function loadHistory() {
+      setHistoryLoading(true);
+      setHistoryError("");
+      try {
+        const token = await ensureValidAccessToken();
+        if (!token) throw new Error("Your session expired. Sign in again to view research.");
+        const response = await fetchResearchHistory(
+          0,
+          INITIAL_HISTORY_LIMIT,
+          token,
+          controller.signal,
+        );
+        if (controller.signal.aborted || version !== historyVersion.current) return;
+        setHistory(response.items);
+        setHistoryTotal(response.total);
+      } catch (error) {
+        if (controller.signal.aborted || version !== historyVersion.current) return;
+        setHistoryError(
+          error instanceof Error ? error.message : "Could not load research history.",
+        );
+      } finally {
+        if (!controller.signal.aborted && version === historyVersion.current)
+          setHistoryLoading(false);
+      }
+    }
+
+    void loadHistory();
+    return () => controller.abort();
+  }, [completedRunIds]);
+
+  async function showMoreHistory() {
+    if (historyLoadingMore || history.length >= historyTotal) return;
+    const version = historyVersion.current;
+    setHistoryLoadingMore(true);
+    setHistoryError("");
+    try {
+      const token = await ensureValidAccessToken();
+      if (!token) throw new Error("Your session expired. Sign in again to view research.");
+      const response = await fetchResearchHistory(history.length, MORE_HISTORY_LIMIT, token);
+      if (version !== historyVersion.current) return;
+      setHistory((previous) => [...previous, ...response.items]);
+      setHistoryTotal(response.total);
+    } catch (error) {
+      if (version === historyVersion.current) {
+        setHistoryError(error instanceof Error ? error.message : "Could not load more research.");
+      }
+    } finally {
+      setHistoryLoadingMore(false);
+    }
+  }
+
+  const visibleResearch = [
+    ...runs.map((run) => {
+      const saved = !historyLoading && history.find((item) => item.domain === run.domain);
+      return run.state === "done" && saved ? { ...run, partial: saved.partial } : run;
+    }),
+    ...history
+      .filter((item) => !runs.some((run) => run.domain === item.domain))
+      .map(researchRunFromHistory),
+  ];
 
   function runResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -209,14 +292,42 @@ export default function ResearchPage() {
         </aside>
       </section>
 
-      <section className="mt-8 grid gap-6 xl:grid-cols-2">
+      <section className="mt-8 grid items-start gap-6 xl:grid-cols-2">
         <RunPanel
           title="Company research"
           subtitle="Your recent intelligence requests"
-          count={runs.length}
-          empty="Research a company to create your first brief."
+          count={visibleResearch.length}
+          scrollable
+          empty={
+            historyLoading
+              ? "Loading research..."
+              : historyError
+                ? "Research history is unavailable."
+                : "Research a company to create your first brief."
+          }
+          footer={
+            historyLoading || historyError || history.length < historyTotal ? (
+              <div className="border-t border-line px-6 py-4">
+                {historyLoading && visibleResearch.length > 0 ? (
+                  <p className="text-sm text-text-secondary">Loading research...</p>
+                ) : null}
+                {historyError ? <p className="text-sm text-error">{historyError}</p> : null}
+                {!historyLoading && history.length < historyTotal ? (
+                  <Button
+                    variant="quiet"
+                    size="sm"
+                    onClick={() => void showMoreHistory()}
+                    disabled={historyLoadingMore}
+                    className="mt-2"
+                  >
+                    {historyLoadingMore ? "Loading..." : "Show more"}
+                  </Button>
+                ) : null}
+              </div>
+            ) : null
+          }
         >
-          {runs.map((run) => (
+          {visibleResearch.map((run) => (
             <RunStatusRow
               key={run.id}
               kind="research"
@@ -247,12 +358,16 @@ function RunPanel({
   count,
   empty,
   children,
+  footer,
+  scrollable = false,
 }: {
   title: string;
   subtitle: string;
   count: number;
   empty: string;
   children: ReactNode;
+  footer?: ReactNode;
+  scrollable?: boolean;
 }) {
   return (
     <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
@@ -268,10 +383,30 @@ function RunPanel({
       {count === 0 ? (
         <EmptyState className="px-6 py-10 text-center">{empty}</EmptyState>
       ) : (
-        <ul className="divide-y divide-line">{children}</ul>
+        <ul
+          className={`divide-y divide-line ${scrollable ? "max-h-[60rem] overflow-y-auto" : ""}`}
+          tabIndex={scrollable ? 0 : undefined}
+          aria-label={scrollable ? `${title} runs` : undefined}
+        >
+          {children}
+        </ul>
       )}
+      {footer}
     </div>
   );
+}
+
+function researchRunFromHistory(item: ResearchHistoryItem): DisplayResearchRun {
+  return {
+    id: item.id,
+    domain: item.domain,
+    state: "done",
+    companyId: item.company_id,
+    partial: item.partial,
+    error: null,
+    phase: null,
+    sources: { homepage: "idle", news: "idle", hiring: "idle" },
+  };
 }
 
 function MatchElapsedStatus({ startedAt }: { startedAt: number }) {
@@ -332,7 +467,7 @@ function useElapsedSeconds(startedAt: number) {
 }
 
 type RunStatusRowProps =
-  | { kind: "research"; run: ResearchRun; onRetry: () => void; retryDisabled: boolean }
+  | { kind: "research"; run: DisplayResearchRun; onRetry: () => void; retryDisabled: boolean }
   | { kind: "match"; run: MatchRun; onRetry: (runId: string) => void };
 
 function RunStatusRow(props: RunStatusRowProps) {

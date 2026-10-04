@@ -13,6 +13,7 @@ import type {
   PersonDetail,
   PersonListResponse,
   PersonStage,
+  ResearchHistoryResponse,
   PipelineRunOut,
   PipelineStage,
 } from "@/lib/types";
@@ -166,6 +167,20 @@ export async function fetchCompany(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
+}
+
+export async function fetchResearchHistory(
+  offset: number,
+  limit: number,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<ResearchHistoryResponse> {
+  const result = await client.GET("/api/companies/research/history", {
+    params: { query: { offset, limit } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+  return unwrap(result, COMPANIES_UNREACHABLE) as ResearchHistoryResponse;
 }
 
 export type ResearchPhase = "verified" | "gathering" | "creating_brief" | "saving";

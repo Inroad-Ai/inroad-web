@@ -71,7 +71,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
         sources: { homepage: "idle", news: "idle", hiring: "idle" },
       };
       setRuns((prev) => {
-        const next = [run, ...prev];
+        const next = [run, ...prev.filter((item) => item.domain !== normalized)];
         const activeCount = next.filter((item) => item.state === "pending").length;
         const settled = next.filter((item) => item.state !== "pending");
         const retained = new Set(settled.slice(0, MAX_TRACKED_RUNS - activeCount));

@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/research/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Research History */
+        get: operations["list_research_history_api_companies_research_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/research": {
         parameters: {
             query?: never;
@@ -87,6 +104,29 @@ export interface paths {
          *     step, entering a domain is what puts it in the caller's companies list.
          */
         post: operations["research_domain_api_companies_research_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/research/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream Research Domain
+         * @description Emit actual research phase/source transitions, then the saved company ID.
+         *
+         *     The worker owns its DB session so research can finish and save even if the
+         *     browser closes the progress stream while navigating to another page.
+         */
+        post: operations["stream_research_domain_api_companies_research_stream_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1588,6 +1628,39 @@ export interface components {
              */
             token_type: string;
         };
+        /** ResearchHistoryItem */
+        ResearchHistoryItem: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Partial */
+            partial: boolean;
+            /** From Cache */
+            from_cache: boolean;
+            /** Elapsed Ms */
+            elapsed_ms: number;
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Domain */
+            domain: string;
+        };
+        /** ResearchHistoryResponse */
+        ResearchHistoryResponse: {
+            /** Items */
+            items: components["schemas"]["ResearchHistoryItem"][];
+            /** Total */
+            total: number;
+        };
         /**
          * ResearchRunSummary
          * @description One research_runs row without its raw_response, for the history list.
@@ -1899,6 +1972,40 @@ export interface operations {
             };
         };
     };
+    list_research_history_api_companies_research_history_get: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     research_domain_api_companies_research_post: {
         parameters: {
             query: {
@@ -1920,6 +2027,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_research_domain_api_companies_research_stream_post: {
+        parameters: {
+            query: {
+                domain: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -2335,6 +2475,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"][];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2374,6 +2521,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2408,6 +2562,13 @@ export interface operations {
                     "application/json": components["schemas"]["GmailDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2441,6 +2602,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GmailSendOut"];
                 };
+            };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
