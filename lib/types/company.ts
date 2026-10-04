@@ -149,6 +149,16 @@ export interface ResearchRunSummary {
   elapsed_ms: number;
 }
 
+export interface ResearchHistoryItem extends ResearchRunSummary {
+  company_id: string;
+  domain: string;
+}
+
+export interface ResearchHistoryResponse {
+  items: ResearchHistoryItem[];
+  total: number;
+}
+
 /** GET /api/companies/{id}. The saved row plus its research trail. */
 export interface CompanyDetail extends Company {
   /** The raw_response of the newest run, or null if the company has none. */
