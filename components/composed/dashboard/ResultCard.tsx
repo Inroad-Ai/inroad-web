@@ -1,4 +1,5 @@
 import { DataField } from "@/components/ui/DataField";
+import { CheckCircleIcon, SpinnerIcon, XCircleIcon } from "@/components/ui/Icons";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { StatusDot } from "@/components/ui/StatusDot";
 import type { CardState, CompanyDossier, SourceKey } from "@/lib/types";
@@ -14,6 +15,13 @@ const NOTHING_FOUND: Record<SourceKey, string> = {
   homepage: "The site did not answer.",
   news: "No recent coverage found.",
   hiring: "No hiring page found.",
+};
+
+const PROGRESS_TONE: Record<CardState, string> = {
+  idle: "text-text-secondary",
+  pending: "text-signal-teal",
+  done: "text-success",
+  failed: "text-error",
 };
 
 interface ResultCardProps {
@@ -47,11 +55,40 @@ export function ResultCard({ source, state, dossier = null, progress = false }: 
       </div>
 
       <footer className="flex items-center gap-2 pt-4">
-        <StatusDot state={state} />
-        <span className="utility-label text-text-secondary">{footerLabel(state, progress)}</span>
+        {progress ? <ProgressStatusIcon state={state} /> : <StatusDot state={state} />}
+        <span
+          className={`utility-label ${progress ? PROGRESS_TONE[state] : "text-text-secondary"}`}
+        >
+          {footerLabel(state, progress)}
+        </span>
       </footer>
     </article>
   );
+}
+
+function ProgressStatusIcon({ state }: { state: CardState }) {
+  if (state === "pending") {
+    return (
+      <span className="text-signal-teal">
+        <SpinnerIcon />
+      </span>
+    );
+  }
+  if (state === "done") {
+    return (
+      <span className="text-success">
+        <CheckCircleIcon />
+      </span>
+    );
+  }
+  if (state === "failed") {
+    return (
+      <span className="text-error">
+        <XCircleIcon />
+      </span>
+    );
+  }
+  return <StatusDot state="idle" />;
 }
 
 function footerLabel(state: CardState, progress: boolean): string {

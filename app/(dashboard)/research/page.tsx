@@ -393,13 +393,6 @@ function RunStatusRow(props: RunStatusRowProps) {
           </Button>
         </div>
       ) : null}
-      {props.kind === "research" && props.run.state === "failed" ? (
-        <div className="mt-3">
-          <Button variant="quiet" size="sm" onClick={props.onRetry} disabled={props.retryDisabled}>
-            Retry research
-          </Button>
-        </div>
-      ) : null}
       {error ? (
         <p className="mt-3 rounded-sm bg-muted-rose-subtle px-3 py-2 text-sm text-error">{error}</p>
       ) : null}
@@ -461,6 +454,14 @@ function RunStatusRow(props: RunStatusRowProps) {
       ) : (
         content
       )}
+      {props.kind === "research" &&
+      (props.run.state === "failed" || (props.run.state === "done" && props.run.partial)) ? (
+        <div className="px-6 pb-5">
+          <Button variant="quiet" size="sm" onClick={props.onRetry} disabled={props.retryDisabled}>
+            Retry research
+          </Button>
+        </div>
+      ) : null}
     </li>
   );
 }

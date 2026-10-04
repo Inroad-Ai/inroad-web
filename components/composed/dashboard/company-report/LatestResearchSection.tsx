@@ -7,7 +7,15 @@ import { Section } from "@/components/ui/Section";
 import { NewsSummary } from "./NewsSummary";
 import { PartialRunNotice } from "./PartialRunNotice";
 
-export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
+export function LatestResearchSection({
+  detail,
+  onRetry,
+  rerunning,
+}: {
+  detail: CompanyDetail;
+  onRetry: () => void;
+  rerunning: boolean;
+}) {
   const research = detail.latest_research;
 
   if (research === null) {
@@ -25,6 +33,7 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
       title="Latest research"
       meta={
         <div className="flex flex-wrap items-center gap-3">
+          {research.partial ? <Badge tone="rose">Partial</Badge> : null}
           <Badge tone={research.from_cache ? "amber" : "teal"}>
             {research.from_cache ? "Served from cache" : "Fetched live"}
           </Badge>
@@ -36,7 +45,9 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
     >
       {/* A partial run is still a 200 with nulls in it. Say so plainly rather
           than letting the empty fields below read as "nothing to report". */}
-      {research.partial ? <PartialRunNotice errors={research.errors} /> : null}
+      {research.partial ? (
+        <PartialRunNotice errors={research.errors} onRetry={onRetry} rerunning={rerunning} />
+      ) : null}
 
       <div className="grid gap-8">
         <NewsSummary news={research.news} />

@@ -201,6 +201,15 @@ export function CheckCircleIcon() {
   );
 }
 
+export function XCircleIcon() {
+  return (
+    <Icon>
+      <circle cx="8" cy="8" r="6.25" />
+      <path d="m5.75 5.75 4.5 4.5m0-4.5-4.5 4.5" strokeLinecap="round" />
+    </Icon>
+  );
+}
+
 export function SpinnerIcon() {
   return (
     <Icon className="animate-spin">
