@@ -3,9 +3,22 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, staging]
 
 jobs:
+  branch-flow:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only staging can be merged into main
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "Pull requests into main must come from staging. Retarget this pull request to staging."
+            exit 1
+          fi
+
   malware-scan:
     runs-on: ubuntu-latest
     permissions:
