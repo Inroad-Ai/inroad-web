@@ -7,10 +7,10 @@ machine into production. It is short on purpose, so please read all of it once.
 
 We use two long-lived branches:
 
-| Branch    | Purpose                                                    |
-| --------- | ---------------------------------------------------------- |
-| `staging` | Where all work lands first. This is the default branch.    |
-| `main`    | Production. It only receives merges from `staging`.        |
+| Branch    | Purpose                                                 |
+| --------- | ------------------------------------------------------- |
+| `staging` | Where all work lands first. This is the default branch. |
+| `main`    | Production. It only receives merges from `staging`.     |
 
 The rules:
 
@@ -56,13 +56,13 @@ pre-commit install --hook-type pre-commit --hook-type pre-push
 
 2. Create a branch from it. Use a short name with one of these prefixes:
 
-   | Prefix      | Use it for                                  |
-   | ----------- | ------------------------------------------- |
-   | `feat/`     | A new feature                               |
-   | `fix/`      | A bug fix                                   |
-   | `refactor/` | A change that does not alter behavior       |
-   | `chore/`    | Tooling, dependencies, config               |
-   | `docs/`     | Documentation only                          |
+   | Prefix      | Use it for                            |
+   | ----------- | ------------------------------------- |
+   | `feat/`     | A new feature                         |
+   | `fix/`      | A bug fix                             |
+   | `refactor/` | A change that does not alter behavior |
+   | `chore/`    | Tooling, dependencies, config         |
+   | `docs/`     | Documentation only                    |
 
    ```bash
    git checkout -b feat/short-description
