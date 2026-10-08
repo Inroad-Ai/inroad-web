@@ -39,11 +39,20 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Optional but recommended, install the pre-commit hooks:
+## Git hooks
 
-```bash
-pre-commit install --hook-type pre-commit --hook-type pre-push
-```
+Husky installs the git hooks automatically when you run `pnpm install`. You do
+not need to set anything up.
+
+| Hook         | When it runs | What it does                                                   |
+| ------------ | ------------ | -------------------------------------------------------------- |
+| `pre-commit` | `git commit` | Malware scan, then ESLint and Prettier on the files you staged |
+| `commit-msg` | `git commit` | Rejects em dashes, `Co-Authored-By` lines and AI tool mentions |
+| `pre-push`   | `git push`   | Malware scan and `pnpm typecheck`                              |
+
+If a hook fails, read the message, fix the problem and commit again. Skipping
+hooks with `--no-verify` is not allowed. CI runs the same checks and will fail
+the pull request anyway.
 
 ## Making a change
 
