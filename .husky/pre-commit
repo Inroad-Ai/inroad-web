@@ -1,0 +1,2 @@
+. .husky/malware-scan.sh
+pnpm exec lint-staged
