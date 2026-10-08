@@ -1,0 +1,11 @@
+msg_file="$1"
+
+if grep -q "—" "$msg_file"; then
+  echo "Commit message contains an em dash. Rewrite it with a comma, period or plain hyphen."
+  exit 1
+fi
+
+if grep -i -E "co-authored-by|generated with|claude|anthropic" "$msg_file" >/dev/null; then
+  echo "Commit message mentions an AI tool or has a Co-Authored-By line. Remove it."
+  exit 1
+fi
