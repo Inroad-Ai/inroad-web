@@ -1,3 +1,8 @@
+## Target branch
+
+- [ ] This pull request targets `staging` (all normal work)
+- [ ] This is a release pull request from `staging` into `main` (maintainers only)
+
 ## What & Why
 
 <!-- What changed and why? -->

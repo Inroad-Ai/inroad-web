@@ -273,6 +273,10 @@ Both pages are static, so any host that can serve a Next.js build works. There
 is no server-side rendering of data and no API route in this app; it is a
 client for someone else's API.
 
+## Contributing
+
+All work goes through `staging`: branch from it and open pull requests into it. `main` is production and only receives merges from `staging`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full flow, branch naming, and the checks to run before you push.
+
 ## Possible next steps
 
 - Consume a streaming endpoint so each card lands as its own source finishes,
