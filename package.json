@@ -19,7 +19,7 @@
     "framer-motion": "^13.4.1",
     "jose": "^6.2.12",
     "libphonenumber-js": "^1.13.13",
-    "next": "^14.2.35",
+    "next": "^16.4.0",
     "openapi-fetch": "^0.17.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
