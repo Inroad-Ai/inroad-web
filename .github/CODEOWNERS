@@ -1,0 +1,8 @@
+# Changes to the malware defences, CI and install/start hooks need the owner's review.
+/.github/ @Abdul-Moiz31
+/scripts/malware-scan.sh @Abdul-Moiz31
+/scripts/detect-malware.py @Abdul-Moiz31
+/.vscode/ @Abdul-Moiz31
+/.husky/ @Abdul-Moiz31
+/package.json @Abdul-Moiz31
+/pnpm-lock.yaml @Abdul-Moiz31
