@@ -1,10 +1,12 @@
 import { describeHiring } from "@/lib/companies";
-import { safeHref } from "@/lib/safe-href";
 import type { CompanyDetail } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { DataField } from "@/components/ui/DataField";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Section } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+
+import { DashboardPanel } from "../DashboardPanel";
+import { ExternalLink } from "./ExternalLink";
+import { HiringRoles } from "./HiringRoles";
 
 export function HiringSection({ detail }: { detail: CompanyDetail }) {
   const hiring = describeHiring(detail);
@@ -12,106 +14,61 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
   // Board postings come with the sourcing backend, each with its availability.
   const sourced = detail.latest_research?.research_backend === "sourcing";
   const postings = sourced ? (detail.latest_research?.hiring?.role_postings ?? []) : [];
-  const careersHref = safeHref(detail.careers_url);
+  const notCollectedReason = detail.latest_research?.not_collected?.hiring;
 
   return (
-    <Section title="Hiring">
-      <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <DashboardPanel
+      title="Hiring"
+      meta={
+        <Badge tone={hiring.muted ? "neutral" : "teal"} dot>
+          {hiring.label}
+        </Badge>
+      }
+    >
+      <dl className="grid gap-5 sm:grid-cols-3">
         <DataField label="Status">
           {detail.is_hiring === null ? (
-            <span className="text-text-secondary">
+            <span className="text-ink-muted">
               Could not tell
-              {detail.latest_research?.not_collected?.hiring ? (
-                <span className="mt-1 block text-xs">
-                  {detail.latest_research.not_collected.hiring}
-                </span>
+              {notCollectedReason ? (
+                <span className="mt-1 block text-xs">{notCollectedReason}</span>
               ) : null}
             </span>
           ) : detail.is_hiring ? (
             "Hiring"
           ) : (
-            <span className="text-text-secondary">Not hiring</span>
+            <span className="text-ink-muted">Not hiring</span>
           )}
         </DataField>
-        {/* null ("could not count") and 0 ("counted, none open") read
-            differently here, the same way they do in the table. */}
-        <DataField label="Open roles">
-          <span className={hiring.muted ? "text-text-secondary" : ""}>{hiring.label}</span>
-        </DataField>
         <DataField label="Board">
-          {detail.hiring_source ?? <span className="text-text-secondary">Unknown</span>}
+          {detail.hiring_source ?? <span className="text-ink-muted">Unknown</span>}
         </DataField>
         <DataField label="Careers page">
-          {careersHref ? (
-            <a
-              href={careersHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="break-all text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-            >
+          {detail.careers_url ? (
+            <ExternalLink href={detail.careers_url} className="break-all">
               {detail.careers_url}
-            </a>
+            </ExternalLink>
           ) : (
-            <span className="text-text-secondary">None found</span>
+            <span className="text-ink-muted">None found</span>
           )}
         </DataField>
       </dl>
 
-      {postings.length > 0 ? (
-        <div className="mt-6">
-          <p className="utility-label font-sans-semibold text-text-secondary">
-            Open roles on the company&apos;s job board
-          </p>
-          <ul className="mt-2 space-y-2">
-            {postings.map((posting, index) => (
-              <li key={`${posting.title}-${index}`} className="text-sm text-ink">
-                {safeHref(posting.url) ? (
-                  <a
-                    href={safeHref(posting.url) ?? undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-                  >
-                    {posting.title}
-                  </a>
-                ) : (
-                  posting.title
-                )}
-                {[posting.department, posting.location].filter(Boolean).length > 0 ? (
-                  <span className="text-text-secondary">
-                    {" "}
-                    {[posting.department, posting.location].filter(Boolean).join(" · ")}
-                  </span>
-                ) : null}
-                {posting.availability !== "not_seen_in_latest_scan" ? null : (
-                  <span className="ml-2 text-xs text-text-secondary">
-                    not in the board&apos;s latest listing
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <div className="mt-6">
-          <p className="utility-label font-sans-semibold text-text-secondary">Open roles</p>
-          {detail.sample_roles.length === 0 ? (
-            <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
-          ) : (
-            <ul className="mt-2 space-y-1.5">
-              {detail.sample_roles.map((role) => (
-                <li key={role} className="text-sm text-ink">
-                  {role}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {detail.matched_role_title ? (
+        <p className="mt-6 rounded-nest bg-signal-teal-subtle px-3 py-2.5 text-sm text-ink">
+          <span className="font-sans-bold text-signal-teal">Matched role</span>{" "}
+          <ExternalLink href={detail.matched_role_url}>{detail.matched_role_title}</ExternalLink>
+          {detail.matched_posted_text ? (
+            <span className="text-ink-muted">, {detail.matched_posted_text}</span>
+          ) : null}
+        </p>
+      ) : null}
+
+      <HiringRoles postings={postings} sampleRoles={detail.sample_roles} />
 
       {additionalSources.length > 0 ? (
         <div className="mt-6">
-          <p className="utility-label font-sans-semibold text-text-secondary">Also listed on</p>
+          <Eyebrow as="h3">Also listed on</Eyebrow>
           <div className="mt-2 flex flex-wrap gap-2">
             {additionalSources.map((source) => (
               <Badge key={source} tone="neutral">
@@ -121,6 +78,6 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
           </div>
         </div>
       ) : null}
-    </Section>
+    </DashboardPanel>
   );
 }

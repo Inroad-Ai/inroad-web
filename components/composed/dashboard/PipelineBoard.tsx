@@ -1,56 +1,38 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { LayoutGroup, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 import { fetchCompanies, updateCompanyStage } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { describeHiring } from "@/lib/companies";
 import type { Company } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Menu } from "@/components/ui/Menu";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { PIPELINE_STAGES, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
+import { PIPELINE_STAGES, type PipelineStage } from "@/components/ui/StatusBadge";
+
+import {
+  boardOf,
+  EMPTY_COLUMN,
+  moveCard,
+  replaceCard,
+  rollbackCard,
+  type BoardState,
+  type ColumnState,
+} from "./pipeline/board-state";
+import { PipelineColumn } from "./pipeline/PipelineColumn";
 
 // Columns are never unbounded: some stages will hold hundreds of companies
 // after the historical import, so each pages on demand.
 const COLUMN_PAGE_SIZE = 20;
-
-interface ColumnState {
-  items: Company[];
-  total: number;
-  pagesLoaded: number;
-  status: "loading" | "error" | "ready";
-  loadingMore: boolean;
-  errorMessage: string;
-}
-
-type BoardState = Record<PipelineStage, ColumnState>;
-
-const EMPTY_COLUMN: ColumnState = {
-  items: [],
-  total: 0,
-  pagesLoaded: 0,
-  status: "loading",
-  loadingMore: false,
-  errorMessage: "",
-};
-
-function initialBoard(): BoardState {
-  return Object.fromEntries(
-    PIPELINE_STAGES.map((stage) => [stage, { ...EMPTY_COLUMN }]),
-  ) as BoardState;
-}
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see your pipeline.";
 
 export function PipelineBoard() {
   const router = useRouter();
 
-  const [board, setBoard] = useState<BoardState>(initialBoard);
-  const [movingId, setMovingId] = useState<string | null>(null);
+  const [board, setBoard] = useState<BoardState>(() => boardOf(EMPTY_COLUMN));
+  const [movingIds, setMovingIds] = useState<ReadonlySet<string>>(() => new Set());
   const [moveErrors, setMoveErrors] = useState<Record<string, string>>({});
+  const [dragging, setDragging] = useState<Company | null>(null);
 
   const patchColumn = useCallback((stage: PipelineStage, patch: Partial<ColumnState>) => {
     setBoard((prev) => ({ ...prev, [stage]: { ...prev[stage], ...patch } }));
@@ -64,14 +46,7 @@ export function PipelineBoard() {
     async function load() {
       const token = await ensureValidAccessToken();
       if (!token) {
-        setBoard(
-          Object.fromEntries(
-            PIPELINE_STAGES.map((stage) => [
-              stage,
-              { ...EMPTY_COLUMN, status: "error", errorMessage: SESSION_EXPIRED },
-            ]),
-          ) as BoardState,
-        );
+        setBoard(boardOf({ ...EMPTY_COLUMN, status: "error", errorMessage: SESSION_EXPIRED }));
         return;
       }
 
@@ -110,7 +85,7 @@ export function PipelineBoard() {
     const column = board[stage];
     if (column.loadingMore) return;
 
-    patchColumn(stage, { loadingMore: true });
+    patchColumn(stage, { loadingMore: true, errorMessage: "" });
     const token = await ensureValidAccessToken();
     if (!token) {
       patchColumn(stage, { loadingMore: false, status: "error", errorMessage: SESSION_EXPIRED });
@@ -150,199 +125,79 @@ export function PipelineBoard() {
     }
   }
 
-  // Waits for the backend, then moves the card locally. The row the endpoint
-  // returns is what lands, so a stamped `contacted_at` shows up with it.
+  function setMoving(id: string, moving: boolean) {
+    setMovingIds((prev) => {
+      const next = new Set(prev);
+      if (moving) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  // Moves the card at once, then swaps in the row the endpoint returns (so a
+  // stamped `contacted_at` lands with it). A failed PATCH puts it back.
   async function moveCompany(company: Company, to: PipelineStage) {
     const from = company.stage;
-    if (from === to) return;
+    if (from === to || movingIds.has(company.id)) return;
 
-    setMovingId(company.id);
+    const index = board[from].items.findIndex((item) => item.id === company.id);
+    setMoving(company.id, true);
     setMoveErrors((prev) => {
       const { [company.id]: _removed, ...rest } = prev;
       return rest;
     });
+    setBoard((prev) => moveCard(prev, company, from, to, { ...company, stage: to }));
 
     try {
       const token = await ensureValidAccessToken();
       if (!token) throw new Error(SESSION_EXPIRED);
 
       const updated = await updateCompanyStage(company.id, to, token);
-
-      setBoard((prev) => {
-        const source = prev[from];
-        const target = prev[to];
-        return {
-          ...prev,
-          [from]: {
-            ...source,
-            items: source.items.filter((item) => item.id !== company.id),
-            total: Math.max(0, source.total - 1),
-          },
-          [to]: {
-            ...target,
-            // Sorted by last-updated, and this row just was.
-            items: [updated, ...target.items.filter((item) => item.id !== company.id)],
-            total: target.total + 1,
-          },
-        };
-      });
+      setBoard((prev) => replaceCard(prev, to, updated));
     } catch (err) {
+      setBoard((prev) => rollbackCard(prev, company, from, to, Math.max(0, index)));
       setMoveErrors((prev) => ({
         ...prev,
         [company.id]: err instanceof Error ? err.message : "Could not move this company.",
       }));
     } finally {
-      setMovingId(null);
+      setMoving(company.id, false);
     }
   }
 
-  return (
-    <div className="mt-6 overflow-x-auto pb-32">
-      <div className="flex min-w-max gap-4">
-        {PIPELINE_STAGES.map((stage) => (
-          <PipelineColumn
-            key={stage}
-            stage={stage}
-            column={board[stage]}
-            movingId={movingId}
-            moveErrors={moveErrors}
-            onOpen={(id) => router.push(`/companies/${id}`)}
-            onMove={moveCompany}
-            onLoadMore={() => loadMore(stage)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function PipelineColumn({
-  stage,
-  column,
-  movingId,
-  moveErrors,
-  onOpen,
-  onMove,
-  onLoadMore,
-}: {
-  stage: PipelineStage;
-  column: ColumnState;
-  movingId: string | null;
-  moveErrors: Record<string, string>;
-  onOpen: (id: string) => void;
-  onMove: (company: Company, to: PipelineStage) => void;
-  onLoadMore: () => void;
-}) {
-  const hasMore = column.items.length < column.total;
+  function dropOn(to: PipelineStage) {
+    if (dragging) moveCompany(dragging, to);
+    setDragging(null);
+  }
 
   return (
-    <section className="flex w-72 shrink-0 flex-col rounded-md border border-line bg-surface-raised p-3">
-      <header className="flex items-center justify-between gap-2 pb-3">
-        <StatusBadge stage={stage} />
-        <span
-          className="utility-label text-text-secondary"
-          aria-label={`${column.total} companies`}
-        >
-          {column.status === "loading" ? "" : column.total}
-        </span>
-      </header>
-
-      <div className="flex flex-col gap-2">
-        {column.status === "loading" ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-md border border-line bg-surface px-4 py-3">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="mt-2 h-3 w-20" />
-            </div>
-          ))
-        ) : column.status === "error" ? (
-          <EmptyState className="px-1 py-6">{column.errorMessage}</EmptyState>
-        ) : column.items.length === 0 ? (
-          <EmptyState className="px-1 py-6">Nothing at this stage.</EmptyState>
-        ) : (
-          column.items.map((company) => (
-            <PipelineCard
-              key={company.id}
-              company={company}
-              moving={movingId === company.id}
-              errorMessage={moveErrors[company.id]}
-              onOpen={() => onOpen(company.id)}
-              onMove={(to) => onMove(company, to)}
-            />
-          ))
-        )}
-      </div>
-
-      {column.status === "ready" && hasMore ? (
-        <Button
-          variant="quiet"
-          size="sm"
-          onClick={onLoadMore}
-          disabled={column.loadingMore}
-          className="mt-2 w-full"
-        >
-          {column.loadingMore
-            ? "Loading..."
-            : `Show more (${column.total - column.items.length} left)`}
-        </Button>
-      ) : null}
-    </section>
-  );
-}
-
-function PipelineCard({
-  company,
-  moving,
-  errorMessage,
-  onOpen,
-  onMove,
-}: {
-  company: Company;
-  moving: boolean;
-  errorMessage?: string;
-  onOpen: () => void;
-  onMove: (to: PipelineStage) => void;
-}) {
-  const hiring = describeHiring(company);
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      aria-busy={moving}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") onOpen();
-      }}
-      className={`cursor-pointer rounded-md border border-line bg-surface px-4 py-3 transition-colors hover:border-signal-teal ${
-        moving ? "opacity-60" : ""
-      }`}
+    <motion.div
+      layoutScroll
+      className="-mx-1 snap-x snap-proximity overflow-x-auto px-1 pb-32 pt-1"
     >
-      <p className="text-sm text-ink">{company.domain}</p>
-      <p className={`mt-1 text-xs ${hiring.muted ? "text-text-secondary" : "text-ink"}`}>
-        {hiring.label}
-      </p>
-
-      <div className="mt-3 flex items-center justify-between gap-2">
-        {moving ? <span className="utility-label text-text-secondary">Moving...</span> : <span />}
-        <Menu
-          label={`Move ${company.domain} to another stage`}
-          trigger="Move"
-          disabled={moving}
-          items={PIPELINE_STAGES.map((stage) => ({
-            key: stage,
-            label: <StatusBadge stage={stage} />,
-            disabled: stage === company.stage,
-            onSelect: () => onMove(stage),
-          }))}
-        />
-      </div>
-
-      {errorMessage ? (
-        <p className="mt-2 text-xs text-error" role="alert">
-          {errorMessage}
-        </p>
-      ) : null}
-    </div>
+      <LayoutGroup>
+        <div className="flex min-w-max gap-4">
+          {PIPELINE_STAGES.map((stage) => (
+            <PipelineColumn
+              key={stage}
+              stage={stage}
+              column={board[stage]}
+              movingIds={movingIds}
+              moveErrors={moveErrors}
+              draggingId={dragging?.id ?? null}
+              acceptsDrop={
+                dragging !== null && dragging.stage !== stage && board[stage].status === "ready"
+              }
+              onOpen={(id) => router.push(`/companies/${id}`)}
+              onMove={moveCompany}
+              onDragStart={setDragging}
+              onDragEnd={() => setDragging(null)}
+              onDrop={dropOn}
+              onLoadMore={() => loadMore(stage)}
+            />
+          ))}
+        </div>
+      </LayoutGroup>
+    </motion.div>
   );
 }

@@ -1,374 +1,85 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { ScreenShell } from "@/components/composed/onboarding/ScreenShell";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { WelcomeScreen } from "@/components/composed/onboarding/WelcomeScreen";
-import { NameScreen } from "@/components/composed/onboarding/NameScreen";
-import { EmailScreen } from "@/components/composed/onboarding/EmailScreen";
-import { ContactDetailsScreen } from "@/components/composed/onboarding/ContactDetailsScreen";
-import { LinksScreen } from "@/components/composed/onboarding/LinksScreen";
-import { UploadScreen } from "@/components/composed/onboarding/UploadScreen";
-import { WorkPreferenceScreen } from "@/components/composed/onboarding/WorkPreferenceScreen";
-import { TargetRoleScreen } from "@/components/composed/onboarding/TargetRoleScreen";
-import { SummaryScreen } from "@/components/composed/onboarding/SummaryScreen";
-import {
-  fetchMe,
-  parseResume,
-  saveProfile,
-  type CertificateEntry,
-  type EducationEntry,
-  type LanguageEntry,
-  type ProjectEntry,
-  type WorkHistoryEntry,
-} from "@/lib/api-client/client";
+import { saveProfile } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { toFormFields } from "@/lib/resume";
+
+import { ContactDetailsScreen } from "./ContactDetailsScreen";
+import { EmailScreen } from "./EmailScreen";
+import { LaunchScreen } from "./LaunchScreen";
+import { LinksScreen } from "./LinksScreen";
+import { NameScreen } from "./NameScreen";
+import { clearDraft } from "./onboarding-draft";
+import { INITIAL_RESUME, toProfileUpsert, withManualSource } from "./onboarding-form";
 import {
-  RESUME_FILLABLE_FIELDS,
-  type UploadState,
-  type WorkPreferenceOption,
-} from "@/lib/onboarding";
-import type { FieldSourceKey, FieldSourceMap } from "@/lib/types";
+  PHASES,
+  STEP_IDS,
+  STEP_PHASE_INDEX,
+  TOTAL_STEPS,
+  phaseFill,
+  showsProfileCard,
+  type StepId,
+} from "./onboarding-steps";
+import { ProfileSoFar } from "./ProfileSoFar";
+import { ScreenShell } from "./ScreenShell";
+import { SummaryScreen } from "./SummaryScreen";
+import { TargetRoleScreen } from "./TargetRoleScreen";
+import { UploadScreen } from "./UploadScreen";
+import { useOnboardingDraft } from "./useOnboardingDraft";
+import { DOCUMENT_ACCEPT, useResumeUpload } from "./useResumeUpload";
+import { WelcomeScreen } from "./WelcomeScreen";
+import { WorkPreferenceScreen } from "./WorkPreferenceScreen";
 
-// Resume first, so every screen after it can be answered by correcting a
-// parsed value instead of typing from nothing.
-const STEP_IDS = [
-  "welcome",
-  "resume",
-  "name",
-  "email",
-  "contact",
-  "links",
-  "workPreference",
-  "targetRole",
-  "summary",
-] as const;
-
-type StepId = (typeof STEP_IDS)[number];
-
-const TOTAL_STEPS = STEP_IDS.length;
-
-// Named sections for the progress indicator, in the order they actually
-// happen - resume comes before the contact fields on purpose (see the
-// comment above STEP_IDS), so the phase list follows that, not the order
-// someone might describe the flow in casual conversation.
-const PHASES = ["Resume", "Contact", "Preferences", "Review"] as const;
-
-// -1 means no phase has started yet - only true for welcome, which is an
-// intro screen, not part of any section.
-const STEP_PHASE_INDEX: Record<StepId, number> = {
-  welcome: -1,
-  resume: 0,
-  name: 1,
-  email: 1,
-  contact: 1,
-  links: 1,
-  workPreference: 2,
-  targetRole: 2,
-  summary: 3,
-};
-
-const DOCUMENT_ACCEPT =
-  ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-interface FormState {
-  firstName: string;
-  lastName: string;
-  email: string;
-  emailPrefilled: boolean;
-  phone: string;
-  location: string;
-  linkedinUrl: string;
-  githubUrl: string;
-  portfolioUrl: string;
-  summary: string;
-  skills: string[];
-  workHistory: WorkHistoryEntry[];
-  education: EducationEntry[];
-  projects: ProjectEntry[];
-  certificates: CertificateEntry[];
-  languages: LanguageEntry[];
-  workPreference: WorkPreferenceOption[];
-  targetRoles: string[];
-  fieldSource: FieldSourceMap;
-}
-
-const INITIAL_STATE: FormState = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  emailPrefilled: false,
-  phone: "",
-  location: "",
-  linkedinUrl: "",
-  githubUrl: "",
-  portfolioUrl: "",
-  summary: "",
-  skills: [],
-  workHistory: [],
-  education: [],
-  projects: [],
-  certificates: [],
-  languages: [],
-  workPreference: [],
-  targetRoles: [],
-  fieldSource: {},
-};
-
-// A field only flips to "manual" when its value actually changes - the name
-// screen's onChange fires with both first and last name on every keystroke,
-// even though only one of them moved.
-function withManualSource<K extends FieldSourceKey>(
-  prev: FormState,
-  changes: Record<K, string>,
-): FieldSourceMap {
-  const next = { ...prev.fieldSource };
-  for (const key of Object.keys(changes) as K[]) {
-    if (changes[key] !== prev[key]) next[key] = "manual";
-  }
-  return next;
-}
-
-interface ResumeState {
-  fileName: string | null;
-  fileSize: number | null;
-  state: UploadState;
-  error: string | null;
-}
-
-const INITIAL_RESUME: ResumeState = {
-  fileName: null,
-  fileSize: null,
-  state: "idle",
-  error: null,
-};
-
-const MAX_RESUME_BYTES = 10 * 1024 * 1024;
-const ACCEPTED_RESUME_TYPES = new Set([
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-]);
-
-function validateResumeFile(file: File): string | null {
-  const extension = file.name.split(".").pop()?.toLowerCase();
-  const acceptedExtension = extension === "pdf" || extension === "doc" || extension === "docx";
-  if (!ACCEPTED_RESUME_TYPES.has(file.type) && !acceptedExtension) {
-    return "File must be PDF or DOCX.";
-  }
-  if (file.size > MAX_RESUME_BYTES) {
-    return "File is larger than 10MB.";
-  }
-  return null;
-}
-
-// Scoped per user, not global, so a shared machine can't resume one
-// account's half-finished onboarding into a different account's session.
-const DRAFT_KEY_PREFIX = "inroad-onboarding-draft:";
-
-interface OnboardingDraft {
-  form: FormState;
-  stepIndex: number;
-  resume: ResumeState;
-}
-
-function loadDraft(userId: string): OnboardingDraft | null {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY_PREFIX + userId);
-    return raw ? (JSON.parse(raw) as OnboardingDraft) : null;
-  } catch {
-    // Corrupted or inaccessible storage just means starting fresh, not a
-    // broken flow.
-    return null;
-  }
-}
-
-function saveDraft(userId: string, draft: OnboardingDraft): void {
-  try {
-    localStorage.setItem(DRAFT_KEY_PREFIX + userId, JSON.stringify(draft));
-  } catch {
-    // Full or blocked storage (private browsing) - best effort only.
-  }
-}
-
-function clearDraft(userId: string): void {
-  try {
-    localStorage.removeItem(DRAFT_KEY_PREFIX + userId);
-  } catch {
-    // Same as above.
-  }
+interface LaunchProfile {
+  role: string;
+  city: string;
 }
 
 export function OnboardingFlow() {
-  const router = useRouter();
+  const { stepIndex, setStepIndex, form, setForm, resume, setResume, userId, hydrated } =
+    useOnboardingDraft();
+  const selectResume = useResumeUpload(setForm, setResume);
 
-  const [stepIndex, setStepIndex] = useState(0);
-  // True while the current screen was reached via an "Edit" tap from the
-  // summary screen, rather than by walking the flow in order. Continue and
-  // Back both return straight to summary in that case, instead of resuming
-  // the normal step sequence from wherever this screen happens to sit in it.
+  const [direction, setDirection] = useState(1);
+  // True while the current screen was reached via "Edit" on the summary:
+  // Continue and Back both return straight to the summary in that case.
   const [editingFromSummary, setEditingFromSummary] = useState(false);
-  const [form, setForm] = useState<FormState>(INITIAL_STATE);
-  const [resume, setResume] = useState<ResumeState>(INITIAL_RESUME);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  // Guards the save effect below from firing before the restore attempt
-  // finishes - otherwise the empty initial state would write over a real
-  // draft the instant this component mounts.
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    ensureValidAccessToken()
-      .then((token) => (token ? fetchMe(token) : null))
-      .then((user) => {
-        if (cancelled || !user) return;
-        setUserId(user.id);
-
-        const draft = loadDraft(user.id);
-        if (draft) {
-          setForm(draft.form);
-          setStepIndex(draft.stepIndex);
-          // An interrupted upload has no file left to resume, only a
-          // spinner with nothing behind it - only "done" or "error" are
-          // meaningful to bring back.
-          setResume(
-            draft.resume.state === "done" || draft.resume.state === "error"
-              ? draft.resume
-              : INITIAL_RESUME,
-          );
-          return;
-        }
-
-        setForm((prev) =>
-          prev.email ? prev : { ...prev, email: user.email, emailPrefilled: true },
-        );
-      })
-      .catch(() => {
-        // No prefill, no draft; the flow still works from scratch.
-      })
-      .finally(() => {
-        if (!cancelled) setHydrated(true);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated || !userId) return;
-    saveDraft(userId, { form, stepIndex, resume });
-  }, [hydrated, userId, form, stepIndex, resume]);
+  const [launch, setLaunch] = useState<LaunchProfile | null>(null);
 
   const step = STEP_IDS[stepIndex];
 
-  function goTo(id: StepId) {
+  function goTo(id: StepId, towards: number) {
+    setDirection(towards);
     setStepIndex(STEP_IDS.indexOf(id));
   }
 
   function editFromSummary(id: StepId) {
     setEditingFromSummary(true);
-    goTo(id);
+    goTo(id, -1);
   }
 
   function next() {
     if (editingFromSummary) {
       setEditingFromSummary(false);
-      goTo("summary");
+      goTo("summary", 1);
       return;
     }
+    setDirection(1);
     setStepIndex((index) => Math.min(index + 1, STEP_IDS.length - 1));
   }
 
   function back() {
     if (editingFromSummary) {
       setEditingFromSummary(false);
-      goTo("summary");
+      goTo("summary", 1);
       return;
     }
+    setDirection(-1);
     setStepIndex((index) => Math.max(index - 1, 0));
-  }
-
-  async function handleResumeSelect(file: File) {
-    const validationError = validateResumeFile(file);
-    if (validationError) {
-      setResume({
-        fileName: file.name,
-        fileSize: file.size,
-        state: "error",
-        error: validationError,
-      });
-      return;
-    }
-
-    setResume({ fileName: file.name, fileSize: file.size, state: "uploading", error: null });
-
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) {
-        setResume({
-          fileName: file.name,
-          fileSize: file.size,
-          state: "error",
-          error: "Your session expired. Sign in again to read your resume.",
-        });
-        return;
-      }
-
-      const parsed = await parseResume(file, token);
-      const fields = toFormFields(parsed);
-
-      setForm((prev) => {
-        // "" means the parse didn't find that field, not that it did - only
-        // overwrite a field the user may have already filled in by hand when
-        // this parse actually found something for it, same rule the
-        // fieldSource marking below already follows.
-        const fieldSource = { ...prev.fieldSource };
-        const resumeFields: Partial<Record<(typeof RESUME_FILLABLE_FIELDS)[number], string>> = {};
-        for (const key of RESUME_FILLABLE_FIELDS) {
-          if (fields[key]) {
-            resumeFields[key] = fields[key];
-            fieldSource[key] = "resume";
-          }
-        }
-        // Email follows the same signed-in-beats-resume rule as the value
-        // itself below, so it's only "resume" when the resume's address is
-        // the one that actually won.
-        if (!prev.emailPrefilled && fields.email) fieldSource.email = "resume";
-
-        return {
-          ...prev,
-          ...resumeFields,
-          // Not user-editable anywhere in this flow, so the latest parse
-          // simply wins, there's no manual value to protect here.
-          summary: fields.summary,
-          skills: fields.skills,
-          workHistory: fields.workHistory,
-          education: fields.education,
-          projects: fields.projects,
-          certificates: fields.certificates,
-          languages: fields.languages,
-          // The signed-in address beats whatever the resume prints; that one is
-          // confirmed and this one is a document that may be years old.
-          email: prev.emailPrefilled ? prev.email : fields.email || prev.email,
-          fieldSource,
-        };
-      });
-      setResume({ fileName: file.name, fileSize: file.size, state: "done", error: null });
-    } catch (error) {
-      setResume({
-        fileName: file.name,
-        fileSize: file.size,
-        state: "error",
-        error: error instanceof Error ? error.message : "Upload failed — try again.",
-      });
-    }
   }
 
   async function handleSubmit() {
@@ -382,32 +93,12 @@ export function OnboardingFlow() {
         return;
       }
 
-      await saveProfile(
-        {
-          first_name: form.firstName.trim(),
-          last_name: form.lastName.trim(),
-          email: form.email.trim(),
-          phone: form.phone.trim(),
-          location: form.location.trim() || null,
-          linkedin_url: form.linkedinUrl.trim() || null,
-          github_url: form.githubUrl.trim() || null,
-          portfolio_url: form.portfolioUrl.trim() || null,
-          // No onboarding screen asks for these two; they ride through from
-          // the resume parse so a confirmed parse isn't dropped at save.
-          summary: form.summary.trim(),
-          skills: form.skills,
-          work_history: form.workHistory,
-          education: form.education,
-          projects: form.projects,
-          certificates: form.certificates,
-          languages: form.languages,
-          work_preference: form.workPreference,
-          target_roles: form.targetRoles,
-        },
-        token,
-      );
+      await saveProfile(toProfileUpsert(form), token);
       if (userId) clearDraft(userId);
-      router.push("/research");
+      setLaunch({
+        role: form.targetRoles[0] ?? "",
+        city: form.location.split(",")[0]?.trim() ?? "",
+      });
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Something went wrong saving your profile.",
@@ -417,24 +108,29 @@ export function OnboardingFlow() {
     }
   }
 
-  const stepNumber = stepIndex + 1;
+  if (launch) {
+    return <LaunchScreen role={launch.role} city={launch.city} />;
+  }
+
   const onBack = stepIndex > 0 ? back : undefined;
 
   return (
     <ScreenShell
-      key={step}
-      step={stepNumber}
+      stepKey={hydrated ? step : "loading"}
+      direction={direction}
+      step={stepIndex + 1}
       total={TOTAL_STEPS}
       phases={PHASES}
+      fills={phaseFill(stepIndex)}
       currentPhaseIndex={STEP_PHASE_INDEX[step]}
-      onBack={onBack}
-      wide={step === "welcome"}
+      aside={
+        hydrated && showsProfileCard(step) ? <ProfileSoFar form={form} resume={resume} /> : null
+      }
     >
       {!hydrated ? (
-        // A saved draft, if there is one, only shows up after fetchMe and
-        // loadDraft resolve - rendering the real, interactive step before
-        // then risks the draft landing on top of something the user just
-        // typed and silently overwriting it.
+        // A saved draft only arrives after fetchMe and loadDraft resolve;
+        // rendering the real step before then risks it landing on top of
+        // something the user just typed.
         <div className="space-y-4">
           <Skeleton className="h-8 w-2/3" />
           <Skeleton className="h-4 w-full" />
@@ -454,12 +150,13 @@ export function OnboardingFlow() {
               fileSize={resume.fileSize}
               state={resume.state}
               errorMessage={resume.error}
-              onSelect={handleResumeSelect}
+              onSelect={selectResume}
               onRemove={() => setResume(INITIAL_RESUME)}
               onRetry={() => setResume(INITIAL_RESUME)}
               onNext={next}
-              // Only offered once a parse has actually failed. Skipping outright
-              // isn't the point of this step; not being stuck on it is.
+              onBack={onBack}
+              // Only offered once a parse has actually failed: the point is not
+              // being stuck on this step, not skipping it outright.
               onSkip={resume.state === "error" ? next : undefined}
               autoFocus
             />
@@ -478,6 +175,7 @@ export function OnboardingFlow() {
                 }))
               }
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -494,6 +192,7 @@ export function OnboardingFlow() {
                 }))
               }
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -510,6 +209,7 @@ export function OnboardingFlow() {
                 }))
               }
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -528,6 +228,7 @@ export function OnboardingFlow() {
                 }))
               }
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -536,6 +237,7 @@ export function OnboardingFlow() {
               selected={form.workPreference}
               onChange={(workPreference) => setForm((prev) => ({ ...prev, workPreference }))}
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -544,6 +246,7 @@ export function OnboardingFlow() {
               targetRoles={form.targetRoles}
               onChange={(targetRoles) => setForm((prev) => ({ ...prev, targetRoles }))}
               onNext={next}
+              onBack={onBack}
             />
           ) : null}
 
@@ -571,6 +274,7 @@ export function OnboardingFlow() {
               onEditWorkPreference={() => editFromSummary("workPreference")}
               onEditTargetRole={() => editFromSummary("targetRole")}
               onSubmit={handleSubmit}
+              onBack={onBack}
               submitting={submitting}
               submitError={submitError}
             />

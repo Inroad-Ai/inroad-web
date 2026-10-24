@@ -2,19 +2,24 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { LINK_FIELDS, type ProfileLinks } from "@/lib/onboarding";
 import { validateUrl } from "@/lib/onboarding-schema";
+
+import { StepFooter } from "./StepFooter";
+import { StepHeading } from "./StepHeading";
 
 export function LinksScreen({
   links,
   onChange,
   onNext,
+  onBack,
 }: {
   links: ProfileLinks;
   onChange: (links: ProfileLinks) => void;
   onNext: () => void;
+  onBack?: () => void;
 }) {
   const [touched, setTouched] = useState<Partial<Record<keyof ProfileLinks, boolean>>>({});
 
@@ -32,41 +37,38 @@ export function LinksScreen({
         if (!hasError) onNext();
       }}
     >
-      <h1 className="font-display text-2xl text-text-primary">Where can people find you?</h1>
-      <p className="mt-2 text-sm text-text-secondary">
+      <StepHeading title="Where can people find you?">
         All optional. Anything your resume listed is already filled in.
-      </p>
-      <div className="mt-6 space-y-4">
-        {LINK_FIELDS.map((field, index) => (
-          <div key={field.key}>
-            <label htmlFor={field.key} className="utility-label text-text-secondary">
-              {field.label}
-            </label>
-            <Input
-              id={field.key}
-              type="url"
-              autoFocus={index === 0}
-              value={links[field.key]}
-              aria-invalid={errorFor(field.key) ? true : undefined}
-              aria-describedby={errorFor(field.key) ? `${field.key}-error` : undefined}
-              onChange={(event) => {
-                onChange({ ...links, [field.key]: event.target.value });
-                setTouched((prev) => ({ ...prev, [field.key]: true }));
-              }}
-              placeholder={field.placeholder}
-              className="mt-2"
-            />
-            {errorFor(field.key) ? (
-              <p id={`${field.key}-error`} className="mt-2 text-sm text-error" aria-live="polite">
-                {errorFor(field.key)}
-              </p>
-            ) : null}
-          </div>
-        ))}
+      </StepHeading>
+      <div className="mt-7 grid gap-4">
+        {LINK_FIELDS.map((field, index) => {
+          const error = errorFor(field.key);
+          return (
+            <Field
+              key={field.key}
+              label={field.label}
+              htmlFor={field.key}
+              error={error}
+              errorId={`${field.key}-error`}
+            >
+              <Input
+                id={field.key}
+                type="url"
+                autoFocus={index === 0}
+                value={links[field.key]}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? `${field.key}-error` : undefined}
+                onChange={(event) => {
+                  onChange({ ...links, [field.key]: event.target.value });
+                  setTouched((prev) => ({ ...prev, [field.key]: true }));
+                }}
+                placeholder={field.placeholder}
+              />
+            </Field>
+          );
+        })}
       </div>
-      <Button type="submit" className="mt-8">
-        Continue
-      </Button>
+      <StepFooter onBack={onBack} />
     </form>
   );
 }

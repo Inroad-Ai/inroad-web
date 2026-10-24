@@ -44,7 +44,7 @@ export function Drawer({
         aria-label={label}
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="h-full w-72 max-w-[85vw] animate-slide-in-left rounded-r-card bg-surface shadow-pop outline-none"
+        className="h-full w-72 max-w-drawer animate-slide-in-left rounded-r-card bg-surface shadow-pop outline-none"
       >
         {children}
       </div>

@@ -1,6 +1,9 @@
+import type { IconComponent } from "./Icons";
+
 export interface TabItem {
   id: string;
   label: string;
+  icon?: IconComponent;
   disabled?: boolean;
 }
 
@@ -31,7 +34,7 @@ export function Tabs({
             aria-selected={active}
             disabled={item.disabled}
             onClick={() => onChange(item.id)}
-            className={`h-8 rounded-full px-3.5 font-sans text-sm font-sans-semibold transition duration-fast ease-standard ${
+            className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3.5 font-sans text-sm font-sans-semibold transition duration-fast ease-standard ${
               active
                 ? "bg-surface text-ink shadow-nest"
                 : item.disabled
@@ -39,6 +42,7 @@ export function Tabs({
                   : "text-ink-muted hover:text-ink"
             }`}
           >
+            {item.icon ? <item.icon /> : null}
             {item.label}
           </button>
         );

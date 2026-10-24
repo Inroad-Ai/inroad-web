@@ -1,7 +1,7 @@
-import Link from "next/link";
-
 import { CompanyReport } from "@/components/composed/dashboard/company-report/CompanyReport";
 import { PageShell } from "@/components/composed/dashboard/PageShell";
+import { Button } from "@/components/ui/Button";
+import { ArrowLeftIcon } from "@/components/ui/Icons";
 
 export default function CompanyReportPage({ params }: { params: { id: string } }) {
   return (
@@ -9,12 +9,9 @@ export default function CompanyReportPage({ params }: { params: { id: string } }
       title="Company"
       description="Everything saved for this company, and what the last research run found."
       action={
-        <Link
-          href="/companies"
-          className="text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-        >
+        <Button href="/companies" variant="ghost" size="sm" icon={<ArrowLeftIcon />}>
           Back to companies
-        </Link>
+        </Button>
       }
     >
       <CompanyReport companyId={params.id} />

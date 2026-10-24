@@ -2,20 +2,25 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { validateLocation, validatePhone } from "@/lib/onboarding-schema";
+
+import { StepFooter } from "./StepFooter";
+import { StepHeading } from "./StepHeading";
 
 export function ContactDetailsScreen({
   phone,
   location,
   onChange,
   onNext,
+  onBack,
 }: {
   phone: string;
   location: string;
   onChange: (phone: string, location: string) => void;
   onNext: () => void;
+  onBack?: () => void;
 }) {
   const [touched, setTouched] = useState({ phone: false, location: false });
 
@@ -30,19 +35,20 @@ export function ContactDetailsScreen({
         if (!validatePhone(phone) && !validateLocation(location)) onNext();
       }}
     >
-      <h1 className="font-display text-2xl text-text-primary">How can we reach you?</h1>
-      <div className="mt-6 space-y-4">
-        <div>
-          <label htmlFor="phone" className="utility-label text-text-secondary">
-            Phone
-          </label>
-          <p className="mt-1 text-sm text-text-secondary">
-            For account recovery only, nobody calls you unprompted.
-          </p>
+      <StepHeading title="How can we reach you?" />
+      <div className="mt-7 grid gap-5">
+        <Field
+          label="Phone"
+          htmlFor="phone"
+          hint="For account recovery only, nobody calls you unprompted."
+          error={phoneError}
+          errorId="phone-error"
+        >
           <Input
             id="phone"
             type="tel"
             autoFocus
+            autoComplete="tel"
             value={phone}
             aria-invalid={phoneError ? true : undefined}
             aria-describedby={phoneError ? "phone-error" : undefined}
@@ -51,23 +57,18 @@ export function ContactDetailsScreen({
               setTouched((prev) => ({ ...prev, phone: true }));
             }}
             placeholder="(555) 123-4567"
-            className="mt-2"
           />
-          {phoneError ? (
-            <p id="phone-error" className="mt-2 text-sm text-error" aria-live="polite">
-              {phoneError}
-            </p>
-          ) : null}
-        </div>
-        <div>
-          <label htmlFor="location" className="utility-label text-text-secondary">
-            Location
-          </label>
-          <p className="mt-1 text-sm text-text-secondary">
-            City and country is enough. It narrows which companies are worth writing to.
-          </p>
+        </Field>
+        <Field
+          label="Location"
+          htmlFor="location"
+          hint="City and country is enough. It narrows which companies are worth writing to."
+          error={locationError}
+          errorId="location-error"
+        >
           <Input
             id="location"
+            autoComplete="address-level2"
             value={location}
             aria-invalid={locationError ? true : undefined}
             aria-describedby={locationError ? "location-error" : undefined}
@@ -76,18 +77,10 @@ export function ContactDetailsScreen({
               setTouched((prev) => ({ ...prev, location: true }));
             }}
             placeholder="Berlin, Germany"
-            className="mt-2"
           />
-          {locationError ? (
-            <p id="location-error" className="mt-2 text-sm text-error" aria-live="polite">
-              {locationError}
-            </p>
-          ) : null}
-        </div>
+        </Field>
       </div>
-      <Button type="submit" className="mt-8">
-        Continue
-      </Button>
+      <StepFooter onBack={onBack} />
     </form>
   );
 }

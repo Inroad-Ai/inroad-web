@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 
 import { saveOutreachDraft, type OutreachDraft } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { requireAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { LinkedinIcon, MailIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
-import { Section } from "@/components/ui/Section";
+import { Notice } from "@/components/ui/Notice";
 import { Textarea } from "@/components/ui/Textarea";
 import { GmailDraftButton } from "./GmailDraftButton";
 import { SendOutreachButton } from "./SendOutreachButton";
@@ -67,8 +70,7 @@ export function OutreachDraftSection({
     setSaving(true);
     setStatus(null);
     try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error("Your session expired. Sign in again.");
+      const token = await requireAccessToken();
       savedItself.current = true;
       onSaved(
         await saveOutreachDraft(
@@ -105,41 +107,60 @@ export function OutreachDraftSection({
   }
 
   return (
-    <Section
-      title={title}
-      meta={
-        <Button variant="quiet" size="sm" type="button" onClick={copy}>
+    <Card as="section" variant="nested" aria-label={title} padding="none">
+      <header className="flex items-start justify-between gap-3 px-5 pt-4">
+        <div className="min-w-0">
+          <Eyebrow as="h3">
+            {draft.channel === "email" ? (
+              <MailIcon className="h-3.5 w-3.5" />
+            ) : (
+              <LinkedinIcon className="h-3.5 w-3.5" />
+            )}
+            {title}
+          </Eyebrow>
+          <p className="mt-1.5 text-xs text-ink-muted">{hint}</p>
+        </div>
+        <Button variant="ghost" size="sm" type="button" onClick={copy}>
           Copy
         </Button>
-      }
-    >
-      <p className="text-xs text-text-secondary/70">{hint}</p>
+      </header>
 
-      {draft.channel === "email" ? (
-        <label className="mt-4 block">
-          <span className="utility-label text-text-secondary">Subject</span>
-          <Input
-            className="mt-2"
-            value={subject}
-            onChange={(event) => setSubject(event.target.value)}
+      <div className="space-y-4 px-5 py-4">
+        {draft.channel === "email" ? (
+          <label className="block">
+            <span className="utility-label text-ink-muted">Subject</span>
+            <Input
+              className="mt-2"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              readOnly={readOnly}
+            />
+          </label>
+        ) : null}
+
+        <label className="block">
+          <span className="utility-label text-ink-muted">Message</span>
+          <Textarea
+            className="mt-2 leading-relaxed"
+            rows={BODY_ROWS}
+            value={body}
+            onChange={(event) => setBody(event.target.value)}
             readOnly={readOnly}
           />
         </label>
-      ) : null}
 
-      <label className="mt-4 block">
-        <span className="utility-label text-text-secondary">Message</span>
-        <Textarea
-          className="mt-2"
-          rows={BODY_ROWS}
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-          readOnly={readOnly}
-        />
-      </label>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-mono text-xs text-ink-faint">{body.length} characters</span>
+          {status ? (
+            <Notice tone={status.isError ? "error" : "neutral"} size="xs">
+              {status.text}
+            </Notice>
+          ) : null}
+        </div>
+      </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        {readOnly ? null : (
+      {readOnly ? null : (
+        <footer className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line px-5 py-4">
           <Button
             variant="quiet"
             size="sm"
@@ -149,34 +170,25 @@ export function OutreachDraftSection({
           >
             {saving ? "Saving..." : "Save"}
           </Button>
-        )}
-        {!readOnly && draft.channel === "email" ? (
-          <>
-            <SendOutreachButton
-              personId={personId}
-              draft={draft}
-              recipientEmail={recipientEmail}
-              subject={subject}
-              onEnsureSaved={persist}
-            />
-            <GmailDraftButton
-              personId={personId}
-              sequenceIndex={draft.sequence_index}
-              recipientEmail={recipientEmail}
-              onEnsureSaved={persist}
-            />
-          </>
-        ) : null}
-        <span className="text-xs text-text-secondary/70">{body.length} characters</span>
-        {status ? (
-          <p
-            className={`text-xs ${status.isError ? "text-muted-rose" : "text-text-secondary"}`}
-            role={status.isError ? "alert" : undefined}
-          >
-            {status.text}
-          </p>
-        ) : null}
-      </div>
-    </Section>
+          {draft.channel === "email" ? (
+            <>
+              <GmailDraftButton
+                personId={personId}
+                sequenceIndex={draft.sequence_index}
+                recipientEmail={recipientEmail}
+                onEnsureSaved={persist}
+              />
+              <SendOutreachButton
+                personId={personId}
+                draft={draft}
+                recipientEmail={recipientEmail}
+                subject={subject}
+                onEnsureSaved={persist}
+              />
+            </>
+          ) : null}
+        </footer>
+      )}
+    </Card>
   );
 }

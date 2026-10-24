@@ -64,7 +64,7 @@ export function TagInput({
             </button>
           </span>
         ))}
-        <div className="flex min-w-[12rem] flex-1 items-center gap-2">
+        <div className="flex min-w-48 flex-1 items-center gap-2">
           <input
             value={draft}
             autoFocus={autoFocus}
@@ -72,7 +72,7 @@ export function TagInput({
             onKeyDown={handleKeyDown}
             onBlur={commitDraft}
             placeholder={value.length === 0 ? placeholder : undefined}
-            className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 placeholder:text-ink-faint focus:outline-none"
+            className="min-w-32 flex-1 bg-transparent px-1 py-1 placeholder:text-ink-faint focus:outline-none"
           />
           {addLabel ? (
             <button

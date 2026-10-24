@@ -1,11 +1,11 @@
 import type { ThemePreference } from "@/lib/theme/theme.types";
 
-import { MonitorIcon, MoonIcon, SunIcon } from "./Icons";
+import { MonitorIcon, MoonIcon, SunIcon, type IconComponent } from "./Icons";
 
 export const THEME_OPTIONS: readonly {
   value: ThemePreference;
   label: string;
-  Icon: () => JSX.Element;
+  Icon: IconComponent;
 }[] = [
   { value: "light", label: "Light", Icon: SunIcon },
   { value: "dark", label: "Dark", Icon: MoonIcon },

@@ -8,8 +8,8 @@ import {
   type FollowUpCadence,
   type UserSettings,
 } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { SESSION_EXPIRED, useAsyncResource } from "@/hooks/useAsyncResource";
+import { requireAccessToken } from "@/lib/auth-native/browser";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
 
 interface UseSettingsResult {
   settings: UserSettings | null;
@@ -34,19 +34,21 @@ export function useSettings(): UseSettingsResult {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const update = useCallback(async (cadence: FollowUpCadence) => {
-    setSaving(true);
-    setSaveError(null);
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error(SESSION_EXPIRED);
-      setSettings(await updateSettings(cadence, token));
-    } catch (caught) {
-      setSaveError(caught instanceof Error ? caught.message : "Could not save your settings.");
-    } finally {
-      setSaving(false);
-    }
-  }, []);
+  const update = useCallback(
+    async (cadence: FollowUpCadence) => {
+      setSaving(true);
+      setSaveError(null);
+      try {
+        const token = await requireAccessToken();
+        setSettings(await updateSettings(cadence, token));
+      } catch (caught) {
+        setSaveError(caught instanceof Error ? caught.message : "Could not save your settings.");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [setSettings],
+  );
 
   return { settings, loading, saving, error: saveError ?? loadError, update };
 }

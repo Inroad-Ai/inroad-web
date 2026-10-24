@@ -2,7 +2,7 @@ import { APP_VERSION } from "@/lib/app-info";
 
 export function DashboardFooter() {
   return (
-    <footer className="border-t border-line px-4 py-4 text-xs text-text-secondary sm:px-6">
+    <footer className="utility-label border-t border-line px-page py-5 text-ink-faint">
       Inroad{APP_VERSION ? ` v${APP_VERSION}` : ""}
     </footer>
   );

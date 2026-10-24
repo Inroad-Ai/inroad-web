@@ -17,12 +17,14 @@ export function SelectableCard({
   autoFocus,
   children,
   compact = false,
+  className = "",
 }: {
   selected: boolean;
   onClick: () => void;
   autoFocus?: boolean;
   children: ReactNode;
   compact?: boolean;
+  className?: string;
 }) {
   return (
     <button
@@ -32,7 +34,7 @@ export function SelectableCard({
       onClick={onClick}
       className={`w-full font-sans text-sm transition duration-fast ease-standard ${
         compact ? COMPACT_CLASSES[selected ? "on" : "off"] : CARD_CLASSES[selected ? "on" : "off"]
-      }`}
+      } ${className}`}
     >
       {children}
     </button>

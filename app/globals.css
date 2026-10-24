@@ -1,4 +1,4 @@
-/* All --color-*, --text-*, --space-*, --radius-* etc. custom properties are
+/* All --color-*, --text-*, --size-*, --radius-* etc. custom properties are
    owned by styles/tokens.css, imported first per CSS's @import ordering rule. */
 @import "../styles/tokens.css";
 
@@ -41,24 +41,25 @@
     text-transform: uppercase;
     letter-spacing: var(--tracking-utility);
   }
+}
 
-  /* Nav links and sign out are the same pill in two different components;
-     one class so they cannot drift apart. Colour stays on the element,
-     since only sign out goes rose on hover. */
-  .sidebar-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-full);
-    transition-property: color, background-color;
-    transition-duration: var(--motion-duration-fast);
+@layer utilities {
+  /* Edge fades for scrolling strips: the testimonial wall (vertical) and the
+     console's suggestion chips (horizontal). */
+  .mask-fade-y {
+    mask-image: linear-gradient(transparent, black 12%, black 88%, transparent);
   }
 
-  .sidebar-row-collapsed {
-    justify-content: center;
-    gap: 0;
-    padding-inline: 0;
+  .mask-fade-x {
+    mask-image: linear-gradient(90deg, black 88%, transparent);
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 

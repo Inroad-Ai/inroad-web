@@ -1,8 +1,12 @@
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { FileUpload } from "@/components/ui/FileUpload";
 import type { UploadState } from "@/lib/onboarding";
 
-/** The file-upload step shape - currently just the resume screen, but kept
+import { StepFooter } from "./StepFooter";
+import { StepHeading } from "./StepHeading";
+
+/** The file-upload step shape: currently just the resume screen, kept
  * generic since a second document step is a real possibility later. */
 export function UploadScreen({
   heading,
@@ -17,6 +21,7 @@ export function UploadScreen({
   onRemove,
   onRetry,
   onNext,
+  onBack,
   onSkip,
   unavailable,
   autoFocus,
@@ -33,6 +38,7 @@ export function UploadScreen({
   onRemove: () => void;
   onRetry?: () => void;
   onNext: () => void;
+  onBack?: () => void;
   onSkip?: () => void;
   /** Shown instead of the file picker. Also releases Continue, so a required
    * step stays passable while uploads are down. */
@@ -45,17 +51,18 @@ export function UploadScreen({
 
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <h1 className="font-display text-2xl text-text-primary">{heading}</h1>
-        {optional ? <span className="utility-label text-text-secondary">(optional)</span> : null}
-      </div>
-      <p className="mt-2 text-sm text-text-secondary">{helperText}</p>
+      <StepHeading
+        title={heading}
+        aside={optional ? <span className="utility-label text-ink-faint">Optional</span> : null}
+      >
+        {helperText}
+      </StepHeading>
 
-      <div className="mt-6">
+      <div className="mt-7">
         {unavailable ? (
-          <p className="w-full rounded-md border border-line bg-surface p-5 text-sm text-text-secondary">
+          <Card variant="nested" padding="md" className="text-sm text-ink-muted">
             {unavailable}
-          </p>
+          </Card>
         ) : (
           <FileUpload
             accept={accept}
@@ -71,20 +78,13 @@ export function UploadScreen({
         )}
       </div>
 
-      <div className="mt-8 flex items-center gap-4">
-        <Button type="button" onClick={onNext} disabled={!canContinue}>
-          Continue
-        </Button>
+      <StepFooter onBack={onBack} onPrimary={onNext} isPrimaryDisabled={!canContinue}>
         {onSkip ? (
-          <button
-            type="button"
-            onClick={onSkip}
-            className="utility-label text-text-secondary hover:text-signal-teal"
-          >
+          <Button type="button" variant="quiet" onClick={onSkip}>
             Skip for now
-          </button>
+          </Button>
         ) : null}
-      </div>
+      </StepFooter>
     </div>
   );
 }

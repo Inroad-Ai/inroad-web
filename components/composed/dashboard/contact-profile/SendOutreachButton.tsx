@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 import { ApiError, sendOutreachEmail, type OutreachDraft } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { requireAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { SendIcon } from "@/components/ui/Icons";
 import { Modal } from "@/components/ui/Modal";
+import { Notice } from "@/components/ui/Notice";
+import { TextLink } from "@/components/ui/TextLink";
 
 export function SendOutreachButton({
   personId,
@@ -46,8 +49,7 @@ export function SendOutreachButton({
     setNotConnected(false);
     try {
       if (!(await onEnsureSaved())) return;
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error("Your session expired. Sign in again.");
+      const token = await requireAccessToken();
       await sendOutreachEmail(personId, draft.sequence_index, token);
       setJustSent(true);
       setConfirming(false);
@@ -68,6 +70,7 @@ export function SendOutreachButton({
       <Button
         size="sm"
         type="button"
+        icon={<SendIcon />}
         onClick={() => setConfirming(true)}
         disabled={busy || sent || !recipientEmail}
         title={recipientEmail ? undefined : "No email address for this person yet."}
@@ -76,44 +79,40 @@ export function SendOutreachButton({
       </Button>
 
       {sent ? (
-        <span className="text-xs text-text-secondary">
+        <span className="order-last basis-full text-xs text-ink-muted">
           Sent from your Gmail. It is in your Sent folder.
         </span>
       ) : null}
 
       {notConnected ? (
-        <span className="text-xs text-text-secondary" role="alert">
-          Connect Gmail on the{" "}
-          <Link
-            href="/integrations"
-            className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-          >
-            Integrations page
-          </Link>{" "}
-          first.
+        <span className="order-last basis-full text-xs text-ink-muted" role="alert">
+          Connect Gmail on the <TextLink href="/integrations">Integrations page</TextLink> first.
         </span>
       ) : null}
 
       {error && !confirming ? (
-        <p className="text-xs text-muted-rose" role="alert">
+        <Notice size="xs" className="order-last basis-full">
           {error}
-        </p>
+        </Notice>
       ) : null}
 
       <Modal open={confirming} onClose={() => setConfirming(false)} title="Send this email?">
-        <p className="text-sm text-text-secondary">
-          Goes to <span className="text-ink">{recipientEmail}</span> from your Gmail, now.
-        </p>
-        <p className="mt-3 text-sm text-text-secondary">
-          Subject: <span className="text-ink">{subject || "(none)"}</span>
-        </p>
-        <p className="mt-3 text-sm text-text-secondary">
+        <Card variant="nested" padding="sm" className="space-y-2">
+          <p className="text-sm text-ink-muted">
+            Goes to <span className="break-all text-ink">{recipientEmail}</span> from your Gmail,
+            now.
+          </p>
+          <p className="text-sm text-ink-muted">
+            Subject: <span className="text-ink">{subject || "(none)"}</span>
+          </p>
+        </Card>
+        <p className="mt-4 text-sm text-ink-muted">
           It sends the draft shown on this page. There is no undo once Gmail accepts it.
         </p>
 
-        {error ? <p className="mt-3 text-sm text-muted-rose">{error}</p> : null}
+        {error ? <Notice className="mt-3">{error}</Notice> : null}
 
-        <div className="mt-5 flex justify-end gap-3">
+        <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button
             variant="quiet"
             size="sm"
@@ -123,7 +122,7 @@ export function SendOutreachButton({
           >
             Cancel
           </Button>
-          <Button size="sm" type="button" onClick={send} disabled={busy}>
+          <Button size="sm" type="button" onClick={send} loading={busy}>
             {busy ? "Sending..." : "Send it"}
           </Button>
         </div>

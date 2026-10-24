@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 /**
  * Maps token names components use (`bg-surface`) onto the custom properties
@@ -41,11 +42,10 @@ const config: Config = {
         "monogram-4": withOpacity("--color-monogram-4"),
         "monogram-5": withOpacity("--color-monogram-5"),
         "monogram-6": withOpacity("--color-monogram-6"),
+        "hero-shade": withOpacity("--color-hero-shade"),
         scrim: withOpacity("--color-scrim"),
         line: withOpacity("--color-line"),
         // Semantic aliases — same values as above, named by role.
-        "text-primary": withOpacity("--color-text-primary"),
-        "text-secondary": withOpacity("--color-text-secondary"),
         error: withOpacity("--color-error"),
         "error-subtle": withOpacity("--color-error-subtle"),
       },
@@ -66,6 +66,13 @@ const config: Config = {
         "2xl": ["var(--text-2xl-size)", { lineHeight: "var(--text-2xl-line-height)" }],
         "3xl": ["var(--text-3xl-size)", { lineHeight: "var(--text-3xl-line-height)" }],
         "4xl": ["var(--text-4xl-size)", { lineHeight: "var(--text-4xl-line-height)" }],
+        title: ["var(--text-title-size)", { lineHeight: "var(--text-title-line-height)" }],
+        section: ["var(--text-section-size)", { lineHeight: "var(--text-section-line-height)" }],
+        chapter: ["var(--text-chapter-size)", { lineHeight: "var(--text-chapter-line-height)" }],
+        "chapter-xl": [
+          "var(--text-chapter-xl-size)",
+          { lineHeight: "var(--text-chapter-xl-line-height)" },
+        ],
         hero: ["var(--text-hero-size)", { lineHeight: "var(--text-hero-line-height)" }],
       },
       fontWeight: {
@@ -78,17 +85,48 @@ const config: Config = {
         sm: "var(--radius-sm)",
         nest: "var(--radius-nest)",
         card: "var(--radius-card)",
-        // md predates the card name and is the same radius.
-        md: "var(--radius-card)",
-        lg: "var(--radius-lg)",
         full: "var(--radius-full)",
       },
+      spacing: {
+        page: "var(--space-page)",
+      },
       height: {
-        "chart-sm": "var(--chart-height-sm)",
-        "chart-md": "var(--chart-height-md)",
+        chart: "var(--size-chart)",
+        console: "var(--size-console)",
+        wall: "var(--size-wall)",
+        "story-track": "var(--size-story-track)",
+      },
+      width: {
+        bleed: "var(--size-bleed)",
       },
       maxWidth: {
-        wide: "68.75rem" /* 1100px, ScreenShell's wide onboarding layout */,
+        bubble: "var(--size-bubble)",
+        drawer: "var(--size-drawer)",
+        popover: "var(--size-popover)",
+      },
+      gridTemplateColumns: {
+        "main-aside": "var(--grid-main-aside)",
+        footer: "var(--grid-footer)",
+        console: "var(--grid-console)",
+        story: "var(--grid-story)",
+        "label-value": "var(--grid-label-value)",
+        "label-value-wide": "var(--grid-label-value-wide)",
+        sources: "var(--grid-sources)",
+        "sources-wide": "var(--grid-sources-wide)",
+        meter: "var(--grid-meter)",
+        checklist: "var(--grid-checklist)",
+      },
+      gridTemplateRows: {
+        story: "var(--grid-story-rows)",
+      },
+      backgroundColor: {
+        lane: "var(--surface-lane)",
+        panel: "var(--surface-panel)",
+        "panel-chip": "var(--surface-panel-chip)",
+      },
+      transitionProperty: {
+        width: "width",
+        visibility: "visibility",
       },
       boxShadow: {
         card: "var(--shadow-card)",
@@ -168,7 +206,10 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Phones held landscape or with a short browser chrome: the pinned story drops its copy.
+    plugin(({ addVariant }) => addVariant("short", "@media (max-height: 760px)")),
+  ],
 };
 
 export default config;

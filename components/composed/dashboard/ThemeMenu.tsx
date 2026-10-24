@@ -12,16 +12,20 @@ export function ThemeMenu() {
   return (
     <Menu
       label="Theme"
+      size="icon"
       trigger={<Current />}
       items={THEME_OPTIONS.map(({ value, label, Icon: OptionIcon }) => ({
         key: value,
         label: (
           <>
-            <OptionIcon />
+            <span className="text-ink-muted">
+              <OptionIcon />
+            </span>
             {label}
             {value === preference ? (
-              <span className="ml-auto text-signal-teal">
+              <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-signal-teal">
                 <CheckCircleIcon />
+                <span className="sr-only">Current</span>
               </span>
             ) : null}
           </>

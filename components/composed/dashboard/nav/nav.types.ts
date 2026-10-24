@@ -1,13 +1,12 @@
+import type { IconComponent } from "@/components/ui/Icons";
+
 export interface NavLink {
   href: string;
   label: string;
-  icon: () => JSX.Element;
+  icon: IconComponent;
 }
 
-export interface NavGroup {
+export interface NavSection {
   label: string;
-  icon: () => JSX.Element;
   items: NavLink[];
 }
-
-export type NavEntry = NavLink | NavGroup;

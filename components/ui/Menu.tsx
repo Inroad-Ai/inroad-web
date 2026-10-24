@@ -10,19 +10,34 @@ export interface MenuItem {
   onSelect: () => void;
 }
 
+const TRIGGER_SIZES = {
+  sm: "h-8 px-3 text-xs",
+  md: "h-10 px-4 text-sm",
+  icon: "h-10 w-10 justify-center text-sm",
+} as const;
+
 interface MenuProps {
   trigger: ReactNode;
   label: string;
   items: MenuItem[];
   disabled?: boolean;
   align?: "left" | "right";
+  /** `md` and `icon` match IconButton and the other 40px top-bar controls. */
+  size?: keyof typeof TRIGGER_SIZES;
 }
 
 /**
  * Not a `<select>`: options render their own visuals (stage badges). Events
  * stop propagating so this can sit inside a clickable card.
  */
-export function Menu({ trigger, label, items, disabled = false, align = "right" }: MenuProps) {
+export function Menu({
+  trigger,
+  label,
+  items,
+  disabled = false,
+  align = "right",
+  size = "sm",
+}: MenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +77,7 @@ export function Menu({ trigger, label, items, disabled = false, align = "right" 
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-8 items-center gap-1.5 rounded-full border border-ink/15 bg-ink/5 px-3 text-xs font-sans-semibold text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink aria-expanded:bg-ink/10 aria-expanded:text-ink disabled:pointer-events-none disabled:opacity-50"
+        className={`inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-ink/5 ${TRIGGER_SIZES[size]} font-sans-semibold text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink aria-expanded:bg-ink/10 aria-expanded:text-ink disabled:pointer-events-none disabled:opacity-50`}
       >
         {trigger}
       </button>

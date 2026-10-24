@@ -8,8 +8,8 @@ import {
   fetchOutreachDrafts,
   type OutreachDraft,
 } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { SESSION_EXPIRED, useAsyncResource } from "@/hooks/useAsyncResource";
+import { requireAccessToken } from "@/lib/auth-native/browser";
+import { useAsyncResource } from "@/hooks/useAsyncResource";
 
 /** The backend's own message is the one to show for most of these - it says
  * what to do next. profile_not_found is the exception: "No profile yet for
@@ -22,7 +22,7 @@ function describe(caught: unknown): string {
   return "Could not draft outreach for this person.";
 }
 
-interface UseOutreachDraftsResult {
+export interface UseOutreachDraftsResult {
   drafts: OutreachDraft[];
   /** The one-off load of drafts written in an earlier session. */
   loading: boolean;
@@ -67,8 +67,7 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
       setDrafting(true);
       setDraftError(null);
       try {
-        const token = await ensureValidAccessToken();
-        if (!token) throw new Error(SESSION_EXPIRED);
+        const token = await requireAccessToken();
         const updated = await draftOutreach(personId, sequenceIndex, token);
         setDrafts((current) => mergeDrafts(current, updated));
       } catch (caught) {
@@ -77,14 +76,17 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
         setDrafting(false);
       }
     },
-    [personId],
+    [personId, setDrafts],
   );
 
-  const replaceDraft = useCallback((updated: OutreachDraft) => {
-    setDrafts((current) =>
-      current.map((existing) => (existing.id === updated.id ? updated : existing)),
-    );
-  }, []);
+  const replaceDraft = useCallback(
+    (updated: OutreachDraft) => {
+      setDrafts((current) =>
+        current.map((existing) => (existing.id === updated.id ? updated : existing)),
+      );
+    },
+    [setDrafts],
+  );
 
   return { drafts, loading, drafting, error: draftError ?? loadError, draft, replaceDraft };
 }

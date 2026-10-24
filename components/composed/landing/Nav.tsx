@@ -1,24 +1,30 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+import { ThemeControl } from "@/components/composed/ThemeControl";
 import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
+import { CloseIcon, MenuIcon } from "@/components/ui/Icons";
 import { Logo } from "@/components/ui/Logo";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { LANDING_EASE, useLandingMotion } from "@/lib/landing-motion";
+import { NAV_LINKS, SECTION_IDS } from "@/lib/landing/sections";
+
+import { MobileMenu } from "./MobileMenu";
+
+const MENU_ID = "landing-mobile-menu";
 
 export function Nav() {
   const [signedIn, setSignedIn] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useLandingMotion();
 
   // A native token is what middleware.ts actually admits to /research, so
   // that's the same thing this link should be asking about.
   useEffect(() => {
     let cancelled = false;
-
     ensureValidAccessToken()
       .then((token) => {
         if (!cancelled) setSignedIn(token !== null);
@@ -26,69 +32,68 @@ export function Nav() {
       .catch(() => {
         // Nav falls back to "Get started"; the route guards own session state.
       });
-
     return () => {
       cancelled = true;
     };
   }, []);
 
-  useEffect(() => {
-    const updateScrolledState = () => setScrolled(window.scrollY > 12);
-    updateScrolledState();
-    window.addEventListener("scroll", updateScrolledState, { passive: true });
-    return () => window.removeEventListener("scroll", updateScrolledState);
-  }, []);
-
   return (
-    <motion.nav
-      className={`sticky top-0 z-20 border-b border-line bg-paper/90 backdrop-blur ${scrolled ? "shadow-card" : ""}`}
-      initial={reduceMotion ? false : { y: -18, opacity: 0 }}
+    <motion.header
+      className="fixed inset-x-0 top-3 z-40 px-3"
+      initial={reduceMotion ? false : { y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={reduceMotion ? { duration: 0 } : { duration: 0.48, ease: LANDING_EASE }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.8, ease: LANDING_EASE }}
     >
-      <div
-        className={`mx-auto flex max-w-6xl items-center justify-between px-6 transition-[padding] duration-200 ${scrolled ? "py-3" : "py-4"}`}
-      >
-        <Link href="/" aria-label="Inroad home">
+      <div className="relative mx-auto flex h-14 max-w-6xl items-center gap-2 rounded-full bg-surface pl-4 pr-2 shadow-card">
+        <a href={`#${SECTION_IDS.top}`} aria-label="Inroad home" className="rounded-full">
           <Logo />
-        </Link>
-
-        <div className="hidden items-center gap-7 md:flex">
-          <a
-            href="#sources"
-            className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-          >
-            Research
-          </a>
-          <a
-            href="#how-it-works"
-            className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-          >
-            Process
-          </a>
-          <a
-            href="#sample"
-            className="font-sans text-sm text-text-secondary transition-colors hover:text-ink"
-          >
-            Dossier
-          </a>
-        </div>
-
-        <motion.div
-          whileHover={reduceMotion ? undefined : { y: -1 }}
-          whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-        >
+        </a>
+        <nav aria-label="Sections" className="ml-4 hidden gap-0.5 lg:flex">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              className="rounded-full px-3 py-2 text-sm font-sans-semibold text-ink-muted transition-colors duration-fast hover:bg-ink/5 hover:text-ink"
+            >
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        <div className="ml-auto flex items-center gap-2">
+          <div className="hidden sm:block">
+            <ThemeControl compact />
+          </div>
           {signedIn ? (
             <Button href="/research" size="sm">
               Dashboard
             </Button>
           ) : (
-            <Button href="/signup" size="sm">
-              Get started
-            </Button>
+            <>
+              <Button href="/login" variant="ghost" size="sm" className="hidden sm:inline-flex">
+                Log in
+              </Button>
+              <Button href="/signup" size="sm">
+                Get started
+              </Button>
+            </>
           )}
-        </motion.div>
+          <IconButton
+            label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls={MENU_ID}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="lg:hidden"
+          >
+            {menuOpen ? <CloseIcon /> : <MenuIcon />}
+          </IconButton>
+        </div>
+        <MobileMenu
+          id={MENU_ID}
+          open={menuOpen}
+          signedIn={signedIn}
+          onClose={() => setMenuOpen(false)}
+        />
       </div>
-    </motion.nav>
+    </motion.header>
   );
 }

@@ -5,7 +5,7 @@ export default function IntegrationsPage() {
   return (
     <PageShell
       title="Integrations"
-      description="Connect your own API keys to enrich people found during research."
+      description="Connect your Gmail to send, and a contact-data provider to find verified emails. Everything here is private to your account."
     >
       <IntegrationsBoard />
     </PageShell>

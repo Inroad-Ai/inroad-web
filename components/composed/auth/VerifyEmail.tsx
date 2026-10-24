@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ApiError, verifyEmail } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
+
+import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
+import { AuthHeading } from "./AuthHeading";
 
 /** Where the confirmation email points. Confirming also signs the user in,
  * so this lands them in the app rather than back at a login form. */
@@ -47,26 +49,21 @@ export function VerifyEmail() {
 
   if (error) {
     return (
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">
-          Link didn&apos;t work
-        </h1>
-        <p className="mt-3 font-sans text-sm text-text-secondary">{error}</p>
-        <p className="mt-6 font-sans text-sm text-text-secondary">
-          <Link href="/signup" className="text-signal-teal hover:underline">
-            Start again
-          </Link>{" "}
-          or{" "}
-          <Link href="/login" className="text-signal-teal hover:underline">
-            sign in
-          </Link>
-          .
-        </p>
+      <div className="grid gap-7">
+        <AuthHeading eyebrow="Email confirmation" title="Link didn't work">
+          {error}
+        </AuthHeading>
+        <AuthFooterNote>
+          <AuthLink href="/signup">Start again</AuthLink> or{" "}
+          <AuthLink href="/login">sign in</AuthLink>.
+        </AuthFooterNote>
       </div>
     );
   }
 
   return (
-    <p className="text-center font-sans text-sm text-text-secondary">Confirming your email...</p>
+    <AuthHeading eyebrow="Email confirmation" isLive title="Confirming your email">
+      This takes a second. You&apos;ll go straight in once it&apos;s done.
+    </AuthHeading>
   );
 }

@@ -1,6 +1,10 @@
+import { plural } from "@/lib/format";
 import type { CompanyDetail, CoverageStatus } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
-import { Section } from "@/components/ui/Section";
+import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Card } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+
+import { DashboardPanel } from "../DashboardPanel";
 
 const LABELS: Record<string, string> = {
   overview: "Overview",
@@ -13,10 +17,7 @@ const LABELS: Record<string, string> = {
   news: "News and signals",
 };
 
-const STATUS: Record<
-  CoverageStatus,
-  { text: string; tone: "success" | "teal" | "amber" | "rose" | "neutral" }
-> = {
+const STATUS: Record<CoverageStatus, { text: string; tone: BadgeTone }> = {
   found_verified: { text: "Found, with evidence", tone: "success" },
   found_uncertain: { text: "Found, pages disagree", tone: "amber" },
   not_found: { text: "Nothing stated", tone: "neutral" },
@@ -40,7 +41,7 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
   if (names.length === 0 && usage.length === 0) return null;
 
   return (
-    <Section
+    <DashboardPanel
       title="Research coverage"
       meta={
         research.researched_at ? (
@@ -51,21 +52,23 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
         ) : null
       }
     >
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid gap-3 sm:grid-cols-2">
         {names.map((name) => {
           const entry = coverage[name];
           const status = STATUS[entry.status] ?? STATUS.not_researched;
           return (
-            <li key={name}>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-ink">{LABELS[name]}</span>
-                <Badge tone={status.tone}>{status.text}</Badge>
+            <Card as="li" key={name} variant="nested" padding="none" className="p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-sans-semibold text-ink">{LABELS[name]}</span>
+                <Badge tone={status.tone} dot>
+                  {status.text}
+                </Badge>
               </div>
-              <p className="mt-1 text-xs text-text-secondary">
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-muted">
                 {entry.reason.endsWith(".") ? entry.reason : `${entry.reason}.`}
                 {entry.fresh_until ? ` Fresh until ${day(entry.fresh_until)}.` : ""}
               </p>
-            </li>
+            </Card>
           );
         })}
       </ul>
@@ -73,7 +76,7 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
       {failures.length > 0 ? (
         <ul className="mt-6 space-y-1">
           {failures.map((failure) => (
-            <li key={failure} className="text-xs text-text-secondary">
+            <li key={failure} className="text-xs text-ink-muted">
               Partial: {failure}
             </li>
           ))}
@@ -82,16 +85,16 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
 
       {usage.length > 0 ? (
         <div className="mt-6">
-          <p className="utility-label font-sans-semibold text-text-secondary">Collected with</p>
+          <Eyebrow as="h3">Collected with</Eyebrow>
           <div className="mt-2 flex flex-wrap gap-2">
             {usage.map((item) => (
               <Badge key={`${item.provider}-${item.operation}`} tone="neutral">
-                {`${item.provider} ${item.operation}: ${item.requests} request${item.requests === 1 ? "" : "s"}`}
+                {`${item.provider} ${item.operation}: ${plural(item.requests, "request", "requests")}`}
               </Badge>
             ))}
           </div>
         </div>
       ) : null}
-    </Section>
+    </DashboardPanel>
   );
 }

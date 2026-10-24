@@ -8,26 +8,38 @@ import {
   UserIcon,
 } from "@/components/ui/Icons";
 
-import type { NavEntry } from "./nav.types";
+import type { NavSection } from "./nav.types";
 
 export const DASHBOARD_HOME = "/overview";
 
-export const NAV: NavEntry[] = [
-  { href: DASHBOARD_HOME, label: "Overview", icon: GridIcon },
-  { href: "/research", label: "Research", icon: SearchIcon },
-  { href: "/companies", label: "Companies", icon: BuildingIcon },
+export const PROFILE_HREF = "/profile";
+
+export const NAV_SECTIONS: NavSection[] = [
   {
-    label: "Pipeline",
-    icon: BoardIcon,
-    // Labelled distinctly from the top-level "Companies" link above -
-    // that's the plain list, these are the two stage boards.
+    label: "Workspace",
     items: [
-      { href: "/companies/pipeline", label: "Stages", icon: BuildingIcon },
+      { href: DASHBOARD_HOME, label: "Overview", icon: GridIcon },
+      { href: "/research", label: "Research", icon: SearchIcon },
+      { href: "/companies", label: "Companies", icon: BuildingIcon },
+    ],
+  },
+  {
+    // "Stages", not "Pipeline": the section heading already says Pipeline,
+    // and the plain Companies list sits right above it.
+    label: "Pipeline",
+    items: [
+      { href: "/companies/pipeline", label: "Stages", icon: BoardIcon },
       { href: "/contacts", label: "People", icon: UserIcon },
     ],
   },
-  { href: "/integrations", label: "Integrations", icon: PlugIcon },
-  { href: "/settings", label: "Settings", icon: SlidersIcon },
+  {
+    label: "Account",
+    items: [
+      { href: PROFILE_HREF, label: "Profile", icon: UserIcon },
+      { href: "/integrations", label: "Integrations", icon: PlugIcon },
+      { href: "/settings", label: "Settings", icon: SlidersIcon },
+    ],
+  },
 ];
 
 export const PAGE_TITLES: Record<string, string> = {
@@ -37,5 +49,6 @@ export const PAGE_TITLES: Record<string, string> = {
   "/companies/pipeline": "Pipeline",
   "/companies": "Companies",
   "/contacts": "People",
+  "/integrations": "Integrations",
   "/settings": "Settings",
 };

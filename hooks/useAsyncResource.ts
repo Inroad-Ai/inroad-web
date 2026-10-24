@@ -2,9 +2,7 @@
 
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-
-export const SESSION_EXPIRED = "Your session expired. Sign in again.";
+import { ensureValidAccessToken, SESSION_EXPIRED } from "@/lib/auth-native/browser";
 
 interface UseAsyncResourceResult<T> {
   data: T;
