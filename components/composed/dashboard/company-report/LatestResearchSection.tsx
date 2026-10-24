@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Section } from "@/components/ui/Section";
 
 import { NewsSummary } from "./NewsSummary";
+import { NotCollectedNotice } from "./NotCollectedNotice";
 import { PartialRunNotice } from "./PartialRunNotice";
 
 export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
@@ -37,9 +38,14 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
       {/* A partial run is still a 200 with nulls in it. Say so plainly rather
           than letting the empty fields below read as "nothing to report". */}
       {research.partial ? <PartialRunNotice errors={research.errors} /> : null}
+      <NotCollectedNotice notCollected={research.not_collected ?? {}} />
 
       <div className="grid gap-8">
-        <NewsSummary news={research.news} />
+        <NewsSummary
+          news={research.news}
+          notCollected={"news" in (research.not_collected ?? {})}
+          firstPartyOnly={research.research_backend === "sourcing"}
+        />
       </div>
     </Section>
   );

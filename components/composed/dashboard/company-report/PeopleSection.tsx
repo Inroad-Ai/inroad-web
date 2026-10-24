@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PERSON_STAGES, PERSON_STAGE_LABEL } from "@/components/ui/PersonStageBadge";
 import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import { Section } from "@/components/ui/Section";
+import { safeHref } from "@/lib/safe-href";
 
 // Founders/co-founders/execs are the roles worth a second glance first;
 // everyone else still shows, just without the highlight.
@@ -81,7 +82,7 @@ export function PeopleSection({
                 <div className="mt-1 flex flex-wrap gap-3 text-xs">
                   {person.linkedin_url ? (
                     <a
-                      href={person.linkedin_url}
+                      href={safeHref(person.linkedin_url) ?? undefined}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"

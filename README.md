@@ -1,14 +1,61 @@
 # Inroad — Web
 
-The frontend for [`inroad-api`](https://github.com/Inroad-Ai/inroad-api). One domain in, one
-dossier out: homepage, recent news, and hiring signal, checked at the same
-time and rendered as three cards.
+The frontend for [`inroad-api`](https://github.com/Inroad-Ai/inroad-api).
+Next.js 14 App Router, TypeScript, Tailwind.
 
-Next.js 14 App Router, TypeScript, Tailwind. No state library, no data-fetching
-library, no UI kit, no chart library. `fetch` and React state are the whole
-data layer.
+## Where this fits
 
-## Why this exists
+Repos under the `Inroad-Ai` GitHub org:
+
+- `inroad-api` — FastAPI backend plus arq worker; the only service this app
+  talks to
+- `inroad-web` (this repo) — the screens
+- `inroad-sourcing` — public company data (discovery, crawling, extraction
+  with evidence, ATS boards, public people, news and signals); called only
+  by `inroad-api`, never by this app
+- `inroad-intelligence` — reserved; nothing built yet
+- `inroad-docs` — architecture docs, rules, local full-stack setup
+
+The current-state architecture is `inroad-docs`'s
+`docs/architecture/system-architecture.md` (section 5 covers this app).
+
+## What it is today
+
+- App Router pages under `app/(dashboard)/` (overview, research, companies
+  and company detail, contacts, profile, integrations, settings), auth pages
+  under `app/(auth)/` (signup, login, verify-email, password reset),
+  onboarding under `app/(onboarding)/`, and the landing page under
+  `app/(marketing)/`.
+- `lib/api-client/` is the only way to reach the backend
+  (`NEXT_PUBLIC_API_URL`). The user's access token goes as a bearer token;
+  refresh tokens rotate through `/api/auth`. Regenerate the typed client with
+  `pnpm generate-api-client` when `inroad-api`'s `/openapi.json` changes.
+- Research progress: `lib/research-runs.tsx` opens
+  `POST /api/companies/research/stream`, shows per-source progress (`done`,
+  `failed`, `not_collected`), and re-opens the stream when the API answered
+  `X-Inroad-Research-Resumable: 1` and the connection dropped (the API
+  replays the run's progress from the start).
+- Company report (`components/composed/dashboard/company-report/`):
+  identity, hiring and job-board openings (stale ones marked by
+  `availability`), products and leadership, sourced facts with their
+  evidence quotes, people, news, and research coverage per category. Missing
+  data is shown as unknown, never as a negative fact. Every scraped link goes
+  through `lib/safe-href.ts` (http and https only).
+
+## Original prototype
+
+> Everything from here to "Running locally" describes the original
+> three-card prototype this repo started as (`app/app/page.tsx`,
+> `lib/api.ts`, `GET /api/research?domain=`). Those files and that endpoint
+> no longer exist; it is kept as history. The design tokens now live in
+> `styles/tokens.css` (see `CLAUDE.md`), not the table below.
+
+One domain in, one dossier out: homepage, recent news, and hiring signal,
+checked at the same time and rendered as three cards. No state library, no
+data-fetching library, no UI kit, no chart library. `fetch` and React state
+were the whole data layer.
+
+### Why this exists
 
 The backend already ships a working single-page UI at `GET /`. This is not a
 replacement for it — it exists because the API and the interface are separate
@@ -168,8 +215,10 @@ Requires **Node 18.17 or newer**, **pnpm 11** (see `packageManager` in
 Redis. If you only cloned this repo, clone
 [`inroad-api`](https://github.com/Inroad-Ai/inroad-api) and
 [`inroad-docs`](https://github.com/Inroad-Ai/inroad-docs) as siblings and
-follow `inroad-docs`'s README Quickstart, which covers all three repos in
-order.
+follow `inroad-docs`'s README Quickstart. Research and matching also need
+the API's arq worker and `inroad-sourcing` (API and worker) running;
+`inroad-docs/local/inroad-local.sh up` starts all of them, this app
+included.
 
 Start the database, Redis, and backend first:
 
@@ -223,10 +272,13 @@ If you prefer the numeric form, start the backend with
 `ALLOWED_ORIGIN=http://127.0.0.1:3000`.
 
 A blocked origin and a backend that is not running look identical from the
-browser, so `lib/api.ts` names both possibilities in that one error message
+browser, so `lib/api-client/` names both possibilities in its error message
 rather than guessing.
 
-## What this project does not do (on purpose)
+## What the original prototype did not do (on purpose)
+
+> Prototype-era notes: the app now has auth and accounts, server-side token
+> checks in middleware and layouts, and a streamed research route.
 
 - **No server-side data fetching.** Every call is from the browser. The pages
   are static; the backend's history and cache are per-process and reset on
@@ -269,15 +321,16 @@ will block every call.
 Note that `NEXT_PUBLIC_` variables are inlined at build time, not read at run
 time — changing the API URL means rebuilding, not just restarting.
 
-Both pages are static, so any host that can serve a Next.js build works. There
-is no server-side rendering of data and no API route in this app; it is a
-client for someone else's API.
+The host also needs `JWT_SECRET` (the same value as `inroad-api`'s,
+server-side only, never `NEXT_PUBLIC_`) so middleware and layouts can verify
+an access token's signature; see `.env.example`. There is no API route in
+this app; every data call goes to `inroad-api`.
 
 ## Contributing
 
 All work goes through `staging`: branch from it and open pull requests into it. `main` is production and only receives merges from `staging`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full flow, branch naming, and the checks to run before you push.
 
-## Possible next steps
+## Possible next steps (prototype era)
 
 - Consume a streaming endpoint so each card lands as its own source finishes,
   which is the one thing the current interface has to explain in words instead
@@ -288,7 +341,11 @@ All work goes through `staging`: branch from it and open pull requests into it. 
 - A small test pass: `ResultCard` in all four states and `lib/api.ts` against a
   mocked `fetch`
 
-## Project layout
+## Project layout (original prototype)
+
+The current layout is `app/` (route groups above), `components/ui/` and
+`components/composed/`, `lib/`, `styles/tokens.css`. The tree below is the
+prototype's.
 
 ```
 inroad-web/

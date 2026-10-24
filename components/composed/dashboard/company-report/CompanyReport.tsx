@@ -13,8 +13,11 @@ import { IdentityHeader } from "./IdentityHeader";
 import { LatestResearchSection } from "./LatestResearchSection";
 import { NotesSection } from "./NotesSection";
 import { PeopleSection } from "./PeopleSection";
+import { ProductsLeadershipSection } from "./ProductsLeadershipSection";
 import { ProfileSection } from "./ProfileSection";
+import { ResearchCoverageSection } from "./ResearchCoverageSection";
 import { ResearchHistorySection } from "./ResearchHistorySection";
+import { SourcedFactsSection } from "./SourcedFactsSection";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -68,8 +71,11 @@ export function CompanyReport({ companyId }: { companyId: string }) {
     <div className="mt-6 flex flex-col gap-6">
       <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
       <ProfileSection detail={detail} />
+      <ProductsLeadershipSection detail={detail} />
       <HiringSection detail={detail} />
       <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
+      <ResearchCoverageSection detail={detail} />
+      <SourcedFactsSection detail={detail} />
       <LatestResearchSection detail={detail} />
       <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
       <ResearchHistorySection detail={detail} />

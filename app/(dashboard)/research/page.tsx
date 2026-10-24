@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
-import type { CardState, PipelineRunStatus } from "@/lib/types";
+import type { CardState, PipelineRunStatus, SourceState } from "@/lib/types";
 
 interface MatchRun {
   id: string;
@@ -176,8 +176,8 @@ export default function ResearchPage() {
               <ResearchProgress run={activeRun} />
             ) : (
               <p className="mt-5 border-t border-line pt-5 text-sm text-text-secondary">
-                We&apos;ll check the company&apos;s website, news, and hiring information, then
-                create a brief.
+                We&apos;ll check the company&apos;s website, news, people and hiring information,
+                then create a brief.
               </p>
             )}
           </form>
@@ -284,6 +284,7 @@ const RESEARCH_SOURCES = [
   { key: "homepage", label: "Website" },
   { key: "news", label: "News" },
   { key: "hiring", label: "Hiring" },
+  { key: "people", label: "People" },
 ] as const;
 
 function ResearchProgress({ run }: { run: ResearchRun }) {
@@ -291,7 +292,7 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
     run.phase === "verified"
       ? "Website address accepted. Getting started..."
       : run.phase === "gathering"
-        ? "Checking website, news, and hiring information"
+        ? "Checking website, news, people and hiring information"
         : run.phase === "creating_brief"
           ? "Putting your research brief together"
           : run.phase === "saving"
@@ -311,9 +312,11 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
               ? "Checked"
               : state === "failed"
                 ? "Failed"
-                : state === "pending"
-                  ? "Checking"
-                  : "Waiting";
+                : state === "not_collected"
+                  ? "Not covered"
+                  : state === "pending"
+                    ? "Checking"
+                    : "Waiting";
           return (
             <li key={key} className="flex items-center gap-2">
               <ProgressIcon state={state} />
@@ -328,7 +331,7 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
   );
 }
 
-function ProgressIcon({ state }: { state: CardState }) {
+function ProgressIcon({ state }: { state: SourceState }) {
   if (state === "pending") {
     return (
       <span className="text-signal-teal">
