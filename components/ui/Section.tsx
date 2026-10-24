@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 
+import { Card } from "./Card";
+import { Eyebrow } from "./Eyebrow";
+
 /** A titled card. `meta` sits opposite the title in the header row. */
 export function Section({
   title,
@@ -11,12 +14,12 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-md border border-line bg-surface shadow-card">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-6 py-4">
-        <span className="utility-label text-text-secondary">{title}</span>
+    <Card as="section" padding="none">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5">
+        <Eyebrow as="span">{title}</Eyebrow>
         {meta}
       </header>
-      <div className="px-6 py-5">{children}</div>
-    </section>
+      <div className="px-6 pb-6 pt-4">{children}</div>
+    </Card>
   );
 }

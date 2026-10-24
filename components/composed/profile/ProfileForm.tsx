@@ -685,7 +685,7 @@ export function ProfileForm() {
         />
       </Section>
 
-      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-md border border-line bg-surface/95 p-4 shadow-overlay backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-md border border-line bg-surface/95 p-4 shadow-pop backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm">
           {saved ? <span className="text-success">Your profile is up to date.</span> : null}
           {saveError ? <span className="text-error">{saveError}</span> : null}

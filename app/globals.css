@@ -8,7 +8,6 @@
 
 @layer base {
   html {
-    color-scheme: light;
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
   }
@@ -16,7 +15,7 @@
   body {
     background-color: rgb(var(--color-paper));
     color: rgb(var(--color-ink));
-    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -32,15 +31,15 @@
 }
 
 @layer components {
-  /* Eyebrows, status labels, timestamps. One class so the utility face is
-     defined in a single place rather than re-specified on every element. */
+  /* Eyebrows, badges, status labels, timestamps. One class so the mono
+     utility face is defined in a single place rather than on every element. */
   .utility-label {
-    font-family: var(--font-display), ui-sans-serif, system-ui;
+    font-family: var(--font-mono);
     font-weight: var(--font-weight-sans-medium);
-    font-size: 0.6875rem;
-    line-height: 1.2;
+    font-size: var(--text-eyebrow-size);
+    line-height: var(--text-eyebrow-line-height);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-utility);
   }
 
   /* Nav links and sign out are the same pill in two different components;
@@ -53,7 +52,7 @@
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-full);
     transition-property: color, background-color;
-    transition-duration: 150ms;
+    transition-duration: var(--motion-duration-fast);
   }
 
   .sidebar-row-collapsed {

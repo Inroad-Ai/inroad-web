@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/composed/dashboard/DashboardShell";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-native/constants";
 import { verifyAccessToken } from "@/lib/auth-native/verify";
-import { THEME_INIT_SCRIPT } from "@/lib/theme/theme-init-script";
 
 // Every route under (dashboard) requires a signed-in user: the access token
 // is verified against JWT_SECRET, not just trusted from the cookie.
@@ -21,10 +20,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/");
   }
 
-  return (
-    <>
-      <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-      <DashboardShell>{children}</DashboardShell>
-    </>
-  );
+  return <DashboardShell>{children}</DashboardShell>;
 }

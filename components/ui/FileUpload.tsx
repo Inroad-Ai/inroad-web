@@ -94,10 +94,10 @@ export function FileUpload({
         }}
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
-        className={`flex min-h-[240px] w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-[1.5px] border-dashed p-8 text-center transition-colors duration-200 ease-out focus-visible:outline-2 focus-visible:outline-signal-teal focus-visible:outline-offset-2 ${
+        className={`flex min-h-60 w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-card border-2 border-dashed p-8 text-center transition-colors duration-fast ease-standard ${
           dragActive
-            ? "border-signal-teal bg-signal-teal-subtle"
-            : "border-line hover:border-signal-teal/60"
+            ? "border-signal-amber bg-signal-amber-subtle"
+            : "border-ink/15 bg-ink/5 hover:border-ink/30 hover:bg-ink/10"
         }`}
       >
         <input
@@ -113,26 +113,26 @@ export function FileUpload({
             event.target.value = "";
           }}
         />
-        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-text-secondary">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface text-ink shadow-nest">
           <UploadIcon />
         </span>
-        <p className="text-sm text-text-primary">
+        <p className="text-sm font-sans-medium text-ink">
           Drag your resume here or{" "}
-          <span className="font-medium text-signal-teal">browse files</span>
+          <span className="font-sans-semibold text-signal-teal">browse files</span>
         </p>
-        <p className="text-xs text-text-secondary">PDF or DOCX · up to 10MB</p>
+        <p className="utility-label text-ink-faint">PDF or DOCX · up to 10MB</p>
       </div>
     );
   }
 
   return (
     <div
-      className={`animate-fade-up w-full rounded-xl border p-5 transition-colors duration-200 ${
+      className={`animate-fade-up w-full rounded-card p-5 shadow-nest transition-colors duration-fast ${
         state === "done"
-          ? "border-success/30 bg-success-subtle"
+          ? "bg-success-subtle"
           : state === "error"
-            ? "border-error/30 bg-error-subtle"
-            : "border-line bg-surface"
+            ? "bg-error-subtle"
+            : "bg-surface-raised"
       }`}
     >
       <div className="flex items-start justify-between gap-4">
@@ -147,12 +147,12 @@ export function FileUpload({
             </span>
           ) : null}
           <div className="min-w-0">
-            <p className="truncate text-sm text-text-primary">{fileName}</p>
+            <p className="truncate text-sm font-sans-semibold text-ink">{fileName}</p>
             {fileSize && state !== "error" ? (
-              <p className="text-xs text-text-secondary">{formatFileSize(fileSize)}</p>
+              <p className="utility-label mt-0.5 text-ink-muted">{formatFileSize(fileSize)}</p>
             ) : null}
             {isBusy ? (
-              <p className="mt-1.5 text-xs font-medium text-signal-teal">{rotatingPhase}</p>
+              <p className="mt-1.5 text-xs font-sans-semibold text-signal-teal">{rotatingPhase}</p>
             ) : null}
             {state === "done" ? <p className="mt-1 text-xs text-success">Uploaded</p> : null}
             {state === "error" && errorMessage ? (
@@ -165,7 +165,7 @@ export function FileUpload({
           <button
             type="button"
             onClick={onRemove}
-            className="utility-label shrink-0 text-text-secondary hover:text-signal-teal"
+            className="utility-label shrink-0 text-ink-muted transition-colors duration-fast hover:text-ink"
           >
             Replace
           </button>
@@ -174,7 +174,7 @@ export function FileUpload({
           <button
             type="button"
             onClick={onRetry}
-            className="utility-label shrink-0 text-error hover:text-error/80"
+            className="utility-label shrink-0 text-error transition-colors duration-fast hover:text-ink"
           >
             Retry
           </button>
@@ -182,7 +182,7 @@ export function FileUpload({
       </div>
 
       {isBusy ? (
-        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-line">
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-ink/10">
           <div className="animate-indeterminate h-full w-1/3 rounded-full bg-signal-teal" />
         </div>
       ) : null}

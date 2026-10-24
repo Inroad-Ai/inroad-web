@@ -6,7 +6,6 @@ import { DashboardFooter } from "@/components/composed/dashboard/DashboardFooter
 import { DashboardHeader } from "@/components/composed/dashboard/DashboardHeader";
 import { MobileNav } from "@/components/composed/dashboard/MobileNav";
 import { Sidebar } from "@/components/composed/dashboard/Sidebar";
-import { ThemeSync } from "@/components/composed/dashboard/ThemeSync";
 import { useMobileNav } from "@/hooks/useMobileNav";
 import { useSidebarCollapsed } from "@/hooks/useSidebarCollapsed";
 import { ResearchRunsProvider } from "@/lib/research-runs";
@@ -17,7 +16,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <ResearchRunsProvider>
-      <ThemeSync />
       <div className="flex min-h-screen">
         <Sidebar collapsed={collapsed} onToggle={toggle} />
         <MobileNav open={mobileNav.open} onClose={mobileNav.closeNav} />

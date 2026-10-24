@@ -5,7 +5,7 @@ import type { CardState } from "@/lib/types";
  * the dot is the caller's job, in the caller's words.
  */
 const STATES: Record<CardState, string> = {
-  idle: "bg-line",
+  idle: "bg-ink/20",
   pending: "bg-signal-teal animate-pulse-dot",
   done: "bg-signal-amber",
   failed: "bg-muted-rose",

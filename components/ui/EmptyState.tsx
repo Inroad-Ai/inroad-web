@@ -8,5 +8,5 @@ export function EmptyState({
   children: ReactNode;
   className?: string;
 }) {
-  return <p className={`text-sm text-text-secondary ${className}`}>{children}</p>;
+  return <p className={`text-sm leading-relaxed text-ink-muted ${className}`}>{children}</p>;
 }

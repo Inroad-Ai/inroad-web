@@ -33,25 +33,25 @@ export function ProgressIndicator({
               aria-current={index === currentPhaseIndex ? "step" : undefined}
               className={`utility-label ${
                 index === currentPhaseIndex
-                  ? "font-semibold text-signal-teal"
+                  ? "text-ink"
                   : index < currentPhaseIndex
-                    ? "text-text-secondary"
-                    : "text-text-secondary/40"
+                    ? "text-ink-muted"
+                    : "text-ink-faint"
               }`}
             >
               {phase}
             </span>
             {index < phases.length - 1 ? (
-              <span className="text-text-secondary/40" aria-hidden="true">
+              <span className="text-ink-faint" aria-hidden="true">
                 →
               </span>
             ) : null}
           </span>
         ))}
       </div>
-      <div className="mt-2 h-0.5 w-full overflow-hidden rounded-full bg-line">
+      <div className="mt-2.5 h-1 w-full overflow-hidden rounded-full bg-ink/10">
         <div
-          className="h-full bg-signal-amber transition-[width] duration-300 ease-out"
+          className="h-full rounded-full bg-signal-amber transition-[width] duration-base ease-emphasized"
           style={{ width: `${percent}%` }}
         />
       </div>

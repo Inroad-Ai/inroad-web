@@ -17,7 +17,10 @@ export function Tabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div role="tablist" className="flex flex-wrap gap-2 border-b border-line pb-3">
+    <div
+      role="tablist"
+      className="inline-flex max-w-full flex-wrap gap-0.5 rounded-full border border-line bg-ink/5 p-1"
+    >
       {items.map((item) => {
         const active = item.id === activeId;
         return (
@@ -28,12 +31,12 @@ export function Tabs({
             aria-selected={active}
             disabled={item.disabled}
             onClick={() => onChange(item.id)}
-            className={`rounded-sm px-4 py-2 font-sans text-sm transition-colors ${
+            className={`h-8 rounded-full px-3.5 font-sans text-sm font-sans-semibold transition duration-fast ease-standard ${
               active
-                ? "bg-signal-teal-subtle text-text-primary"
+                ? "bg-surface text-ink shadow-nest"
                 : item.disabled
-                  ? "text-text-secondary/40"
-                  : "text-text-secondary hover:text-text-primary"
+                  ? "cursor-not-allowed text-ink-faint/60"
+                  : "text-ink-muted hover:text-ink"
             }`}
           >
             {item.label}

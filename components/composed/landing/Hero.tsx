@@ -108,7 +108,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={reduceMotion ? { duration: 0 } : { ...LANDING_SPRING, delay: 0.22 }}
         >
-          <div className="relative overflow-hidden rounded-lg border border-line bg-surface shadow-overlay">
+          <div className="relative overflow-hidden rounded-lg border border-line bg-surface shadow-pop">
             <div className="flex items-center justify-between border-b border-line px-4 py-3 sm:px-5">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-muted-rose" />

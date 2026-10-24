@@ -76,7 +76,7 @@ export function IdentityHeader({
   }
 
   return (
-    <section className="rounded-md border border-line bg-surface p-7 shadow-overlay">
+    <section className="rounded-md border border-line bg-surface p-7 shadow-pop">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div className="flex min-w-0 gap-4">
           <CompanyLogo logoUrl={detail.logo_url} domain={detail.domain} className="h-12 w-12" />

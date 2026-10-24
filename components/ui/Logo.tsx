@@ -37,7 +37,9 @@ export function Logo({
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       {mark}
-      <span className="font-display text-lg font-semibold tracking-tight text-ink">Inroad</span>
+      <span className="font-display text-xl font-sans-semibold leading-none tracking-heading text-ink">
+        Inroad
+      </span>
     </span>
   );
 }

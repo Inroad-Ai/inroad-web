@@ -1,34 +1,45 @@
 import Link from "next/link";
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 
-type Variant = "primary" | "quiet";
-type Size = "sm" | "md";
+import { SpinnerIcon } from "./Icons";
+
+type Variant = "primary" | "quiet" | "ghost";
+type Size = "sm" | "md" | "lg";
+type IconPosition = "start" | "end";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-signal-amber text-on-amber hover:bg-signal-amber-hover hover:shadow-card disabled:bg-signal-amber/40",
-  quiet:
-    "border border-line bg-surface text-text-primary hover:border-signal-teal hover:text-signal-teal disabled:text-text-secondary/40",
+    "bg-signal-amber text-on-amber shadow-amber hover:bg-signal-amber-hover hover:shadow-amber-hover",
+  quiet: "border border-ink/15 bg-ink/5 text-ink hover:bg-ink/10",
+  ghost: "text-ink-muted hover:bg-ink/5 hover:text-ink",
 };
 
 const SIZES: Record<Size, string> = {
-  md: "px-6 py-3.5 text-sm",
-  sm: "px-5 py-2.5 text-sm",
+  sm: "h-9 gap-1.5 px-4 text-sm",
+  md: "h-11 gap-2 px-5 text-sm",
+  lg: "h-12 gap-2 px-6 text-base",
 };
 
 const BASE_CLASSES =
-  "inline-flex items-center justify-center rounded-full font-display font-semibold transition duration-150 disabled:cursor-not-allowed";
+  "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full font-sans font-sans-bold transition duration-fast ease-standard active:translate-y-px disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface SharedProps {
   variant?: Variant;
   size?: Size;
-  href?: undefined;
+  /** Rendered beside the label; sized to match it. */
+  icon?: ReactNode;
+  iconPosition?: IconPosition;
 }
 
-interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
-  variant?: Variant;
-  size?: Size;
+interface ButtonProps extends SharedProps, ButtonHTMLAttributes<HTMLButtonElement> {
+  href?: undefined;
+  /** Disables the button and swaps the icon for a spinner while an action runs. */
+  loading?: boolean;
+}
+
+interface ButtonLinkProps extends SharedProps, AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
+  loading?: undefined;
 }
 
 /** Same visual component whether it acts as a button or navigates — pass `href` to render a Link. */
@@ -36,20 +47,40 @@ export function Button({
   variant = "primary",
   size = "md",
   className = "",
+  icon,
+  iconPosition = "start",
+  loading = false,
   href,
+  children,
   ...props
 }: ButtonProps | ButtonLinkProps) {
   const classes = `${BASE_CLASSES} ${SIZES[size]} ${VARIANTS[variant]} ${className}`;
+  const lead = loading ? <SpinnerIcon /> : icon;
+  const content = (
+    <>
+      {iconPosition === "start" ? lead : null}
+      {children}
+      {iconPosition === "end" ? lead : null}
+    </>
+  );
 
   if (href !== undefined) {
     return (
-      <Link
-        href={href}
-        className={classes}
-        {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}
-      />
+      <Link href={href} className={classes} {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}>
+        {content}
+      </Link>
     );
   }
 
-  return <button className={classes} {...(props as ButtonHTMLAttributes<HTMLButtonElement>)} />;
+  const buttonProps = props as ButtonHTMLAttributes<HTMLButtonElement>;
+  return (
+    <button
+      {...buttonProps}
+      className={classes}
+      disabled={buttonProps.disabled || loading}
+      aria-busy={loading || undefined}
+    >
+      {content}
+    </button>
+  );
 }
