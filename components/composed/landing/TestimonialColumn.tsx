@@ -25,7 +25,7 @@ export function TestimonialColumn({
   className?: string;
 }) {
   const [scope, animate] = useAnimate<HTMLDivElement>();
-  const controls = useRef<AnimationPlaybackControls>();
+  const controls = useRef<AnimationPlaybackControls | undefined>(undefined);
 
   useEffect(() => {
     if (still) return;

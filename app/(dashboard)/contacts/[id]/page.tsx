@@ -3,7 +3,8 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeftIcon } from "@/components/ui/Icons";
 
-export default function ContactProfilePage({ params }: { params: { id: string } }) {
+export default async function ContactProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <PageShell
       title="Contact profile"
@@ -14,7 +15,7 @@ export default function ContactProfilePage({ params }: { params: { id: string } 
         </Button>
       }
     >
-      <ContactProfile personId={params.id} />
+      <ContactProfile personId={id} />
     </PageShell>
   );
 }

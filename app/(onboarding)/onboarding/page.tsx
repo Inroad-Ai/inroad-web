@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
   // returning user with a profile shouldn't see the typeform again. A failed
   // call falls through to the flow, since showing onboarding twice is
   // recoverable and bouncing someone who hasn't done it is not.
-  const accessToken = cookies().get(ACCESS_TOKEN_COOKIE)?.value;
+  const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
 
   let hasProfile = false;
   if (accessToken) {
