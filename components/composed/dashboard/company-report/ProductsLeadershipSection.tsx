@@ -1,29 +1,42 @@
 import type { CompanyDetail, ResearchCoverage } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Section } from "@/components/ui/Section";
-import { safeHref } from "@/lib/safe-href";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 
-const LINK = "break-all text-signal-teal underline decoration-signal-teal/30 underline-offset-4";
+import { DashboardPanel } from "../DashboardPanel";
+import { EvidenceQuote } from "./EvidenceQuote";
 
 function Missing({ coverage, fallback }: { coverage?: ResearchCoverage; fallback: string }) {
   // The coverage reason says what research did, never that none exist.
   return <EmptyState className="mt-2">{coverage?.reason ?? fallback}</EmptyState>;
 }
 
-function Source({ url, excerpt }: { url: string | null; excerpt: string | null }) {
-  if (!url) return null;
+interface Entry {
+  key: string;
+  name: string;
+  detail: string | null;
+  separator: string;
+  sourceUrl: string | null;
+  excerpt: string | null;
+}
+
+function EntryList({ entries }: { entries: Entry[] }) {
   return (
-    <blockquote className="mt-1 border-l-2 border-line pl-3 text-sm text-text-secondary">
-      {excerpt ? <>&ldquo;{excerpt}&rdquo; </> : null}
-      <a
-        href={safeHref(url) ?? undefined}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={LINK}
-      >
-        {url}
-      </a>
-    </blockquote>
+    <ul className="mt-2 divide-y divide-line">
+      {entries.map((entry) => (
+        <li key={entry.key} className="flex flex-col gap-2 py-3 first:pt-1">
+          <p className="text-sm text-ink">
+            <span className="font-sans-semibold">{entry.name}</span>
+            {entry.detail ? (
+              <span className="text-ink-muted">
+                {entry.separator}
+                {entry.detail}
+              </span>
+            ) : null}
+          </p>
+          {entry.sourceUrl ? <EvidenceQuote url={entry.sourceUrl} excerpt={entry.excerpt} /> : null}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -36,44 +49,40 @@ export function ProductsLeadershipSection({ detail }: { detail: CompanyDetail })
   const coverage = research.coverage ?? {};
 
   return (
-    <Section title="Products and leadership">
-      <p className="utility-label font-sans-semibold text-text-secondary">Products and services</p>
+    <DashboardPanel title="Products and leadership">
+      <Eyebrow as="h3">Products and services</Eyebrow>
       {products.length === 0 ? (
         <Missing coverage={coverage.products} fallback="No product was named on the pages read." />
       ) : (
-        <ul className="mt-2 space-y-4">
-          {products.map((product, index) => (
-            <li key={`${product.name}-${index}`}>
-              <p className="text-sm text-ink">
-                {product.name}
-                {product.description ? (
-                  <span className="text-text-secondary">: {product.description}</span>
-                ) : null}
-              </p>
-              <Source url={product.source_url} excerpt={product.excerpt} />
-            </li>
-          ))}
-        </ul>
+        <EntryList
+          entries={products.map((product, index) => ({
+            key: `${product.name}-${index}`,
+            name: product.name,
+            detail: product.description,
+            separator: ": ",
+            sourceUrl: product.source_url,
+            excerpt: product.excerpt,
+          }))}
+        />
       )}
 
-      <p className="utility-label mt-6 font-sans-semibold text-text-secondary">Leadership</p>
+      <Eyebrow as="h3" className="mt-8">
+        Leadership
+      </Eyebrow>
       {leaders.length === 0 ? (
         <Missing coverage={coverage.leadership} fallback="No leader was named on the pages read." />
       ) : (
-        <ul className="mt-2 space-y-4">
-          {leaders.map((leader, index) => (
-            <li key={`${leader.name}-${index}`}>
-              <p className="text-sm text-ink">
-                {leader.name}
-                {leader.title ? (
-                  <span className="text-text-secondary">, {leader.title}</span>
-                ) : null}
-              </p>
-              <Source url={leader.source_url} excerpt={leader.excerpt} />
-            </li>
-          ))}
-        </ul>
+        <EntryList
+          entries={leaders.map((leader, index) => ({
+            key: `${leader.name}-${index}`,
+            name: leader.name,
+            detail: leader.title,
+            separator: ", ",
+            sourceUrl: leader.source_url,
+            excerpt: leader.excerpt,
+          }))}
+        />
       )}
-    </Section>
+    </DashboardPanel>
   );
 }

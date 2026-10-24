@@ -1,12 +1,8 @@
 import { PAGE_TITLES } from "./nav.constants";
-import type { NavEntry, NavGroup } from "./nav.types";
+import type { NavLink, NavSection } from "./nav.types";
 
-export function isGroup(entry: NavEntry): entry is NavGroup {
-  return "items" in entry;
-}
-
-export function navHrefs(entries: NavEntry[]): string[] {
-  return entries.flatMap((entry) => (isGroup(entry) ? entry.items.map((i) => i.href) : entry.href));
+export function navLinks(sections: NavSection[]): NavLink[] {
+  return sections.flatMap((section) => section.items);
 }
 
 function matchesRoute(pathname: string, href: string): boolean {

@@ -1,6 +1,8 @@
 import type { NewsResult } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { safeHref } from "@/lib/safe-href";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+
+import { ExternalLink } from "./ExternalLink";
 
 export function NewsSummary({
   news,
@@ -14,7 +16,7 @@ export function NewsSummary({
 }) {
   return (
     <div>
-      <p className="utility-label font-sans-semibold text-text-secondary">News</p>
+      <Eyebrow as="h3">News</Eyebrow>
       {news === null && notCollected ? (
         <EmptyState className="mt-2">News is not part of this research yet.</EmptyState>
       ) : news === null ? (
@@ -26,24 +28,15 @@ export function NewsSummary({
             : "Nothing published about this company recently."}
         </EmptyState>
       ) : (
-        <ul className="mt-2 space-y-4">
+        <ul className="mt-2 divide-y divide-line">
           {news.items.map((item, index) => (
-            <li key={`${item.link ?? item.title}-${index}`}>
-              {item.link ? (
-                <a
-                  href={safeHref(item.link) ?? undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm leading-snug text-ink underline decoration-line underline-offset-4 hover:decoration-signal-teal"
-                >
-                  {item.title}
-                </a>
-              ) : (
-                <span className="text-sm leading-snug text-ink">{item.title}</span>
-              )}
+            <li key={`${item.link ?? item.title}-${index}`} className="py-3 first:pt-1">
+              <ExternalLink href={item.link} className="text-sm font-sans-semibold leading-snug">
+                {item.title}
+              </ExternalLink>
               {item.source || item.published ? (
-                <span className="utility-label mt-1 block text-text-secondary/70">
-                  {[item.source, item.published].filter(Boolean).join(" - ")}
+                <span className="utility-label mt-1.5 block text-ink-faint">
+                  {[item.source, item.published].filter(Boolean).join(" · ")}
                 </span>
               ) : null}
             </li>

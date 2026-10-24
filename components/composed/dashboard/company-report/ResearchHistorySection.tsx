@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 
+import { plural } from "@/lib/format";
 import type { CompanyDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Section } from "@/components/ui/Section";
 
+import { DashboardPanel } from "../DashboardPanel";
 import { RunRow } from "./RunRow";
 
 const COLLAPSED_RUN_COUNT = 3;
@@ -21,11 +22,11 @@ export function ResearchHistorySection({ detail }: { detail: CompanyDetail }) {
   const olderNotSent = detail.research_run_count - runs.length;
 
   return (
-    <Section
+    <DashboardPanel
       title="Research history"
       meta={
-        <span className="utility-label text-text-secondary/70">
-          {detail.research_run_count} {detail.research_run_count === 1 ? "run" : "runs"}
+        <span className="utility-label text-ink-faint">
+          {plural(detail.research_run_count, "run", "runs")}
         </span>
       }
     >
@@ -51,13 +52,12 @@ export function ResearchHistorySection({ detail }: { detail: CompanyDetail }) {
           ) : null}
 
           {olderNotSent > 0 ? (
-            <p className="mt-4 text-xs text-text-secondary/70">
-              {olderNotSent} older {olderNotSent === 1 ? "run is" : "runs are"} kept but not shown
-              here.
+            <p className="mt-4 text-xs text-ink-faint">
+              {plural(olderNotSent, "older run is", "older runs are")} kept but not shown here.
             </p>
           ) : null}
         </>
       )}
-    </Section>
+    </DashboardPanel>
   );
 }

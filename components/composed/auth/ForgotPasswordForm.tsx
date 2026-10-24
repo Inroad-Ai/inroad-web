@@ -1,12 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Notice } from "@/components/ui/Notice";
 import { forgotPassword } from "@/lib/api-client/client";
 import { isValidEmail } from "@/lib/onboarding";
+
+import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
+import { AuthHeading } from "./AuthHeading";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -40,57 +44,49 @@ export function ForgotPasswordForm() {
 
   if (sent) {
     return (
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">Check your email</h1>
-        <p className="mt-3 font-sans text-sm text-text-secondary">
-          If an account exists for <span className="text-text-primary">{email.trim()}</span>, we
-          sent a link to reset the password.
-        </p>
+      <div className="grid gap-7">
+        <AuthHeading eyebrow="Account help" title="Check your email">
+          If an account exists for{" "}
+          <span className="font-sans-semibold text-ink">{email.trim()}</span>, we sent a link to
+          reset the password.
+        </AuthHeading>
+        <AuthFooterNote>
+          <AuthLink href="/login">Back to sign in</AuthLink>
+        </AuthFooterNote>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">
-          Reset your password
-        </h1>
-        <p className="mt-2 font-sans text-sm text-text-secondary">
-          Enter the email on your account and we&apos;ll send a link to reset your password.
-        </p>
-      </div>
+    <div className="grid gap-7">
+      <AuthHeading eyebrow="Account help" title="Reset your password">
+        Enter the email on your account and we&apos;ll send a link to reset your password.
+      </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-8">
-        <label htmlFor="email" className="utility-label text-text-secondary">
-          Email
-        </label>
-        <Input
-          id="email"
-          type="email"
-          autoFocus
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@example.com"
-          className="mt-2"
-        />
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoFocus
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+          />
+        </Field>
 
-        {touched && !valid ? (
-          <p className="mt-3 text-sm text-error">That doesn&apos;t look like a real email.</p>
-        ) : null}
-        {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
+        {touched && !valid ? <Notice>That doesn&apos;t look like a real email.</Notice> : null}
+        {error ? <Notice>{error}</Notice> : null}
 
-        <Button type="submit" disabled={submitting} className="mt-8 w-full">
+        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
           {submitting ? "Sending..." : "Send reset link"}
         </Button>
       </form>
 
-      <p className="mt-8 border-t border-line pt-6 text-center font-sans text-sm text-text-secondary">
-        <Link href="/login" className="text-signal-teal hover:underline">
-          Back to sign in
-        </Link>
-      </p>
+      <AuthFooterNote>
+        Remembered it? <AuthLink href="/login">Back to sign in</AuthLink>
+      </AuthFooterNote>
     </div>
   );
 }

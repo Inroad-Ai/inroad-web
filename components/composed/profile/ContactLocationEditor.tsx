@@ -140,7 +140,7 @@ export function ContactLocationEditor({
               )
             }
             disabled={!countryCode || regions.length === 0}
-            className="w-full disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-text-secondary"
+            className="w-full"
           >
             <option value="">
               {regions.length > 0 ? "Select state or province" : "No regions available"}
@@ -183,9 +183,9 @@ export function ContactLocationEditor({
           error={phoneError}
           errorId={`${phoneId}-error`}
         >
-          <div className="flex overflow-hidden rounded-sm border border-line bg-surface focus-within:border-signal-teal">
+          <div className="flex overflow-hidden rounded-nest border border-ink/15 bg-ink/5 transition duration-fast ease-standard focus-within:border-signal-amber focus-within:ring-4 focus-within:ring-signal-amber/15 has-[[aria-invalid=true]]:border-muted-rose">
             {callingCode ? (
-              <span className="flex items-center border-r border-line bg-surface-raised px-3 text-sm text-text-secondary">
+              <span className="flex items-center border-r border-ink/15 px-3 font-mono text-sm text-ink-muted">
                 +{callingCode}
               </span>
             ) : null}
@@ -196,7 +196,7 @@ export function ContactLocationEditor({
               value={phoneValue}
               onChange={(event) => changePhone(event.target.value)}
               placeholder={callingCode ? "Phone number" : "+1 555 0100"}
-              className="border-0 focus:border-0"
+              className="rounded-none border-0 bg-transparent focus:bg-transparent focus:ring-0"
             />
           </div>
         </Field>

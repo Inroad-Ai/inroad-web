@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { Card } from "./Card";
+
 interface RepeatableListProps<T> {
   items: T[];
   onChange: (next: T[]) => void;
@@ -34,7 +36,7 @@ export function RepeatableList<T>({
   return (
     <div className="space-y-4">
       {items.length === 0 ? (
-        <p className="rounded-sm border border-dashed border-line bg-surface p-5 text-sm text-text-secondary">
+        <p className="rounded-nest border-2 border-dashed border-ink/15 p-5 text-sm text-ink-muted">
           {emptyLabel}
         </p>
       ) : null}
@@ -42,13 +44,13 @@ export function RepeatableList<T>({
       {items.map((item, index) => (
         // Index as key: rows have no identity of their own, and they are only
         // ever added or removed, never reordered.
-        <div key={index} className="rounded-sm border border-line bg-surface p-5">
+        <Card key={index} variant="nested">
           <div className="flex items-start justify-between gap-4">
-            <span className="utility-label text-text-secondary">#{index + 1}</span>
+            <span className="utility-label text-ink-faint">#{index + 1}</span>
             <button
               type="button"
               onClick={() => remove(index)}
-              className="utility-label text-text-secondary hover:text-error"
+              className="utility-label text-ink-muted transition-colors duration-fast hover:text-error"
             >
               Remove
             </button>
@@ -56,13 +58,13 @@ export function RepeatableList<T>({
           <div className="mt-4 space-y-4">
             {children(item, (patch) => update(index, patch), index)}
           </div>
-        </div>
+        </Card>
       ))}
 
       <button
         type="button"
         onClick={() => onChange([...items, newItem()])}
-        className="utility-label text-signal-teal hover:text-signal-teal-hover"
+        className="text-sm font-sans-semibold text-signal-teal transition-colors duration-fast hover:text-signal-teal-hover"
       >
         {addLabel}
       </button>

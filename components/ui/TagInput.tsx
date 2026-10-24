@@ -1,5 +1,8 @@
 import { useState, type KeyboardEvent } from "react";
 
+import { CloseIcon } from "./Icons";
+import { CONTROL_WRAPPER_CLASSES } from "./control-styles";
+
 /**
  * Freeform tags: type something, press Enter or comma to turn it into a
  * chip. Backspace on an empty field pops the last chip, same as most tag
@@ -43,25 +46,25 @@ export function TagInput({
   }
 
   return (
-    <div className="w-full rounded-sm border border-line bg-surface px-3 py-2.5 focus-within:border-signal-teal">
+    <div className={CONTROL_WRAPPER_CLASSES}>
       <div className="flex flex-wrap items-center gap-2">
         {value.map((tag) => (
           <span
             key={tag}
-            className="utility-label inline-flex items-center gap-2 rounded-full border border-signal-teal/40 bg-signal-teal/10 px-2.5 py-1 text-signal-teal"
+            className="inline-flex h-7 items-center gap-1 rounded-sm bg-ink/10 pl-2.5 pr-1 text-xs font-sans-semibold text-ink"
           >
             {tag}
             <button
               type="button"
               onClick={() => removeTag(tag)}
               aria-label={`Remove ${tag}`}
-              className="text-signal-teal hover:text-signal-teal-hover"
+              className="grid h-5 w-5 place-items-center rounded-full text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink"
             >
-              ×
+              <CloseIcon />
             </button>
           </span>
         ))}
-        <div className="flex min-w-[12rem] flex-1 items-center gap-2">
+        <div className="flex min-w-48 flex-1 items-center gap-2">
           <input
             value={draft}
             autoFocus={autoFocus}
@@ -69,7 +72,7 @@ export function TagInput({
             onKeyDown={handleKeyDown}
             onBlur={commitDraft}
             placeholder={value.length === 0 ? placeholder : undefined}
-            className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 font-sans text-base text-ink placeholder:text-ink-muted/50 focus:outline-none"
+            className="min-w-32 flex-1 bg-transparent px-1 py-1 placeholder:text-ink-faint focus:outline-none"
           />
           {addLabel ? (
             <button
@@ -77,7 +80,7 @@ export function TagInput({
               disabled={!draft.trim()}
               onPointerDown={(event) => event.preventDefault()}
               onClick={commitDraft}
-              className="utility-label shrink-0 text-signal-teal hover:text-signal-teal-hover disabled:cursor-not-allowed disabled:text-text-secondary/40"
+              className="shrink-0 rounded-full px-2 py-1 text-sm font-sans-semibold text-signal-teal transition-colors duration-fast hover:bg-ink/5 hover:text-signal-teal-hover disabled:pointer-events-none disabled:text-ink-faint"
             >
               + {addLabel}
             </button>

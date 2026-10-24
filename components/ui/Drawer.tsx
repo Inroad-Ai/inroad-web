@@ -36,7 +36,7 @@ export function Drawer({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-scrim/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-scrim/50" onClick={onClose}>
       <div
         ref={panelRef}
         role="dialog"
@@ -44,7 +44,7 @@ export function Drawer({
         aria-label={label}
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="h-full w-64 max-w-[85vw] border-r border-line bg-surface shadow-overlay outline-none"
+        className="h-full w-72 max-w-drawer animate-slide-in-left rounded-r-card bg-surface shadow-pop outline-none"
       >
         {children}
       </div>

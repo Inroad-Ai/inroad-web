@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { OutreachChannel, OutreachDraft } from "@/lib/api-client/client";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 import { useSettings } from "@/hooks/useSettings";
 import { OutreachDraftSection } from "./OutreachDraftSection";
@@ -80,7 +81,7 @@ export function OutreachDrafts({
   const activeDrafts = drafts.filter((draft) => draft.sequence_index === activeSequenceIndex);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <Tabs items={tabs} activeId={activeTab} onChange={setActiveTab} />
 
       {activeDrafts.length > 0 ? (
@@ -101,24 +102,24 @@ export function OutreachDrafts({
           );
         })
       ) : (
-        <div className="flex flex-col items-start gap-3 rounded-md border border-line bg-surface p-6">
-          <p className="text-sm text-text-secondary">
+        <Card variant="nested" className="flex flex-col items-start gap-3">
+          <p className="text-sm text-ink-muted">
             Written with the earlier messages in this sequence as context, shorter and more direct
             than the last one.
           </p>
           {readOnly ? (
-            <p className="text-sm text-text-secondary">No message was prepared for this step.</p>
+            <p className="text-sm text-ink-muted">No message was prepared for this step.</p>
           ) : (
             <Button
               size="sm"
               type="button"
               onClick={() => onDraftFollowUp(activeSequenceIndex)}
-              disabled={drafting}
+              loading={drafting}
             >
               {drafting ? "Drafting..." : `Draft follow-up ${activeSequenceIndex}`}
             </Button>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

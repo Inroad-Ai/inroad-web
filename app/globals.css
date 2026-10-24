@@ -1,4 +1,4 @@
-/* All --color-*, --text-*, --space-*, --radius-* etc. custom properties are
+/* All --color-*, --text-*, --size-*, --radius-* etc. custom properties are
    owned by styles/tokens.css, imported first per CSS's @import ordering rule. */
 @import "../styles/tokens.css";
 
@@ -8,7 +8,6 @@
 
 @layer base {
   html {
-    color-scheme: light;
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
   }
@@ -16,7 +15,7 @@
   body {
     background-color: rgb(var(--color-paper));
     color: rgb(var(--color-ink));
-    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -32,34 +31,35 @@
 }
 
 @layer components {
-  /* Eyebrows, status labels, timestamps. One class so the utility face is
-     defined in a single place rather than re-specified on every element. */
+  /* Eyebrows, badges, status labels, timestamps. One class so the mono
+     utility face is defined in a single place rather than on every element. */
   .utility-label {
-    font-family: var(--font-display), ui-sans-serif, system-ui;
+    font-family: var(--font-mono);
     font-weight: var(--font-weight-sans-medium);
-    font-size: 0.6875rem;
-    line-height: 1.2;
+    font-size: var(--text-eyebrow-size);
+    line-height: var(--text-eyebrow-line-height);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-utility);
+  }
+}
+
+@layer utilities {
+  /* Edge fades for scrolling strips: the testimonial wall (vertical) and the
+     console's suggestion chips (horizontal). */
+  .mask-fade-y {
+    mask-image: linear-gradient(transparent, black 12%, black 88%, transparent);
   }
 
-  /* Nav links and sign out are the same pill in two different components;
-     one class so they cannot drift apart. Colour stays on the element,
-     since only sign out goes rose on hover. */
-  .sidebar-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-full);
-    transition-property: color, background-color;
-    transition-duration: 150ms;
+  .mask-fade-x {
+    mask-image: linear-gradient(90deg, black 88%, transparent);
   }
 
-  .sidebar-row-collapsed {
-    justify-content: center;
-    gap: 0;
-    padding-inline: 0;
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }
 

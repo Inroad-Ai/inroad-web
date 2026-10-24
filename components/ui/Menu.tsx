@@ -10,19 +10,34 @@ export interface MenuItem {
   onSelect: () => void;
 }
 
+const TRIGGER_SIZES = {
+  sm: "h-8 px-3 text-xs",
+  md: "h-10 px-4 text-sm",
+  icon: "h-10 w-10 justify-center text-sm",
+} as const;
+
 interface MenuProps {
   trigger: ReactNode;
   label: string;
   items: MenuItem[];
   disabled?: boolean;
   align?: "left" | "right";
+  /** `md` and `icon` match IconButton and the other 40px top-bar controls. */
+  size?: keyof typeof TRIGGER_SIZES;
 }
 
 /**
  * Not a `<select>`: options render their own visuals (stage badges). Events
  * stop propagating so this can sit inside a clickable card.
  */
-export function Menu({ trigger, label, items, disabled = false, align = "right" }: MenuProps) {
+export function Menu({
+  trigger,
+  label,
+  items,
+  disabled = false,
+  align = "right",
+  size = "sm",
+}: MenuProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +77,7 @@ export function Menu({ trigger, label, items, disabled = false, align = "right" 
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="utility-label inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-text-secondary transition-colors hover:border-signal-teal hover:text-signal-teal disabled:cursor-not-allowed disabled:text-text-secondary/40"
+        className={`inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-ink/5 ${TRIGGER_SIZES[size]} font-sans-semibold text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink aria-expanded:bg-ink/10 aria-expanded:text-ink disabled:pointer-events-none disabled:opacity-50`}
       >
         {trigger}
       </button>
@@ -71,7 +86,7 @@ export function Menu({ trigger, label, items, disabled = false, align = "right" 
         <div
           role="menu"
           aria-label={label}
-          className={`absolute z-10 mt-1 min-w-[11rem] rounded-md border border-line bg-surface p-1 shadow-overlay ${
+          className={`absolute z-20 mt-2 min-w-56 animate-pop-in rounded-card bg-surface p-2 shadow-pop ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
@@ -85,7 +100,7 @@ export function Menu({ trigger, label, items, disabled = false, align = "right" 
                 setOpen(false);
                 item.onSelect();
               }}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-surface-raised disabled:cursor-default disabled:opacity-40 disabled:hover:bg-surface"
+              className="flex w-full items-center gap-2.5 rounded-nest px-3 py-2.5 text-left text-sm font-sans-semibold text-ink transition-colors duration-fast hover:bg-ink/10 focus-visible:bg-ink/10 disabled:pointer-events-none disabled:opacity-40"
             >
               {item.label}
             </button>

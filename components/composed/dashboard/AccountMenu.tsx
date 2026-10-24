@@ -3,31 +3,30 @@
 import { useRouter } from "next/navigation";
 
 import { SignOutIcon, SlidersIcon, UserIcon } from "@/components/ui/Icons";
+import { Avatar } from "@/components/ui/Avatar";
 import { Menu } from "@/components/ui/Menu";
-import { useProfile } from "@/hooks/useProfile";
 import { useSignOut } from "@/hooks/useSignOut";
+import type { Profile } from "@/lib/api-client/client";
 
-export function AccountMenu() {
+import { PROFILE_HREF } from "./nav/nav.constants";
+
+/** No profile means onboarding was never finished, or it is still loading.
+ * Either way the menu stays, so sign out is always reachable. */
+export function AccountMenu({ profile }: { profile: Profile | null }) {
   const router = useRouter();
-  const { profile } = useProfile();
   const { signOut, signingOut } = useSignOut();
-
-  // No profile means onboarding was never finished, and a load error is the
-  // profile page's problem to report, not the header's. Either way the menu
-  // stays, so sign out is always reachable.
   const name = profile ? `${profile.first_name} ${profile.last_name}`.trim() : "";
 
   return (
     <Menu
       label="Account menu"
+      size="md"
       trigger={
         <>
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-signal-teal-subtle font-display text-2xs font-semibold text-signal-teal">
-            {name ? name.slice(0, 1).toUpperCase() : <UserIcon />}
+          <span className={`-mx-3 inline-flex ${name ? "xl:mr-0" : ""}`}>
+            <Avatar name={name} size="sm" />
           </span>
-          {name ? (
-            <span className="hidden max-w-32 truncate normal-case sm:inline">{name}</span>
-          ) : null}
+          {name ? <span className="hidden max-w-32 truncate xl:inline">{name}</span> : null}
         </>
       }
       items={[
@@ -39,7 +38,7 @@ export function AccountMenu() {
               Profile
             </>
           ),
-          onSelect: () => router.push("/profile"),
+          onSelect: () => router.push(PROFILE_HREF),
         },
         {
           key: "settings",

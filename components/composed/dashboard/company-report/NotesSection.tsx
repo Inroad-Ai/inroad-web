@@ -5,8 +5,10 @@ import { useState } from "react";
 import { updateCompanyNotes } from "@/lib/api-client/client";
 import type { Company } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { Section } from "@/components/ui/Section";
+import { Notice } from "@/components/ui/Notice";
 import { Textarea } from "@/components/ui/Textarea";
+
+import { DashboardPanel } from "../DashboardPanel";
 
 export function NotesSection({
   detail,
@@ -47,10 +49,13 @@ export function NotesSection({
   }
 
   return (
-    <Section
+    <DashboardPanel
       title="Notes"
       meta={
-        <span className="utility-label text-text-secondary/70">
+        <span
+          aria-live="polite"
+          className={`utility-label ${dirty && !saving ? "text-warning" : saved ? "text-success" : "text-ink-faint"}`}
+        >
           {saving ? "Saving..." : dirty ? "Unsaved changes" : saved ? "Saved" : ""}
         </span>
       }
@@ -68,19 +73,15 @@ export function NotesSection({
         }}
         placeholder="Who you spoke to, what you sent, what to follow up on."
       />
-      <div className="mt-3 flex items-center gap-4">
-        <Button variant="quiet" size="sm" onClick={save} disabled={saving || !dirty}>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Button variant="quiet" size="sm" onClick={save} disabled={!dirty} loading={saving}>
           {saving ? "Saving..." : "Save notes"}
         </Button>
-        <span className="text-xs text-text-secondary/70">
+        <span className="text-xs text-ink-faint">
           Notes save when you press the button, not as you type.
         </span>
       </div>
-      {saveError ? (
-        <p className="mt-3 text-sm text-error" role="alert">
-          {saveError}
-        </p>
-      ) : null}
-    </Section>
+      {saveError ? <Notice className="mt-3">{saveError}</Notice> : null}
+    </DashboardPanel>
   );
 }

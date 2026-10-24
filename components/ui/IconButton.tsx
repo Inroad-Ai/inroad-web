@@ -11,7 +11,7 @@ export function IconButton({ label, className = "", children, ...props }: IconBu
     <button
       type="button"
       aria-label={label}
-      className={`flex items-center justify-center rounded-full p-1.5 text-text-secondary transition-colors hover:bg-surface-raised hover:text-signal-teal disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`relative inline-grid h-10 w-10 shrink-0 place-items-center rounded-full border border-ink/15 bg-ink/5 text-ink transition-colors duration-fast hover:bg-ink/10 disabled:pointer-events-none disabled:opacity-50 ${className}`}
       {...props}
     >
       {children}

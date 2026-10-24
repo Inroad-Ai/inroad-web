@@ -5,13 +5,15 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchCompany } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { Company, CompanyDetail } from "@/lib/types";
-import { EmptyState } from "@/components/ui/EmptyState";
 
+import { PageNotice } from "../PageNotice";
 import { CompanyReportSkeleton } from "./CompanyReportSkeleton";
 import { HiringSection } from "./HiringSection";
 import { IdentityHeader } from "./IdentityHeader";
 import { LatestResearchSection } from "./LatestResearchSection";
+import { NotCollectedNotice } from "./NotCollectedNotice";
 import { NotesSection } from "./NotesSection";
+import { PartialRunNotice } from "./PartialRunNotice";
 import { PeopleSection } from "./PeopleSection";
 import { ProductsLeadershipSection } from "./ProductsLeadershipSection";
 import { ProfileSection } from "./ProfileSection";
@@ -60,25 +62,35 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   if (loadState === "loading") return <CompanyReportSkeleton />;
 
   if (loadState === "error" || detail === null) {
-    return (
-      <div className="mt-6 rounded-md border border-line bg-surface">
-        <EmptyState className="px-6 py-16 text-center">{loadError}</EmptyState>
-      </div>
-    );
+    return <PageNotice isError>{loadError}</PageNotice>;
   }
 
+  const research = detail.latest_research;
+
   return (
-    <div className="mt-6 flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
-      <ProfileSection detail={detail} />
-      <ProductsLeadershipSection detail={detail} />
-      <HiringSection detail={detail} />
-      <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
-      <ResearchCoverageSection detail={detail} />
-      <SourcedFactsSection detail={detail} />
-      <LatestResearchSection detail={detail} />
-      <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
-      <ResearchHistorySection detail={detail} />
+
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+          {/* A partial run is still a 200 with nulls in it. Say so plainly
+              rather than letting empty fields read as "nothing to report". */}
+          {research?.partial ? <PartialRunNotice errors={research.errors} /> : null}
+          {research ? <NotCollectedNotice notCollected={research.not_collected ?? {}} /> : null}
+          <ProfileSection detail={detail} />
+          <SourcedFactsSection detail={detail} />
+          <ProductsLeadershipSection detail={detail} />
+          <HiringSection detail={detail} />
+          <LatestResearchSection detail={detail} />
+          <ResearchCoverageSection detail={detail} />
+        </div>
+
+        <aside className="flex min-w-0 flex-col gap-6" aria-label="People, notes and history">
+          <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
+          <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
+          <ResearchHistorySection detail={detail} />
+        </aside>
+      </div>
     </div>
   );
 }

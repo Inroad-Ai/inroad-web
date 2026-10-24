@@ -1,7 +1,7 @@
-import Link from "next/link";
-
 import { ContactProfile } from "@/components/composed/dashboard/contact-profile/ContactProfile";
 import { PageShell } from "@/components/composed/dashboard/PageShell";
+import { Button } from "@/components/ui/Button";
+import { ArrowLeftIcon } from "@/components/ui/Icons";
 
 export default function ContactProfilePage({ params }: { params: { id: string } }) {
   return (
@@ -9,12 +9,9 @@ export default function ContactProfilePage({ params }: { params: { id: string } 
       title="Contact profile"
       description="Contact details, engagement status, and outreach sequence."
       action={
-        <Link
-          href="/contacts"
-          className="text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-        >
+        <Button href="/contacts" variant="ghost" size="sm" icon={<ArrowLeftIcon />}>
           Back to people
-        </Link>
+        </Button>
       }
     >
       <ContactProfile personId={params.id} />

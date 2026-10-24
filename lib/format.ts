@@ -27,3 +27,8 @@ export function formatRelativeDays(iso: string): string {
   const months = Math.floor(days / 30);
   return `${months} month${months === 1 ? "" : "s"} ago`;
 }
+
+/** 1, "company", "companies" -> "1 company"; 3 -> "3 companies". */
+export function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}

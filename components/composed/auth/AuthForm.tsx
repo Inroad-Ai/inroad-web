@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
+import { Notice } from "@/components/ui/Notice";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import {
-  ApiError,
-  googleSignInUrl,
-  login,
-  resendVerification,
-  signup,
-} from "@/lib/api-client/client";
+import { ApiError, login, resendVerification, signup } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
 import { isValidEmail } from "@/lib/onboarding";
+
+import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
+import { AuthHeading } from "./AuthHeading";
+import { CheckYourEmail } from "./CheckYourEmail";
+import { GoogleSignIn } from "./GoogleSignIn";
 
 type Mode = "login" | "signup";
 
@@ -25,6 +26,7 @@ const MIN_PASSWORD_LENGTH = 8;
 const COPY: Record<
   Mode,
   {
+    eyebrow: string;
     heading: string;
     subheading: string;
     submitLabel: string;
@@ -34,7 +36,8 @@ const COPY: Record<
   }
 > = {
   login: {
-    heading: "Welcome back",
+    eyebrow: "Welcome back",
+    heading: "Sign in",
     subheading: "Pick up where your research left off.",
     submitLabel: "Sign in",
     switchPrompt: "New here?",
@@ -42,6 +45,7 @@ const COPY: Record<
     switchLabel: "Create an account",
   },
   signup: {
+    eyebrow: "New account",
     heading: "Create your account",
     subheading: "Takes a minute. No card, no sales call.",
     submitLabel: "Create account",
@@ -50,58 +54,6 @@ const COPY: Record<
     switchLabel: "Sign in",
   },
 };
-
-/** Monochrome G. The four-colour mark would be the only art in the app not built from tokens. */
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="mr-2 h-4 w-4 fill-current">
-      <path d="M12 10.2v3.9h5.45a4.67 4.67 0 0 1-2.03 3.06l3.28 2.54c1.91-1.77 3.01-4.37 3.01-7.46 0-.72-.06-1.41-.19-2.08zM12 22c2.7 0 4.96-.9 6.62-2.43l-3.23-2.5c-.9.6-2.05.96-3.39.96-2.6 0-4.8-1.76-5.59-4.12l-3.34 2.58C4.72 19.78 8.09 22 12 22M6.41 13.91a6 6 0 0 1 0-3.82L3.07 7.51a10 10 0 0 0 0 8.98zM12 5.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87C16.95 2.99 14.7 2 12 2 8.09 2 4.72 4.22 3.07 7.51l3.34 2.58C7.2 7.73 9.4 5.98 12 5.98" />
-    </svg>
-  );
-}
-
-/** Shown after signup instead of a session: the account isn't usable until
- * the link in the email is clicked. */
-function CheckYourEmail({ email }: { email: string }) {
-  const [resent, setResent] = useState(false);
-  const [resending, setResending] = useState(false);
-
-  async function handleResend() {
-    setResending(true);
-    try {
-      await resendVerification(email);
-    } finally {
-      setResent(true);
-      setResending(false);
-    }
-  }
-
-  return (
-    <div className="text-center">
-      <h1 className="font-display text-2xl font-semibold text-text-primary">Check your email</h1>
-      <p className="mt-2 font-sans text-sm text-text-secondary">
-        We sent a confirmation link to {email}. Click it to finish setting up your account.
-      </p>
-
-      <Button
-        type="button"
-        variant="quiet"
-        onClick={handleResend}
-        disabled={resending || resent}
-        className="mt-8 w-full"
-      >
-        {resent ? "Sent again" : resending ? "Sending..." : "Resend the link"}
-      </Button>
-
-      <p className="mt-8 border-t border-line pt-6 font-sans text-sm text-text-secondary">
-        Already confirmed?{" "}
-        <Link href="/login" className="text-signal-teal hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </div>
-  );
-}
 
 export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
@@ -169,110 +121,71 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <div>
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">{copy.heading}</h1>
-        <p className="mt-2 font-sans text-sm text-text-secondary">{copy.subheading}</p>
-      </div>
+    <div className="grid gap-7">
+      <AuthHeading eyebrow={copy.eyebrow} title={copy.heading}>
+        {copy.subheading}
+      </AuthHeading>
 
-      <Button
-        type="button"
-        variant="quiet"
-        onClick={() => {
-          window.location.href = googleSignInUrl();
-        }}
-        className="mt-8 w-full"
-      >
-        <GoogleIcon />
-        Continue with Google
-      </Button>
+      <GoogleSignIn />
 
-      <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-line" />
-        <span className="utility-label text-text-secondary">or</span>
-        <div className="h-px flex-1 bg-line" />
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="utility-label text-text-secondary">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              autoFocus
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <div className="flex items-baseline justify-between">
-              <label htmlFor="password" className="utility-label text-text-secondary">
-                Password
-              </label>
-              {mode === "login" ? (
-                <Link
-                  href="/forgot-password"
-                  className="font-sans text-sm text-signal-teal hover:underline"
-                >
-                  Forgot?
-                </Link>
-              ) : null}
-            </div>
+      <form onSubmit={handleSubmit} className="grid gap-4">
+        <Field label="Email" htmlFor="email">
+          <Input
+            id="email"
+            type="email"
+            autoFocus
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
+          />
+        </Field>
+        <Field label="Password" htmlFor="password">
+          <PasswordInput
+            id="password"
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+        </Field>
+        {mode === "login" ? (
+          <Link
+            href="/forgot-password"
+            className="-mt-1 justify-self-end text-sm font-sans-semibold text-ink-muted underline decoration-ink/30 underline-offset-4 transition-colors duration-fast hover:text-ink"
+          >
+            Forgot password?
+          </Link>
+        ) : (
+          <Field label="Confirm password" htmlFor="confirm-password">
             <PasswordInput
-              id="password"
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-2"
+              id="confirm-password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
             />
-          </div>
-          {mode === "signup" ? (
-            <div>
-              <label htmlFor="confirm-password" className="utility-label text-text-secondary">
-                Confirm password
-              </label>
-              <PasswordInput
-                id="confirm-password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                className="mt-2"
-              />
-            </div>
-          ) : null}
-        </div>
+          </Field>
+        )}
 
-        {touched && !valid ? (
-          <p className="mt-3 text-sm text-error">{validationMessage()}</p>
-        ) : null}
-        {error ? <p className="mt-3 text-sm text-error">{error}</p> : null}
+        {touched && !valid ? <Notice>{validationMessage()}</Notice> : null}
+        {error ? <Notice>{error}</Notice> : null}
         {unverified ? (
           <button
             type="button"
             onClick={handleResendFromLogin}
-            className="mt-2 font-sans text-sm text-signal-teal hover:underline"
+            className="justify-self-start text-sm font-sans-semibold text-signal-teal underline-offset-4 hover:underline"
           >
             Send the confirmation link again
           </button>
         ) : null}
 
-        <Button type="submit" disabled={submitting} className="mt-8 w-full">
+        <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">
           {submitting ? "Working..." : copy.submitLabel}
         </Button>
       </form>
 
-      <p className="mt-8 border-t border-line pt-6 text-center font-sans text-sm text-text-secondary">
-        {copy.switchPrompt}{" "}
-        <Link href={copy.switchHref} className="text-signal-teal hover:underline">
-          {copy.switchLabel}
-        </Link>
-      </p>
+      <AuthFooterNote>
+        {copy.switchPrompt} <AuthLink href={copy.switchHref}>{copy.switchLabel}</AuthLink>
+      </AuthFooterNote>
     </div>
   );
 }

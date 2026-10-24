@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { StatusDot } from "@/components/ui/StatusDot";
+import { Eyebrow } from "@/components/ui/Eyebrow";
 import { useResearchRuns } from "@/lib/research-runs";
 
 export function ResearchStatusPill() {
@@ -14,10 +14,11 @@ export function ResearchStatusPill() {
   return (
     <Link
       href="/research"
-      className="utility-label hidden shrink-0 items-center gap-2 rounded-full border border-line px-3 py-1.5 text-text-secondary transition-colors hover:border-signal-teal hover:text-signal-teal sm:flex"
+      className="hidden h-10 shrink-0 items-center rounded-full bg-signal-amber-subtle px-4 transition-colors duration-fast hover:bg-signal-amber-subtle/70 md:inline-flex"
     >
-      <StatusDot state="pending" />
-      Researching {pendingCount > 1 ? `${pendingCount} companies` : "1 company"}...
+      <Eyebrow as="span" dot="live">
+        Researching {pendingCount > 1 ? `${pendingCount} companies` : "1 company"}
+      </Eyebrow>
     </Link>
   );
 }

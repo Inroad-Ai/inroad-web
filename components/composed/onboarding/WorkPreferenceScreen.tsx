@@ -2,18 +2,23 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/Button";
+import { Notice } from "@/components/ui/Notice";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
+
+import { StepFooter } from "./StepFooter";
+import { StepHeading } from "./StepHeading";
 
 export function WorkPreferenceScreen({
   selected,
   onChange,
   onNext,
+  onBack,
 }: {
   selected: WorkPreferenceOption[];
   onChange: (next: WorkPreferenceOption[]) => void;
   onNext: () => void;
+  onBack?: () => void;
 }) {
   const [touched, setTouched] = useState(false);
   const valid = selected.length > 0;
@@ -34,12 +39,11 @@ export function WorkPreferenceScreen({
         if (valid) onNext();
       }}
     >
-      <h1 className="font-display text-2xl text-text-primary">How do you want to work?</h1>
-      <p className="mt-2 text-sm text-text-secondary">
+      <StepHeading title="How do you want to work?">
         This narrows which companies we search for. Pick as many as apply.
-      </p>
+      </StepHeading>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-7 grid gap-3 sm:grid-cols-2">
         {WORK_PREFERENCE_OPTIONS.map((option, index) => (
           <SelectableCard
             key={option.value}
@@ -47,21 +51,17 @@ export function WorkPreferenceScreen({
             onClick={() => toggle(option.value)}
             autoFocus={index === 0}
           >
-            <p className="font-display font-semibold text-text-primary">{option.label}</p>
-            <p className="mt-1 text-sm text-text-secondary">{option.description}</p>
+            <span className="block font-display text-lg font-sans-semibold tracking-heading">
+              {option.label}
+            </span>
+            <span className="mt-1 block text-sm text-ink-muted">{option.description}</span>
           </SelectableCard>
         ))}
       </div>
 
-      {touched && !valid ? (
-        <p className="mt-3 text-sm text-error" role="alert">
-          Pick at least one.
-        </p>
-      ) : null}
+      {touched && !valid ? <Notice className="mt-3">Pick at least one.</Notice> : null}
 
-      <Button type="submit" className="mt-8">
-        Continue
-      </Button>
+      <StepFooter onBack={onBack} />
     </form>
   );
 }

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 /**
  * Maps token names components use (`bg-surface`) onto the custom properties
@@ -17,6 +18,7 @@ const config: Config = {
       colors: {
         ink: withOpacity("--color-ink"),
         "ink-muted": withOpacity("--color-ink-muted"),
+        "ink-faint": withOpacity("--color-ink-faint"),
         surface: withOpacity("--color-surface"),
         "surface-raised": withOpacity("--color-surface-raised"),
         paper: withOpacity("--color-paper"),
@@ -33,25 +35,29 @@ const config: Config = {
         warning: withOpacity("--color-warning"),
         "warning-subtle": withOpacity("--color-warning-subtle"),
         "on-amber": withOpacity("--color-on-amber"),
+        chalk: withOpacity("--color-chalk"),
+        "monogram-1": withOpacity("--color-monogram-1"),
+        "monogram-2": withOpacity("--color-monogram-2"),
+        "monogram-3": withOpacity("--color-monogram-3"),
+        "monogram-4": withOpacity("--color-monogram-4"),
+        "monogram-5": withOpacity("--color-monogram-5"),
+        "monogram-6": withOpacity("--color-monogram-6"),
+        "hero-shade": withOpacity("--color-hero-shade"),
         scrim: withOpacity("--color-scrim"),
         line: withOpacity("--color-line"),
         // Semantic aliases — same values as above, named by role.
-        bg: withOpacity("--color-bg"),
-        "text-primary": withOpacity("--color-text-primary"),
-        "text-secondary": withOpacity("--color-text-secondary"),
-        border: withOpacity("--color-border"),
-        "accent-primary": withOpacity("--color-accent-primary"),
-        "accent-secondary": withOpacity("--color-accent-secondary"),
         error: withOpacity("--color-error"),
         "error-subtle": withOpacity("--color-error-subtle"),
       },
       fontFamily: {
         // Set by next/font in app/layout.tsx, consumed as CSS variables.
-        display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
-        sans: ["var(--font-body)", "ui-sans-serif", "system-ui"],
+        display: ["var(--font-display)"],
+        sans: ["var(--font-body)"],
+        mono: ["var(--font-mono)"],
       },
       fontSize: {
         "2xs": ["var(--text-2xs-size)", { lineHeight: "var(--text-2xs-line-height)" }],
+        eyebrow: ["var(--text-eyebrow-size)", { lineHeight: "var(--text-eyebrow-line-height)" }],
         xs: ["var(--text-xs-size)", { lineHeight: "var(--text-xs-line-height)" }],
         sm: ["var(--text-sm-size)", { lineHeight: "var(--text-sm-line-height)" }],
         base: ["var(--text-base-size)", { lineHeight: "var(--text-base-line-height)" }],
@@ -60,7 +66,13 @@ const config: Config = {
         "2xl": ["var(--text-2xl-size)", { lineHeight: "var(--text-2xl-line-height)" }],
         "3xl": ["var(--text-3xl-size)", { lineHeight: "var(--text-3xl-line-height)" }],
         "4xl": ["var(--text-4xl-size)", { lineHeight: "var(--text-4xl-line-height)" }],
-        wordmark: ["var(--text-wordmark-size)", { lineHeight: "var(--text-wordmark-line-height)" }],
+        title: ["var(--text-title-size)", { lineHeight: "var(--text-title-line-height)" }],
+        section: ["var(--text-section-size)", { lineHeight: "var(--text-section-line-height)" }],
+        chapter: ["var(--text-chapter-size)", { lineHeight: "var(--text-chapter-line-height)" }],
+        "chapter-xl": [
+          "var(--text-chapter-xl-size)",
+          { lineHeight: "var(--text-chapter-xl-line-height)" },
+        ],
         hero: ["var(--text-hero-size)", { lineHeight: "var(--text-hero-line-height)" }],
       },
       fontWeight: {
@@ -71,23 +83,80 @@ const config: Config = {
       },
       borderRadius: {
         sm: "var(--radius-sm)",
-        md: "var(--radius-md)",
-        lg: "var(--radius-lg)",
+        nest: "var(--radius-nest)",
+        card: "var(--radius-card)",
         full: "var(--radius-full)",
       },
+      spacing: {
+        page: "var(--space-page)",
+      },
       height: {
-        "chart-sm": "var(--chart-height-sm)",
-        "chart-md": "var(--chart-height-md)",
+        chart: "var(--size-chart)",
+        console: "var(--size-console)",
+        wall: "var(--size-wall)",
+        "story-track": "var(--size-story-track)",
+      },
+      width: {
+        bleed: "var(--size-bleed)",
       },
       maxWidth: {
-        wide: "68.75rem" /* 1100px, ScreenShell's wide onboarding layout */,
+        bubble: "var(--size-bubble)",
+        drawer: "var(--size-drawer)",
+        popover: "var(--size-popover)",
+      },
+      gridTemplateColumns: {
+        "main-aside": "var(--grid-main-aside)",
+        footer: "var(--grid-footer)",
+        console: "var(--grid-console)",
+        story: "var(--grid-story)",
+        "label-value": "var(--grid-label-value)",
+        "label-value-wide": "var(--grid-label-value-wide)",
+        sources: "var(--grid-sources)",
+        "sources-wide": "var(--grid-sources-wide)",
+        meter: "var(--grid-meter)",
+        checklist: "var(--grid-checklist)",
+      },
+      gridTemplateRows: {
+        story: "var(--grid-story-rows)",
+      },
+      backgroundColor: {
+        lane: "var(--surface-lane)",
+        panel: "var(--surface-panel)",
+        "panel-chip": "var(--surface-panel-chip)",
+      },
+      transitionProperty: {
+        width: "width",
+        visibility: "visibility",
       },
       boxShadow: {
-        overlay: "var(--shadow-overlay)",
         card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+        pop: "var(--shadow-pop)",
+        nest: "var(--shadow-nest)",
+        amber: "var(--shadow-amber)",
+        "amber-hover": "var(--shadow-amber-hover)",
+      },
+      backgroundImage: {
+        "glow-amber": "radial-gradient(closest-side, var(--glow-amber), transparent 70%)",
+        "glow-teal": "radial-gradient(closest-side, var(--glow-teal), transparent 70%)",
+        "glow-ember": "radial-gradient(closest-side, var(--glow-ember), transparent 70%)",
       },
       letterSpacing: {
-        utility: "0.08em",
+        display: "var(--tracking-display)",
+        heading: "var(--tracking-heading)",
+        utility: "var(--tracking-utility)",
+      },
+      lineHeight: {
+        display: "var(--leading-display)",
+      },
+      transitionDuration: {
+        fast: "var(--motion-duration-fast)",
+        base: "var(--motion-duration-base)",
+        slow: "var(--motion-duration-slow)",
+      },
+      transitionTimingFunction: {
+        emphasized: "var(--motion-ease-emphasized)",
+        standard: "var(--motion-ease-standard)",
       },
       keyframes: {
         // StatusDot, "still checking" state.
@@ -99,6 +168,25 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // Modal, Menu and Drawer panels arriving.
+        "pop-in": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "none" },
+        },
+        "slide-in-left": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        // Eyebrow's live dot: an amber ring that breathes out and fades.
+        "ring-pulse": {
+          "0%, 100%": { boxShadow: "0 0 0 4px rgb(var(--color-signal-amber) / 0.14)" },
+          "50%": { boxShadow: "0 0 0 7px rgb(var(--color-signal-amber) / 0)" },
+        },
+        shimmer: {
+          "0%": { opacity: "1" },
+          "50%": { opacity: "0.55" },
+          "100%": { opacity: "1" },
+        },
         // FileUpload's uploading/parsing bar - no real percentage to show
         // (see FileUpload.tsx), so a sweeping segment stands in for one.
         indeterminate: {
@@ -109,11 +197,19 @@ const config: Config = {
       animation: {
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
         "fade-up": "fade-up 0.35s ease-out both",
+        "pop-in": "pop-in var(--motion-duration-fast) var(--motion-ease-emphasized) both",
+        "slide-in-left":
+          "slide-in-left var(--motion-duration-base) var(--motion-ease-emphasized) both",
+        "ring-pulse": "ring-pulse 1.6s ease-in-out infinite",
+        shimmer: "shimmer 1.6s ease-in-out infinite",
         indeterminate: "indeterminate 1.2s ease-in-out infinite",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // Phones held landscape or with a short browser chrome: the pinned story drops its copy.
+    plugin(({ addVariant }) => addVariant("short", "@media (max-height: 760px)")),
+  ],
 };
 
 export default config;

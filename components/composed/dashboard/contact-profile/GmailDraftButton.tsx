@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 import { ApiError, createGmailDraft, type GmailDraft } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { requireAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
+import { MailIcon } from "@/components/ui/Icons";
+import { Notice } from "@/components/ui/Notice";
+import { TextLink } from "@/components/ui/TextLink";
 
 export function GmailDraftButton({
   personId,
@@ -32,8 +34,7 @@ export function GmailDraftButton({
     setNotConnected(false);
     try {
       if (!(await onEnsureSaved())) return;
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error("Your session expired. Sign in again.");
+      const token = await requireAccessToken();
       setCreated(await createGmailDraft(personId, sequenceIndex, token));
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === "gmail_not_connected") {
@@ -52,44 +53,34 @@ export function GmailDraftButton({
         variant="quiet"
         size="sm"
         type="button"
+        icon={<MailIcon />}
         onClick={create}
-        disabled={busy || !recipientEmail}
+        loading={busy}
+        disabled={!recipientEmail}
         title={recipientEmail ? undefined : "No email address for this person yet."}
       >
         {busy ? "Creating..." : "Create Gmail draft"}
       </Button>
 
       {created ? (
-        <span className="text-xs text-text-secondary">
+        <span className="order-last basis-full text-xs text-ink-muted">
           Saved to your Gmail drafts.{" "}
-          <a
-            href={created.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-          >
+          <TextLink href={created.url} external>
             Open in Gmail
-          </a>
+          </TextLink>
         </span>
       ) : null}
 
       {notConnected ? (
-        <span className="text-xs text-text-secondary" role="alert">
-          Connect Gmail on the{" "}
-          <Link
-            href="/integrations"
-            className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-          >
-            Integrations page
-          </Link>{" "}
-          first.
+        <span className="order-last basis-full text-xs text-ink-muted" role="alert">
+          Connect Gmail on the <TextLink href="/integrations">Integrations page</TextLink> first.
         </span>
       ) : null}
 
       {error ? (
-        <p className="text-xs text-muted-rose" role="alert">
+        <Notice size="xs" className="order-last basis-full">
           {error}
-        </p>
+        </Notice>
       ) : null}
     </>
   );

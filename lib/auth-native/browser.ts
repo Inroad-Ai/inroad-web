@@ -99,6 +99,16 @@ export async function ensureValidAccessToken(): Promise<string | null> {
   }
 }
 
+export const SESSION_EXPIRED = "Your session expired. Sign in again.";
+
+/** For an action that can't go ahead without a session: throws the message
+ * to show instead of returning null. */
+export async function requireAccessToken(): Promise<string> {
+  const token = await ensureValidAccessToken();
+  if (!token) throw new Error(SESSION_EXPIRED);
+  return token;
+}
+
 /** Best-effort revoke, then clears local state unconditionally - a failed
  * revoke call shouldn't leave the user stuck "logged in" in this browser. */
 export async function signOutNative(): Promise<void> {

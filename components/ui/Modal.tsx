@@ -36,7 +36,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/50 p-4"
       onClick={onClose}
     >
       <div
@@ -44,9 +44,12 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-sm rounded-md border border-line bg-surface p-6 shadow-overlay"
+        className="max-h-full w-full max-w-md animate-pop-in overflow-y-auto rounded-card bg-surface p-7 shadow-pop"
       >
-        <h2 id={titleId} className="text-base text-ink">
+        <h2
+          id={titleId}
+          className="font-display text-2xl font-sans-semibold tracking-heading text-ink"
+        >
           {title}
         </h2>
         <div className="mt-4">{children}</div>

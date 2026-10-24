@@ -1,7 +1,11 @@
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
+import { Card } from "@/components/ui/Card";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { linkLabels, workPreferenceLabels, type WorkPreferenceOption } from "@/lib/onboarding";
 import type { FieldSourceKey, FieldSourceMap } from "@/lib/types";
+
+import { StepFooter } from "./StepFooter";
+import { StepHeading } from "./StepHeading";
 
 interface SummaryRow {
   label: string;
@@ -38,6 +42,7 @@ export function SummaryScreen({
   onEditWorkPreference,
   onEditTargetRole,
   onSubmit,
+  onBack,
   submitting,
   submitError,
 }: {
@@ -63,22 +68,12 @@ export function SummaryScreen({
   onEditWorkPreference: () => void;
   onEditTargetRole: () => void;
   onSubmit: () => void;
+  onBack?: () => void;
   submitting: boolean;
   submitError: string | null;
 }) {
-  const workPreferenceLabel = workPreference
-    .map(
-      (value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value,
-    )
-    .join(", ");
-
-  // Platform names, not the raw URLs - three full links joined together just
-  // truncates into an unreadable ellipsis on this row's single line.
-  const linkLabels = [
-    linkedinUrl ? "LinkedIn" : null,
-    githubUrl ? "GitHub" : null,
-    portfolioUrl ? "Portfolio" : null,
-  ].filter((label): label is string => label !== null);
+  const workPreferenceLabel = workPreferenceLabels(workPreference).join(", ");
+  const links = linkLabels({ linkedinUrl, githubUrl, portfolioUrl });
 
   // A row counts as resume-sourced if any of its underlying fields is - a
   // half-parsed row still deserves the "double check this" nudge.
@@ -105,7 +100,7 @@ export function SummaryScreen({
         },
         {
           label: "Links",
-          value: linkLabels.join(", ") || "None",
+          value: links.join(", ") || "None",
           onEdit: onEditLinks,
           fromResume: fromResume("linkedinUrl", "githubUrl", "portfolioUrl"),
         },
@@ -149,58 +144,62 @@ export function SummaryScreen({
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-text-primary">Take a look before you submit</h1>
-      <p className="mt-2 text-sm text-text-secondary">Tap any row to jump back and change it.</p>
+      <StepHeading title="Take a look before you submit">
+        Tap any row to jump back and change it.
+      </StepHeading>
 
       {resumeSourcedCount > 0 ? (
-        <div className="mt-6 flex items-center gap-2 rounded-md border border-signal-teal/30 bg-signal-teal/5 px-4 py-3">
+        <Card
+          variant="nested"
+          padding="none"
+          className="mt-6 flex flex-wrap items-center gap-3 px-4 py-3"
+        >
           <Badge tone="teal">{resumeSourcedCount} from your resume</Badge>
-          <span className="text-sm text-text-secondary">
-            Worth a quick check before you submit.
-          </span>
-        </div>
+          <span className="text-sm text-ink-muted">Worth a quick check before you submit.</span>
+        </Card>
       ) : null}
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-6 grid gap-6">
         {sections.map((section) => (
-          <div key={section.title}>
-            <p className="utility-label text-text-secondary">{section.title}</p>
-            <div className="mt-2 divide-y divide-line rounded-md border border-line bg-surface">
+          <section key={section.title}>
+            <Eyebrow as="h2">{section.title}</Eyebrow>
+            <Card variant="nested" padding="none" className="mt-2 divide-y divide-line">
               {section.rows.map((row) => (
                 <button
                   key={row.label}
                   type="button"
                   onClick={row.onEdit}
-                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left hover:bg-surface-raised"
+                  className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3.5 text-left transition-colors duration-fast first:rounded-t-nest last:rounded-b-nest hover:bg-ink/5"
                 >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="utility-label text-text-secondary">{row.label}</p>
-                      {row.fromResume ? <Badge tone="teal">From resume</Badge> : null}
-                    </div>
-                    <p className="mt-1 truncate text-sm text-text-primary">{row.value}</p>
-                  </div>
+                  <span className="utility-label w-28 shrink-0 text-ink-faint">{row.label}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-sans-semibold text-ink">
+                    {row.value}
+                  </span>
+                  {row.fromResume ? <Badge tone="teal">From resume</Badge> : null}
                   <span className="utility-label shrink-0 text-signal-teal">Edit</span>
                 </button>
               ))}
-            </div>
-          </div>
+            </Card>
+          </section>
         ))}
       </div>
 
       {submitError ? (
-        <div className="mt-6 rounded-md border border-error/40 bg-error-subtle p-4" role="alert">
+        <div className="mt-6 rounded-nest bg-error-subtle p-4" role="alert">
           <Badge tone="rose">Could not save</Badge>
-          <p className="mt-2 text-sm text-text-primary">{submitError}</p>
-          <p className="mt-1 text-xs text-text-secondary">
+          <p className="mt-2 text-sm text-ink">{submitError}</p>
+          <p className="mt-1 text-xs text-ink-muted">
             Nothing you entered was lost. Try submitting again.
           </p>
         </div>
       ) : null}
 
-      <Button type="button" onClick={onSubmit} disabled={submitting} className="mt-8">
-        {submitting ? "Saving..." : "Complete setup"}
-      </Button>
+      <StepFooter
+        onBack={onBack}
+        onPrimary={onSubmit}
+        primaryLabel={submitting ? "Saving..." : "Complete setup"}
+        isLoading={submitting}
+      />
     </div>
   );
 }

@@ -61,7 +61,7 @@ export function PasswordInput({
         tabIndex={-1}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-describedby={statusId}
-        className="absolute inset-y-0 right-0 flex items-center px-4 text-text-secondary transition-colors hover:text-ink focus-visible:text-ink focus-visible:outline-none"
+        className="absolute inset-y-0 right-1.5 my-auto flex h-9 w-9 items-center justify-center rounded-nest text-ink-muted transition-colors duration-fast hover:bg-ink/5 hover:text-ink focus-visible:text-ink"
       >
         <EyeIcon crossedOut={visible} />
       </button>

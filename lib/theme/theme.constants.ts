@@ -6,6 +6,6 @@ export const THEME_ATTRIBUTE = "data-theme";
 
 export const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
 
-export const DEFAULT_THEME_PREFERENCE: ThemePreference = "system";
+export const DEFAULT_THEME_PREFERENCE: ThemePreference = "dark";
 
 export const THEME_PREFERENCES: readonly ThemePreference[] = ["light", "dark", "system"];

@@ -20,6 +20,12 @@ export const WORK_PREFERENCE_OPTIONS: {
   },
 ];
 
+export function workPreferenceLabels(values: readonly WorkPreferenceOption[]): string[] {
+  return values.map(
+    (value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value,
+  );
+}
+
 export type UploadState = "idle" | "uploading" | "done" | "error";
 
 export interface ProfileLinks {
@@ -34,9 +40,14 @@ export const LINK_FIELDS: { key: keyof ProfileLinks; label: string; placeholder:
   { key: "portfolioUrl", label: "Portfolio or site", placeholder: "https://yoursite.com" },
 ];
 
-// The FieldSourceKeys a resume parse can actually fill - summary/skills/
-// workHistory/education/projects ride through separately and never get a
-// "from resume" badge of their own, so they're deliberately excluded here.
+// Platform names, not raw URLs: three full links on one line truncate into
+// an unreadable ellipsis.
+export function linkLabels(links: ProfileLinks): string[] {
+  return LINK_FIELDS.filter((field) => links[field.key]).map((field) =>
+    field.key === "portfolioUrl" ? "Portfolio" : field.label,
+  );
+}
+
 export interface ValueProp {
   title: string;
   description: string;
@@ -59,6 +70,9 @@ export const VALUE_PROPS: ValueProp[] = [
   },
 ];
 
+// The FieldSourceKeys a resume parse can actually fill - summary/skills/
+// workHistory/education/projects ride through separately and never get a
+// "from resume" badge of their own, so they're deliberately excluded here.
 export const RESUME_FILLABLE_FIELDS: readonly FieldSourceKey[] = [
   "firstName",
   "lastName",

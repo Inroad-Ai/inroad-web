@@ -7,10 +7,13 @@ import { formatTimestamp } from "@/lib/format";
 import { useResearchRuns } from "@/lib/research-runs";
 import type { Company, CompanyDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { CompanyLogo } from "@/components/ui/CompanyLogo";
-import { Menu } from "@/components/ui/Menu";
-import { PIPELINE_STAGES, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
-import { safeHref } from "@/lib/safe-href";
+import { Card } from "@/components/ui/Card";
+import { Notice } from "@/components/ui/Notice";
+import { StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
+
+import { StageMenu } from "../companies/StageMenu";
+import { HeroBand } from "./HeroBand";
+import { RerunProgress } from "./RerunProgress";
 
 export function IdentityHeader({
   detail,
@@ -75,66 +78,37 @@ export function IdentityHeader({
     setActiveRunId(startResearch(detail.domain, { refresh: true }));
   }
 
-  return (
-    <section className="rounded-md border border-line bg-surface p-7 shadow-overlay">
-      <div className="flex flex-wrap items-start justify-between gap-6">
-        <div className="flex min-w-0 gap-4">
-          <CompanyLogo logoUrl={detail.logo_url} domain={detail.domain} className="h-12 w-12" />
-          <div className="min-w-0">
-            <p className="utility-label text-text-secondary">Domain</p>
-            <p className="mt-1 font-display text-2xl text-ink">{detail.domain}</p>
-            {detail.homepage_title ? (
-              <p className="mt-2 max-w-xl text-sm leading-snug text-text-secondary">
-                {detail.homepage_title}
-              </p>
-            ) : null}
-            {detail.homepage_url ? (
-              <a
-                href={safeHref(detail.homepage_url) ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
-              >
-                {detail.homepage_url}
-              </a>
-            ) : null}
-          </div>
-        </div>
+  const errors = [stageError, rerunError].filter(Boolean);
 
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusBadge stage={detail.stage} />
-            <Menu
-              label={`Change the stage for ${detail.domain}`}
-              trigger={movingStage ? "Changing..." : "Change stage"}
-              disabled={movingStage}
-              items={PIPELINE_STAGES.map((stage) => ({
-                key: stage,
-                label: <StatusBadge stage={stage} />,
-                disabled: stage === detail.stage,
-                onSelect: () => moveToStage(stage),
-              }))}
-            />
-          </div>
-          <Button size="sm" onClick={rerunResearch} disabled={rerunning}>
+  return (
+    <Card as="section" padding="none" className="overflow-hidden" aria-label={detail.domain}>
+      <HeroBand detail={detail} />
+
+      <div className="flex flex-col gap-4 px-6 py-5 sm:px-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <StatusBadge stage={detail.stage} />
+          <StageMenu
+            label={`Change the stage for ${detail.domain}`}
+            trigger={movingStage ? "Changing..." : "Change stage"}
+            current={detail.stage}
+            disabled={movingStage}
+            align="left"
+            onSelect={moveToStage}
+          />
+          <span className="utility-label text-ink-faint">
+            Last researched {formatTimestamp(detail.updated_at)}
+          </span>
+          <Button size="sm" onClick={rerunResearch} loading={rerunning} className="sm:ml-auto">
             {rerunning ? "Checking again..." : "Run research again"}
           </Button>
-          <p className="utility-label text-text-secondary/70">
-            Last researched {formatTimestamp(detail.updated_at)}
-          </p>
         </div>
-      </div>
 
-      {stageError ? (
-        <p className="mt-4 text-sm text-error" role="alert">
-          {stageError}
-        </p>
-      ) : null}
-      {rerunError ? (
-        <p className="mt-4 text-sm text-error" role="alert">
-          {rerunError}
-        </p>
-      ) : null}
-    </section>
+        {rerunning && activeRun ? <RerunProgress run={activeRun} /> : null}
+
+        {errors.map((message) => (
+          <Notice key={message}>{message}</Notice>
+        ))}
+      </div>
+    </Card>
   );
 }

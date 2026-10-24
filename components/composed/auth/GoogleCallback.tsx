@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
+
+import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
+import { AuthHeading } from "./AuthHeading";
 
 /** Where the backend sends the browser after Google sign-in. The session
  * arrives in the URL fragment rather than the query string, because a
@@ -53,19 +55,20 @@ export function GoogleCallback() {
 
   if (error) {
     return (
-      <div className="text-center">
-        <h1 className="font-display text-2xl font-semibold text-text-primary">
-          Couldn&apos;t sign you in
-        </h1>
-        <p className="mt-3 font-sans text-sm text-text-secondary">{error}</p>
-        <p className="mt-6 font-sans text-sm text-text-secondary">
-          <Link href="/login" className="text-signal-teal hover:underline">
-            Back to sign in
-          </Link>
-        </p>
+      <div className="grid gap-7">
+        <AuthHeading eyebrow="Google sign-in" title="Couldn't sign you in">
+          {error}
+        </AuthHeading>
+        <AuthFooterNote>
+          <AuthLink href="/login">Back to sign in</AuthLink>
+        </AuthFooterNote>
       </div>
     );
   }
 
-  return <p className="text-center font-sans text-sm text-text-secondary">Signing you in...</p>;
+  return (
+    <AuthHeading eyebrow="Google sign-in" isLive title="Signing you in">
+      Finishing up with Google. This takes a second.
+    </AuthHeading>
+  );
 }
