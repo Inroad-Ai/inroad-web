@@ -11,12 +11,23 @@ Inroad. A platform for people job hunting who have decided the job board is a
 dead end: build a profile once, and the platform finds companies that fit,
 researches each one properly, and drafts outreach that sounds like a real
 person did the homework. This repo is the Next.js frontend (App Router), one
-of three repos under the `Inroad-Ai` GitHub org:
+of five repos under the `Inroad-Ai` GitHub org:
 
-- `inroad-api` — FastAPI backend
-- `inroad-web` (this repo) — Next.js frontend
-- `inroad-docs` — architecture docs, project history, and the enforceable
-  rules this file mirrors
+- `inroad-api` — FastAPI backend plus its arq worker: users, auth, profile
+  and resume, personalized workflows (matching and ranking, saved companies,
+  outreach, Gmail, Apollo/Hunter enrichment). The only API this app calls.
+- `inroad-web` (this repo) — Next.js frontend. Talks only to `inroad-api`.
+- `inroad-sourcing` — FastAPI service plus its arq worker that reads the
+  outside world (company discovery, crawling, extraction with evidence, ATS
+  boards, public people, news and signals). Called only by `inroad-api`;
+  this app never calls it.
+- `inroad-intelligence` — reserved for scoring and learning; nothing built.
+- `inroad-docs` — architecture docs, project history, local full-stack
+  setup, and the enforceable rules this file mirrors
+
+`inroad-docs`'s `docs/architecture/system-architecture.md` is the
+current-state reference for how the services fit together, including how
+this app works (section 5).
 
 This file is a repo-scoped copy of the canonical `CLAUDE.md` in
 `inroad-docs`. If the two ever drift, `inroad-docs`'s copy is the one to
@@ -71,8 +82,9 @@ one-off value.
 ## API client
 
 This app calls the backend (`inroad-api`) exclusively through the generated
-typed client in `lib/api-client/`. Never hand-write a `fetch()` call to the
-backend. If the client is out of date after a backend change, regenerate it
+typed client in `lib/api-client/` (`NEXT_PUBLIC_API_URL`). It never calls
+`inroad-sourcing` or any provider directly; the API decides what to ask
+sourcing. Never hand-write a `fetch()` call to the backend. If the client is out of date after a backend change, regenerate it
 (`pnpm generate-api-client` or equivalent) against the `inroad-api` repo's
 `/openapi.json`, don't work around a stale client with a manual fetch call.
 
