@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { Menu } from "@/components/ui/Menu";
 import { PIPELINE_STAGES, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
+import { safeHref } from "@/lib/safe-href";
 
 export function IdentityHeader({
   detail,
@@ -70,7 +71,8 @@ export function IdentityHeader({
 
   function rerunResearch() {
     setRerunError("");
-    setActiveRunId(startResearch(detail.domain));
+    // Asks for new research, not the shared copy that is still fresh.
+    setActiveRunId(startResearch(detail.domain, { refresh: true }));
   }
 
   return (
@@ -88,7 +90,7 @@ export function IdentityHeader({
             ) : null}
             {detail.homepage_url ? (
               <a
-                href={detail.homepage_url}
+                href={safeHref(detail.homepage_url) ?? undefined}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-block text-sm text-signal-teal underline decoration-signal-teal/30 underline-offset-4"

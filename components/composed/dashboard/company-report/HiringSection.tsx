@@ -1,4 +1,5 @@
 import { describeHiring } from "@/lib/companies";
+import { safeHref } from "@/lib/safe-href";
 import type { CompanyDetail } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { DataField } from "@/components/ui/DataField";
@@ -8,13 +9,24 @@ import { Section } from "@/components/ui/Section";
 export function HiringSection({ detail }: { detail: CompanyDetail }) {
   const hiring = describeHiring(detail);
   const additionalSources = detail.latest_research?.hiring?.additional_sources ?? [];
+  // Board postings come with the sourcing backend, each with its availability.
+  const sourced = detail.latest_research?.research_backend === "sourcing";
+  const postings = sourced ? (detail.latest_research?.hiring?.role_postings ?? []) : [];
+  const careersHref = safeHref(detail.careers_url);
 
   return (
     <Section title="Hiring">
       <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <DataField label="Status">
           {detail.is_hiring === null ? (
-            <span className="text-text-secondary">Could not tell</span>
+            <span className="text-text-secondary">
+              Could not tell
+              {detail.latest_research?.not_collected?.hiring ? (
+                <span className="mt-1 block text-xs">
+                  {detail.latest_research.not_collected.hiring}
+                </span>
+              ) : null}
+            </span>
           ) : detail.is_hiring ? (
             "Hiring"
           ) : (
@@ -30,9 +42,9 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
           {detail.hiring_source ?? <span className="text-text-secondary">Unknown</span>}
         </DataField>
         <DataField label="Careers page">
-          {detail.careers_url ? (
+          {careersHref ? (
             <a
-              href={detail.careers_url}
+              href={careersHref}
               target="_blank"
               rel="noopener noreferrer"
               className="break-all text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
@@ -45,20 +57,57 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
         </DataField>
       </dl>
 
-      <div className="mt-6">
-        <p className="utility-label font-sans-semibold text-text-secondary">Open roles</p>
-        {detail.sample_roles.length === 0 ? (
-          <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
-        ) : (
-          <ul className="mt-2 space-y-1.5">
-            {detail.sample_roles.map((role) => (
-              <li key={role} className="text-sm text-ink">
-                {role}
+      {postings.length > 0 ? (
+        <div className="mt-6">
+          <p className="utility-label font-sans-semibold text-text-secondary">
+            Open roles on the company&apos;s job board
+          </p>
+          <ul className="mt-2 space-y-2">
+            {postings.map((posting, index) => (
+              <li key={`${posting.title}-${index}`} className="text-sm text-ink">
+                {safeHref(posting.url) ? (
+                  <a
+                    href={safeHref(posting.url) ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-signal-teal underline decoration-signal-teal/30 underline-offset-4"
+                  >
+                    {posting.title}
+                  </a>
+                ) : (
+                  posting.title
+                )}
+                {[posting.department, posting.location].filter(Boolean).length > 0 ? (
+                  <span className="text-text-secondary">
+                    {" "}
+                    {[posting.department, posting.location].filter(Boolean).join(" · ")}
+                  </span>
+                ) : null}
+                {posting.availability !== "not_seen_in_latest_scan" ? null : (
+                  <span className="ml-2 text-xs text-text-secondary">
+                    not in the board&apos;s latest listing
+                  </span>
+                )}
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mt-6">
+          <p className="utility-label font-sans-semibold text-text-secondary">Open roles</p>
+          {detail.sample_roles.length === 0 ? (
+            <EmptyState className="mt-2">No role titles came back with the last run.</EmptyState>
+          ) : (
+            <ul className="mt-2 space-y-1.5">
+              {detail.sample_roles.map((role) => (
+                <li key={role} className="text-sm text-ink">
+                  {role}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {additionalSources.length > 0 ? (
         <div className="mt-6">

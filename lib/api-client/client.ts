@@ -169,10 +169,10 @@ export async function fetchCompany(
 }
 
 export type ResearchPhase = "verified" | "gathering" | "creating_brief" | "saving";
-export type ResearchSource = "homepage" | "news" | "hiring";
+export type ResearchSource = "homepage" | "news" | "hiring" | "people";
 export type ResearchProgressEvent =
   | { type: "phase"; phase: ResearchPhase }
-  | { type: "source"; source: ResearchSource; status: "done" | "failed" };
+  | { type: "source"; source: ResearchSource; status: "done" | "failed" | "not_collected" };
 
 type ResearchStreamEvent =
   | ResearchProgressEvent
@@ -207,8 +207,11 @@ function parseResearchStreamEvent(data: string): ResearchStreamEvent {
   }
   if (
     event.type === "source" &&
-    (event.source === "homepage" || event.source === "news" || event.source === "hiring") &&
-    (event.status === "done" || event.status === "failed")
+    (event.source === "homepage" ||
+      event.source === "news" ||
+      event.source === "hiring" ||
+      event.source === "people") &&
+    (event.status === "done" || event.status === "failed" || event.status === "not_collected")
   ) {
     return { type: "source", source: event.source, status: event.status };
   }
@@ -221,11 +224,13 @@ export async function streamResearchCompanyDomain(
   domain: string,
   accessToken: string,
   onProgress: (event: ResearchProgressEvent) => void,
+  options: { refresh?: boolean; onResumable?: () => void } = {},
 ): Promise<string> {
+  const refresh = options.refresh ? "&refresh=true" : "";
   let response: Response;
   try {
     response = await fetch(
-      `${BASE_URL}/api/companies/research/stream?domain=${encodeURIComponent(domain.trim())}`,
+      `${BASE_URL}/api/companies/research/stream?domain=${encodeURIComponent(domain.trim())}${refresh}`,
       {
         method: "POST",
         headers: { ...authHeaders(accessToken), Accept: "text/event-stream" },
@@ -244,6 +249,7 @@ export async function streamResearchCompanyDomain(
     );
   }
   if (!response.body) throw new ApiError("Research progress is unavailable.", 0);
+  if (response.headers.get("X-Inroad-Research-Resumable") === "1") options.onResumable?.();
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
