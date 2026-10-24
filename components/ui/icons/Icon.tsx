@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { JSX, ReactNode } from "react";
 
 export interface IconProps {
   /** Size classes; defaults to h-4 w-4 so an icon matches 14-16px text. */

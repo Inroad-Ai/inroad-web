@@ -23,7 +23,10 @@ const jitter = (base: number, spread: number) => base + Math.random() * spread;
 /** Drives the hero console: a scripted demo that loops while it is on screen,
  * and canned answers for anything a visitor types. Every step awaits `wait`,
  * which rejects once a newer run starts, so one run never writes over another. */
-export function useAskDemo(rootRef: RefObject<HTMLElement>, consoleRef: RefObject<HTMLElement>) {
+export function useAskDemo(
+  rootRef: RefObject<HTMLElement | null>,
+  consoleRef: RefObject<HTMLElement | null>,
+) {
   const reduceMotion = useLandingMotion();
   const [messages, setMessages] = useState<ConsoleMessage[]>([]);
   const [input, setInput] = useState("");

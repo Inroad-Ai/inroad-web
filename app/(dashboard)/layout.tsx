@@ -13,7 +13,7 @@ import { verifyAccessToken } from "@/lib/auth-native/verify";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const accessToken = cookies().get(ACCESS_TOKEN_COOKIE)?.value;
+  const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
   const userId = accessToken ? await verifyAccessToken(accessToken) : null;
 
   if (!userId) {

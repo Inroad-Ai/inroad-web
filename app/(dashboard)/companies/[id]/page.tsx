@@ -3,7 +3,8 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
 import { ArrowLeftIcon } from "@/components/ui/Icons";
 
-export default function CompanyReportPage({ params }: { params: { id: string } }) {
+export default async function CompanyReportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <PageShell
       title="Company"
@@ -14,7 +15,7 @@ export default function CompanyReportPage({ params }: { params: { id: string } }
         </Button>
       }
     >
-      <CompanyReport companyId={params.id} />
+      <CompanyReport companyId={id} />
     </PageShell>
   );
 }

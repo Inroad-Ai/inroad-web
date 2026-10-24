@@ -44,7 +44,7 @@ export function useCitations(): CitationControls {
  * chip to read the quote and where it came from. */
 export function CitationProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<OpenCitation | null>(null);
-  const closeTimer = useRef<number>();
+  const closeTimer = useRef<number | undefined>(undefined);
 
   const cancelClose = useCallback(() => window.clearTimeout(closeTimer.current), []);
   const closeNow = useCallback(() => {
