@@ -1,5 +1,6 @@
 import type { ThemePreference } from "@/lib/theme/theme.types";
 
+import { IconButton } from "./IconButton";
 import { MonitorIcon, MoonIcon, SunIcon, type IconComponent } from "./Icons";
 
 export const THEME_OPTIONS: readonly {
@@ -13,16 +14,13 @@ export const THEME_OPTIONS: readonly {
 ];
 
 /** Light / Dark / System as one segmented control. Controlled: the caller
- * owns the preference (hooks/useTheme) and this only renders it. `compact`
- * drops the words and keeps the icons. */
+ * owns the preference (hooks/useTheme) and this only renders it. */
 export function ThemeToggle({
   value,
   onChange,
-  compact = false,
 }: {
   value: ThemePreference;
   onChange: (next: ThemePreference) => void;
-  compact?: boolean;
 }) {
   return (
     <div
@@ -37,17 +35,37 @@ export function ThemeToggle({
             key={option}
             type="button"
             aria-pressed={selected}
-            aria-label={compact ? label : undefined}
             onClick={() => onChange(option)}
-            className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full font-sans text-sm font-sans-semibold transition duration-fast ease-standard ${
-              compact ? "w-8" : "px-3.5"
-            } ${selected ? "bg-surface text-ink shadow-nest" : "text-ink-muted hover:text-ink"}`}
+            className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-3.5 font-sans text-sm font-sans-semibold transition duration-fast ease-standard ${selected ? "bg-surface text-ink shadow-nest" : "text-ink-muted hover:text-ink"}`}
           >
             <Icon />
-            {compact ? null : label}
+            {label}
           </button>
         );
       })}
     </div>
+  );
+}
+
+/** One round button showing the current preference; each click moves to the
+ * next one (light, dark, system). For headers, where the full control is too wide. */
+export function ThemeCycleButton({
+  value,
+  onChange,
+}: {
+  value: ThemePreference;
+  onChange: (next: ThemePreference) => void;
+}) {
+  const index = Math.max(
+    0,
+    THEME_OPTIONS.findIndex((option) => option.value === value),
+  );
+  const { label, Icon } = THEME_OPTIONS[index];
+  const next = THEME_OPTIONS[(index + 1) % THEME_OPTIONS.length];
+  const description = `Theme: ${label}. Switch to ${next.label.toLowerCase()}`;
+  return (
+    <IconButton label={description} title={description} onClick={() => onChange(next.value)}>
+      <Icon />
+    </IconButton>
   );
 }

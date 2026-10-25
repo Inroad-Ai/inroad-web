@@ -24,7 +24,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-footer">
         <div className="sm:col-span-2 lg:col-span-1">
           <a
-            href={`#${SECTION_IDS.top}`}
+            href={`/#${SECTION_IDS.top}`}
             aria-label="Inroad home"
             className="inline-block rounded-full"
           >
@@ -40,7 +40,7 @@ export function Footer() {
           <ul className="grid gap-2.5">
             {PRODUCT_LINKS.map((link) => (
               <li key={link.id}>
-                <a href={`#${link.id}`} className={LINK_CLASS}>
+                <a href={`/#${link.id}`} className={LINK_CLASS}>
                   {link.label}
                 </a>
               </li>
