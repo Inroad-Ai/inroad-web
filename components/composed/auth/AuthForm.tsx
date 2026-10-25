@@ -183,6 +183,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Button>
       </form>
 
+      {mode === "signup" ? (
+        <AuthFooterNote>
+          By creating an account you agree to the <AuthLink href="/terms">Terms</AuthLink> and the{" "}
+          <AuthLink href="/privacy">Privacy Policy</AuthLink>.
+        </AuthFooterNote>
+      ) : null}
+
       <AuthFooterNote>
         {copy.switchPrompt} <AuthLink href={copy.switchHref}>{copy.switchLabel}</AuthLink>
       </AuthFooterNote>
