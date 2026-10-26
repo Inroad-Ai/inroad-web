@@ -4,7 +4,16 @@
 export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   Outreach: "Send outreach from your own accounts with full transparency and control.",
   "Contact data": "Enrich people found during research with verified email addresses.",
+  "AI models":
+    "Use your own provider key for resume parsing and outreach drafts. If you set nothing, " +
+    "Inroad's default model is used. Company research is shared and never uses a personal key.",
 };
+
+// The same honest line in every AI-model key modal: what it powers and that
+// the key is never readable again. Kept out of the card body, which stays short.
+const AI_KEY_NOTE =
+  "This key is used only for the features you point at it below. It is encrypted, " +
+  "stored write-only, and never shown again. You pay the provider's bill and quota.";
 
 export const KNOWN_PROVIDERS = [
   {
@@ -18,6 +27,7 @@ export const KNOWN_PROVIDERS = [
       "goes out on its own, and Inroad cannot read your existing mail.",
     logoSrc: "/logos/gmail.svg",
     authMode: "oauth",
+    keyNote: null,
   },
   {
     provider: "apollo",
@@ -30,6 +40,7 @@ export const KNOWN_PROVIDERS = [
       "lower tiers, separate from its no-code Zapier/CRM integrations.",
     logoSrc: "/logos/apollo.svg",
     authMode: "oauth",
+    keyNote: null,
   },
   {
     provider: "hunter",
@@ -41,6 +52,55 @@ export const KNOWN_PROVIDERS = [
       "50 lookups/month with no card required - a good fallback when Apollo doesn't have a match.",
     logoSrc: "/logos/hunter.png",
     authMode: "api_key",
+    keyNote: null,
+  },
+  {
+    provider: "openai",
+    label: "OpenAI",
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description:
+      "Runs resume parsing or outreach drafts on your own OpenAI account when you point a " +
+      "feature at it below. You pay OpenAI's bill and quota for those calls.",
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
+  },
+  {
+    provider: "groq",
+    label: "Groq",
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description:
+      "Runs resume parsing or outreach drafts on your own Groq account when you point a " +
+      "feature at it below. You pay Groq's bill and quota for those calls.",
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
+  },
+  {
+    provider: "modelscope",
+    label: "ModelScope",
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description:
+      "Runs resume parsing or outreach drafts on your own ModelScope account when you point a " +
+      "feature at it below. You pay ModelScope's bill and quota for those calls.",
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
+  },
+  {
+    provider: "gemini",
+    label: "Gemini",
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description:
+      "Runs resume parsing or outreach drafts on your own Gemini account when you point a " +
+      "feature at it below. You pay Google's bill and quota for those calls.",
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
   },
 ] as const;
 

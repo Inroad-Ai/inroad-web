@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/Card";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { KeyIcon, LockIcon } from "@/components/ui/Icons";
+import { MONOGRAM_FACE, monogramFill } from "@/components/ui/monogram";
 import { ApiKeyModal } from "./ApiKeyModal";
 
 interface ConnectorCardProps {
@@ -25,10 +26,13 @@ interface ConnectorCardProps {
   label: string;
   eyebrow: string;
   description: string;
-  logoSrc: string;
+  logoSrc: string | null;
   /** oauth: Connect redirects straight to the provider's own login, no key
    * ever touches Inroad. api_key: Connect opens a modal to paste one. */
   authMode: "oauth" | "api_key";
+  /** A line for the key modal explaining what the key powers. Null for
+   * providers whose card already covers it (Gmail, Apollo, Hunter). */
+  keyNote: string | null;
   connection: Connection | null;
   onConnected: (connection: Connection) => void;
   onDisconnected: (provider: string) => void;
@@ -43,6 +47,7 @@ export function ConnectorCard({
   description,
   logoSrc,
   authMode,
+  keyNote,
   connection,
   onConnected,
   onDisconnected,
@@ -50,10 +55,12 @@ export function ConnectorCard({
   const [modalOpen, setModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
 
   async function withToken(onToken: (token: string) => Promise<void>) {
     setBusy(true);
     setError(null);
+    setSavedNote(null);
     try {
       const token = await ensureValidAccessToken();
       if (!token) {
@@ -74,6 +81,7 @@ export function ConnectorCard({
 
   function openModal() {
     setError(null);
+    setSavedNote(null);
     setModalOpen(true);
   }
 
@@ -99,10 +107,12 @@ export function ConnectorCard({
   }
 
   async function handleConnectApiKey(apiKey: string) {
+    const updating = connection?.status === "invalid";
     await withToken(async (token) => {
       const saved = await saveConnection(provider, apiKey, token);
       onConnected(saved);
       setModalOpen(false);
+      setSavedNote(updating ? `${label} key updated.` : `${label} key saved.`);
     });
   }
 
@@ -110,6 +120,7 @@ export function ConnectorCard({
     await withToken(async (token) => {
       await deleteConnection(provider, token);
       onDisconnected(provider);
+      setSavedNote(authMode === "api_key" ? `${label} key removed.` : `${label} disconnected.`);
     });
   }
 
@@ -117,8 +128,19 @@ export function ConnectorCard({
     <Card as="article" className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-nest bg-chalk shadow-nest">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} alt="" className="h-full w-full object-contain p-2" />
+          {logoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoSrc} alt="" className="h-full w-full object-contain p-2" />
+          ) : (
+            // No official logo bundled yet: fall back to the provider's
+            // initial on its monogram colour, same as a person avatar.
+            <span
+              aria-hidden
+              className={`${MONOGRAM_FACE} h-full w-full rounded-nest text-lg ${monogramFill(label)}`}
+            >
+              <span className="relative">{label.charAt(0).toUpperCase()}</span>
+            </span>
+          )}
         </span>
         <div className="min-w-0 flex-1">
           <Eyebrow>{eyebrow}</Eyebrow>
@@ -126,7 +148,11 @@ export function ConnectorCard({
             {label}
           </h3>
         </div>
-        {connection ? (
+        {connection?.status === "invalid" ? (
+          <Badge tone="rose" dot>
+            Key rejected
+          </Badge>
+        ) : connection ? (
           <Badge tone="teal" dot>
             Connected
           </Badge>
@@ -142,8 +168,24 @@ export function ConnectorCard({
         {authMode === "oauth" ? "Secure OAuth connection" : "API key authentication"}
       </p>
 
-      <div className="mt-auto pt-1">
-        {connection ? (
+      <div className="mt-auto flex flex-wrap gap-2 pt-1">
+        {connection?.status === "invalid" ? (
+          <>
+            {/* Rejected key: offer a re-save (or reconnect) plus removal, so
+             * the user can fix it without first deleting the dead key. */}
+            <Button
+              size="sm"
+              type="button"
+              onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
+              loading={busy}
+            >
+              {authMode === "oauth" ? "Reconnect" : "Update key"}
+            </Button>
+            <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect}>
+              Remove
+            </Button>
+          </>
+        ) : connection ? (
           <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} loading={busy}>
             {busy ? "Disconnecting..." : "Disconnect"}
           </Button>
@@ -163,11 +205,16 @@ export function ConnectorCard({
         <Notice boxed size="xs">
           {error}
         </Notice>
+      ) : savedNote ? (
+        <Notice tone="success" boxed size="xs">
+          {savedNote}
+        </Notice>
       ) : null}
 
       {authMode === "api_key" && modalOpen ? (
         <ApiKeyModal
           label={label}
+          note={keyNote}
           busy={busy}
           error={error}
           onClose={() => setModalOpen(false)}

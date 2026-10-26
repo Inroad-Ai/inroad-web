@@ -11,12 +11,16 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 /** Mounted only while open, so every opening starts from an empty key. */
 export function ApiKeyModal({
   label,
+  note,
   busy,
   error,
   onClose,
   onSubmit,
 }: {
   label: string;
+  /** Provider-specific line on what the key is used for. Omitted for
+   * providers (like Hunter) whose card already explains it. */
+  note?: string | null;
   busy: boolean;
   error: string | null;
   onClose: () => void;
@@ -32,6 +36,8 @@ export function ApiKeyModal({
   return (
     <Modal open onClose={onClose} title={`Connect ${label}`}>
       <form onSubmit={handleSubmit}>
+        {note ? <p className="mb-4 text-sm leading-relaxed text-ink-muted">{note}</p> : null}
+
         <Field label="API key" hint={`Found in your ${label} account settings.`}>
           <PasswordInput
             value={apiKey}
