@@ -93,6 +93,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/research/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Research Status
+         * @description The caller's latest research of the domain, readable from any API
+         *     process: what a reconnecting browser checks before re-attaching.
+         */
+        get: operations["research_status_api_companies_research_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/research/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stream Research Domain
+         * @description Emit actual research phase/source transitions, then the saved company ID.
+         *
+         *     On the sourcing backend the API worker does the research and the save
+         *     (research_jobs); this stream replays its progress, so calling it again
+         *     for the same domain re-attaches instead of starting over.
+         */
+        post: operations["stream_research_domain_api_companies_research_stream_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/match": {
         parameters: {
             query?: never;
@@ -679,6 +724,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/llm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Llm Assignments */
+        get: operations["list_llm_assignments_api_settings_llm_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/llm/{purpose}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Llm Assignment */
+        put: operations["put_llm_assignment_api_settings_llm__purpose__put"];
+        post?: never;
+        /** Delete Llm Assignment */
+        delete: operations["delete_llm_assignment_api_settings_llm__purpose__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -781,6 +861,44 @@ export interface components {
         CompanyDossier: {
             /** Domain */
             domain: string;
+            /**
+             * Research Backend
+             * @default legacy
+             */
+            research_backend: string;
+            /** Sourcing Run Id */
+            sourcing_run_id?: string | null;
+            /** Facts */
+            facts?: components["schemas"]["SourcedFact"][];
+            /** Sources */
+            sources?: components["schemas"]["SourceDocumentRef"][];
+            /** Signals */
+            signals?: components["schemas"]["CompanySignal"][];
+            /** Sourced People */
+            sourced_people?: components["schemas"]["SourcedPerson"][];
+            /** Stage Ms */
+            stage_ms?: {
+                [key: string]: number;
+            };
+            /** Products */
+            products?: components["schemas"]["SourcedProduct"][];
+            /** Leadership */
+            leadership?: components["schemas"]["SourcedLeader"][];
+            /** Coverage */
+            coverage?: {
+                [key: string]: components["schemas"]["ResearchCoverage"];
+            };
+            /** Researched At */
+            researched_at?: string | null;
+            /**
+             * Research Reused
+             * @default false
+             */
+            research_reused: boolean;
+            /** Provider Usage */
+            provider_usage?: components["schemas"]["ProviderUsage"][];
+            /** Partial Failures */
+            partial_failures?: string[];
             homepage?: components["schemas"]["HomepageResult"] | null;
             news?: components["schemas"]["NewsResult"] | null;
             hiring?: components["schemas"]["HiringResult"] | null;
@@ -792,6 +910,13 @@ export interface components {
              * @description tool name -> reason, present only for tools that failed
              */
             errors?: {
+                [key: string]: string;
+            };
+            /**
+             * Not Collected
+             * @description source -> reason, for data this research did not gather or found no statement of: unknown, not a failure and not a negative finding
+             */
+            not_collected?: {
                 [key: string]: string;
             };
             /**
@@ -899,6 +1024,38 @@ export interface components {
             biggest_challenge?: string | null;
             /** Why Reach Out Now */
             why_reach_out_now?: string | null;
+        };
+        /**
+         * CompanySignal
+         * @description A dated company event - from the company's own news, press or blog
+         *     pages, or a hiring post the company made on Hacker News - with the
+         *     excerpt that states it.
+         */
+        CompanySignal: {
+            /** Signal Type */
+            signal_type: string;
+            /** Title */
+            title: string;
+            /** Description */
+            description?: string | null;
+            /** Url */
+            url: string;
+            /** Publisher Host */
+            publisher_host?: string | null;
+            /** Date */
+            date?: string | null;
+            /** Date Kind */
+            date_kind?: string | null;
+            /** Date Precision */
+            date_precision?: string | null;
+            /** Provider */
+            provider?: string | null;
+            /** Claim Source */
+            claim_source?: string | null;
+            /** Is Current */
+            is_current?: boolean | null;
+            /** Excerpt */
+            excerpt?: string | null;
         };
         /**
          * CompanySort
@@ -1019,7 +1176,7 @@ export interface components {
              * Is Hiring
              * @default false
              */
-            is_hiring: boolean;
+            is_hiring: boolean | null;
             /** Company Name */
             company_name?: string | null;
             /** Open Roles */
@@ -1079,6 +1236,35 @@ export interface components {
              * @description apple-touch-icon / favicon / og:image, in that preference order
              */
             logo_url?: string | null;
+        };
+        /** LLMAssignmentOut */
+        LLMAssignmentOut: {
+            /** Purpose */
+            purpose: string;
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** LLMAssignmentUpsert */
+        LLMAssignmentUpsert: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "openai" | "groq" | "modelscope" | "gemini";
+            /** Model */
+            model: string;
         };
         /** LanguageEntry */
         LanguageEntry: {
@@ -1573,6 +1759,23 @@ export interface components {
             /** Company */
             company?: string | null;
         };
+        /** ProviderUsage */
+        ProviderUsage: {
+            /** Provider */
+            provider: string;
+            /** Operation */
+            operation: string;
+            /** Requests */
+            requests: number;
+            /** Retries */
+            retries?: number | null;
+            /** Input Tokens */
+            input_tokens?: number | null;
+            /** Output Tokens */
+            output_tokens?: number | null;
+            /** Cache Hits */
+            cache_hits?: number | null;
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -1587,6 +1790,24 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /**
+         * ResearchCoverage
+         * @description What research did for one category - never a claim about the
+         *     company. not_found means the pages read said nothing, not "none exist".
+         */
+        ResearchCoverage: {
+            /** Status */
+            status: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Items
+             * @default 0
+             */
+            items: number;
+            /** Fresh Until */
+            fresh_until?: string | null;
         };
         /**
          * ResearchRunSummary
@@ -1609,6 +1830,19 @@ export interface components {
             from_cache: boolean;
             /** Elapsed Ms */
             elapsed_ms: number;
+        };
+        /** ResearchStatus */
+        ResearchStatus: {
+            /** Domain */
+            domain: string;
+            /** Status */
+            status: string;
+            /** Request Id */
+            request_id?: string | null;
+            /** Sourcing Run Id */
+            sourcing_run_id?: string | null;
+            /** Company Id */
+            company_id?: string | null;
         };
         /** ResendVerificationRequest */
         ResendVerificationRequest: {
@@ -1685,6 +1919,8 @@ export interface components {
             posted_at?: string | null;
             /** @default unverified */
             apply_url_state: components["schemas"]["ApplyUrlState"];
+            /** Availability */
+            availability?: string | null;
         };
         /** SignupRequest */
         SignupRequest: {
@@ -1695,6 +1931,94 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** SourceDocumentRef */
+        SourceDocumentRef: {
+            /** Url */
+            url: string;
+            /** Page Type */
+            page_type: string;
+            /** Title */
+            title?: string | null;
+            /**
+             * Acquired Via
+             * @default crawler
+             */
+            acquired_via: string;
+        };
+        /**
+         * SourcedEvidence
+         * @description A verbatim excerpt of a fetched page that supports a fact.
+         */
+        SourcedEvidence: {
+            /** Source Url */
+            source_url: string;
+            /** Excerpt */
+            excerpt: string;
+        };
+        /** SourcedFact */
+        SourcedFact: {
+            /** Fact Type */
+            fact_type: string;
+            /** Value */
+            value: {
+                [key: string]: unknown;
+            };
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /** Evidence */
+            evidence?: components["schemas"]["SourcedEvidence"][];
+        };
+        /**
+         * SourcedLeader
+         * @description A leader named on the company's own site. Public role data only:
+         *     contact details never come from shared research.
+         */
+        SourcedLeader: {
+            /** Name */
+            name: string;
+            /** Title */
+            title?: string | null;
+            /** Source Url */
+            source_url?: string | null;
+            /** Excerpt */
+            excerpt?: string | null;
+        };
+        /**
+         * SourcedPerson
+         * @description A person as listed on the company's own site, and where.
+         */
+        SourcedPerson: {
+            /** Name */
+            name: string;
+            /** Title */
+            title?: string | null;
+            /** Kind */
+            kind?: string | null;
+            /** Page Url */
+            page_url?: string | null;
+            /** Excerpt */
+            excerpt?: string | null;
+        };
+        /**
+         * SourcedProduct
+         * @description A product the company's own pages name, with the excerpt.
+         */
+        SourcedProduct: {
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Source Url */
+            source_url?: string | null;
+            /** Excerpt */
+            excerpt?: string | null;
         };
         /** StageUpdate */
         StageUpdate: {
@@ -1904,6 +2228,8 @@ export interface operations {
             query: {
                 /** @description Company domain, e.g. stripe.com. URLs are accepted and normalized. */
                 domain: string;
+                /** @description Research again even if fresh shared research exists. */
+                refresh?: boolean;
             };
             header?: {
                 authorization?: string | null;
@@ -1920,6 +2246,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_status_api_companies_research_status_get: {
+        parameters: {
+            query: {
+                domain: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stream_research_domain_api_companies_research_stream_post: {
+        parameters: {
+            query: {
+                domain: string;
+                refresh?: boolean;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -2335,6 +2728,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"][];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2374,6 +2774,13 @@ export interface operations {
                     "application/json": components["schemas"]["OutreachDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2408,6 +2815,13 @@ export interface operations {
                     "application/json": components["schemas"]["GmailDraftOut"];
                 };
             };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -2441,6 +2855,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GmailSendOut"];
                 };
+            };
+            /** @description Outreach is closed for this contact. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -2940,7 +3361,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "gmail" | "hunter";
+                provider: "apollo" | "gmail" | "hunter" | "openai" | "groq" | "modelscope" | "gemini";
             };
             cookie?: never;
         };
@@ -2977,7 +3398,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "gmail" | "hunter";
+                provider: "apollo" | "gmail" | "hunter" | "openai" | "groq" | "modelscope" | "gemini";
             };
             cookie?: never;
         };
@@ -3123,6 +3544,105 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserSettingsOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_llm_assignments_api_settings_llm_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMAssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_llm_assignment_api_settings_llm__purpose__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                purpose: "resume_parse" | "outreach_draft";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LLMAssignmentUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMAssignmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_llm_assignment_api_settings_llm__purpose__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                purpose: "resume_parse" | "outreach_draft";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
