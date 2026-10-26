@@ -57,7 +57,9 @@ export function SourcedFactsSection({ detail }: { detail: CompanyDetail }) {
       )}
 
       <div className="mt-8 flex flex-col gap-8">
-        {newsCollected ? <SignalsList signals={signals} /> : null}
+        {newsCollected || signals.length > 0 ? (
+          <SignalsList signals={signals} companyNewsCollected={newsCollected} />
+        ) : null}
         <SourcedPeopleList people={people} />
         <PagesFetchedList sources={sources} />
       </div>
