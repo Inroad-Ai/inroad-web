@@ -75,8 +75,10 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
 
       {failures.length > 0 ? (
         <ul className="mt-6 space-y-1">
-          {failures.map((failure) => (
-            <li key={failure} className="text-xs text-ink-muted">
+          {failures.map((failure, index) => (
+            // Two pages can fail with the same message, so the text alone is
+            // not a unique key.
+            <li key={`${failure}-${index}`} className="text-xs text-ink-muted">
               Partial: {failure}
             </li>
           ))}
