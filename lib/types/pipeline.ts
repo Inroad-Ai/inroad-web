@@ -1,6 +1,9 @@
 /** Mirrors app/schemas/pipeline.py. */
 
+import type { components } from "@/lib/api-client/schema";
 import type { PipelineStage } from "@/lib/types/company";
+
+type OutreachDraftOut = components["schemas"]["OutreachDraftOut"];
 
 export const PIPELINE_RUN_STATUSES = ["pending", "running", "completed", "failed"] as const;
 export type PipelineRunStatus = (typeof PIPELINE_RUN_STATUSES)[number];
@@ -19,6 +22,13 @@ export interface PipelineRunOut {
  * matched nothing, which is a valid outcome, not a failure. */
 export interface MatchRunResult extends PipelineRunOut {
   matched_company_ids: string[];
+}
+
+/** GET /api/people/{person_id}/outreach/runs/{run_id}. Empty drafts until
+ * status is "completed"; a completed run carries both channel rows at the
+ * sequence position it drafted. */
+export interface OutreachDraftRunResult extends PipelineRunOut {
+  drafts: OutreachDraftOut[];
 }
 
 /** One point on the Overview "companies added over time" chart. */
