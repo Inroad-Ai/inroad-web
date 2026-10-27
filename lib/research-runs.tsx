@@ -42,6 +42,11 @@ const MAX_TRACKED_RUNS = 20;
 const RECONNECT_ATTEMPTS = 6;
 const RECONNECT_DELAY_MS = 3000;
 
+// Minimum time each phase (and the final result) stays on screen. A cached
+// run streams every phase within milliseconds, so without this the bar would
+// flash from empty to done instead of animating.
+const MIN_PHASE_MS = 400;
+
 function droppedStream(error: unknown): boolean {
   return !(error instanceof ApiError) || error.status === 0;
 }
@@ -68,6 +73,20 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
       }
 
       (async () => {
+        // Pace visible updates so phases arriving back to back (a cached run)
+        // still animate one after another instead of flashing past.
+        let pacing = Promise.resolve();
+        let lastPacedAt = 0;
+        const pace = (apply: () => void): Promise<void> => {
+          pacing = pacing.then(async () => {
+            const wait = MIN_PHASE_MS - (Date.now() - lastPacedAt);
+            if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+            lastPacedAt = Date.now();
+            apply();
+          });
+          return pacing;
+        };
+
         try {
           const token = await ensureValidAccessToken();
           if (!token) {
@@ -76,7 +95,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           }
           const onProgress = (event: ResearchProgressEvent) => {
             if (event.type === "phase") {
-              settle({ phase: event.phase });
+              pace(() => settle({ phase: event.phase }));
             } else {
               setRuns((prev) =>
                 prev.map((run) =>
@@ -98,7 +117,9 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
                 onProgress,
                 streamOptions,
               );
-              settle({ state: "done", companyId });
+              // Let the last phase finish its minimum dwell before the report
+              // replaces the progress bar.
+              await pace(() => settle({ state: "done", companyId }));
               return;
             } catch (error) {
               if (attempt + 1 >= RECONNECT_ATTEMPTS || !resumable || !droppedStream(error)) {
@@ -108,13 +129,15 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (error) {
-          settle({
-            state: "failed",
-            error:
-              error instanceof ApiError
-                ? error.message
-                : "Research stopped unexpectedly. Please try again.",
-          });
+          await pace(() =>
+            settle({
+              state: "failed",
+              error:
+                error instanceof ApiError
+                  ? error.message
+                  : "Research stopped unexpectedly. Please try again.",
+            }),
+          );
         }
       })();
 
