@@ -4,10 +4,11 @@ import { useCallback, useState } from "react";
 
 import {
   ApiError,
-  draftOutreach,
   fetchOutreachDrafts,
+  startOutreachDraftRun,
   type OutreachDraft,
 } from "@/lib/api-client/client";
+import { followOutreachDraftRun } from "@/lib/outreach-draft-run";
 import { requireAccessToken } from "@/lib/auth-native/browser";
 import { useAsyncResource } from "@/hooks/useAsyncResource";
 
@@ -19,6 +20,19 @@ function describe(caught: unknown): string {
     return "Finish your profile first. The draft is written from your resume and target roles.";
   }
   if (caught instanceof Error) return caught.message;
+  return "Could not draft outreach for this person.";
+}
+
+/** A failed run carries an error code, not an ApiError, so map the two the
+ * job can end on to the same guidance describe() gives their synchronous
+ * cousins. Everything else is already a next-step message from the backend. */
+function describeRunError(code: string | null): string {
+  if (code === "profile_not_found") {
+    return "Finish your profile first. The draft is written from your resume and target roles.";
+  }
+  if (code === "company_context_missing") {
+    return "This company has no research yet. Open the company and run research, then draft again.";
+  }
   return "Could not draft outreach for this person.";
 }
 
@@ -68,8 +82,18 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
       setDraftError(null);
       try {
         const token = await requireAccessToken();
-        const updated = await draftOutreach(personId, sequenceIndex, token);
-        setDrafts((current) => mergeDrafts(current, updated));
+        // The POST only enqueues; the drafts arrive by polling the run.
+        const started = await startOutreachDraftRun(personId, sequenceIndex, token);
+        const run = await followOutreachDraftRun(personId, started.id, token);
+        if (run === null) {
+          setDraftError("Still drafting. Give it a moment, then refresh this page.");
+          return;
+        }
+        if (run.status === "failed") {
+          setDraftError(describeRunError(run.error));
+          return;
+        }
+        setDrafts((current) => mergeDrafts(current, run.drafts));
       } catch (caught) {
         setDraftError(describe(caught));
       } finally {
