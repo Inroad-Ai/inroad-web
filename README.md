@@ -13,7 +13,8 @@ Repos under the `Inroad-Ai` GitHub org:
 - `inroad-sourcing` — public company data (discovery, crawling, extraction
   with evidence, ATS boards, public people, news and signals); called only
   by `inroad-api`, never by this app
-- `inroad-intelligence` — reserved; nothing built yet
+- `inroad-intelligence` — matching for opportunity alerts; called only by
+  `inroad-api`, never by this app
 - `inroad-docs` — architecture docs, rules, local full-stack setup
 
 The current-state architecture is `inroad-docs`'s
