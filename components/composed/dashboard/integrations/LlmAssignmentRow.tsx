@@ -63,7 +63,7 @@ export function LlmAssignmentRow({
 
   const usingDefault = selected === DEFAULT;
   const providerConnected = !usingDefault && statusOf(selected) === "connected";
-  const canSave = usingDefault ? assignment !== null : providerConnected && model.trim().length > 0;
+  const canSave = usingDefault ? assignment !== null : providerConnected;
 
   async function withToken(run: (token: string) => Promise<void>) {
     setBusy(true);
@@ -98,10 +98,11 @@ export function LlmAssignmentRow({
       const saved = await setLlmAssignment(
         purpose.id,
         selected as LlmAssignmentProvider,
-        model.trim(),
+        model.trim() || null,
         token,
       );
       onSaved(saved);
+      setModel(saved.model);
       setSaved(
         `Saved. ${purpose.label} now uses your ${LLM_PROVIDER_LABELS[saved.provider as LlmAssignmentProvider] ?? saved.provider} key.`,
       );
@@ -144,7 +145,7 @@ export function LlmAssignmentRow({
         </Field>
 
         {usingDefault ? null : (
-          <Field label="Model" htmlFor={modelId}>
+          <Field label="Model" htmlFor={modelId} hint="Leave blank for the provider's default.">
             <Input
               id={modelId}
               value={model}
@@ -152,7 +153,7 @@ export function LlmAssignmentRow({
                 setModel(event.target.value);
                 setSaved(null);
               }}
-              placeholder="gpt-4o-mini"
+              placeholder="Default model"
               autoComplete="off"
               className="w-full sm:w-56"
             />

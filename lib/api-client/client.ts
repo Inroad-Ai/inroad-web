@@ -50,6 +50,10 @@ export type LlmAssignmentProvider = components["schemas"]["LLMAssignmentUpsert"]
  * narrower than ConnectionProvider, and read off the route the same way. */
 export type OAuthProvider =
   paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["path"]["provider"];
+/** Which page an OAuth connect lands back on. */
+export type OAuthReturnTo = NonNullable<
+  paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["query"]
+>["return_to"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -681,13 +685,13 @@ export async function fetchLlmAssignments(
   return unwrap(result, SETTINGS_UNREACHABLE);
 }
 
-/** Points one purpose at a connected provider and model. A 422 with code
- * "provider_not_connected" means the user must save that provider's key
- * first. */
+/** Points one purpose at a connected provider and model; no model means the
+ * one Inroad runs on that provider. A 422 with code "provider_not_connected"
+ * means the user must save that provider's key first. */
 export async function setLlmAssignment(
   purpose: LlmPurpose,
   provider: LlmAssignmentProvider,
-  model: string,
+  model: string | null,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<LlmAssignment> {
@@ -908,10 +912,11 @@ export async function deleteConnection(
 export async function startOAuth(
   provider: OAuthProvider,
   accessToken: string,
+  returnTo: OAuthReturnTo = "integrations",
   signal?: AbortSignal,
 ): Promise<string> {
   const result = await client.POST("/api/connections/{provider}/oauth/start", {
-    params: { path: { provider } },
+    params: { path: { provider }, query: { return_to: returnTo } },
     headers: authHeaders(accessToken),
     signal,
   });

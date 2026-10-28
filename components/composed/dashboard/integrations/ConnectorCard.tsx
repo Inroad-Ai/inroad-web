@@ -10,6 +10,7 @@ import {
   type Connection,
   type ConnectionProvider,
   type OAuthProvider,
+  type OAuthReturnTo,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken, SESSION_EXPIRED } from "@/lib/auth-native/browser";
 import { Badge } from "@/components/ui/Badge";
@@ -36,6 +37,10 @@ interface ConnectorCardProps {
   connection: Connection | null;
   onConnected: (connection: Connection) => void;
   onDisconnected: (provider: string) => void;
+  /** The page an OAuth connect lands back on. */
+  oauthReturnTo?: OAuthReturnTo;
+  /** Set when the card sits inside another card, as in onboarding. */
+  nested?: boolean;
 }
 
 /** One provider's card: logo, name, status, and either Connect (OAuth
@@ -51,6 +56,8 @@ export function ConnectorCard({
   connection,
   onConnected,
   onDisconnected,
+  oauthReturnTo = "integrations",
+  nested = false,
 }: ConnectorCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -98,7 +105,7 @@ export function ConnectorCard({
       }
       // authMode is what says this provider has an OAuth flow, and the
       // route's own literal is narrower than ConnectionProvider.
-      const authorizeUrl = await startOAuth(provider as OAuthProvider, token);
+      const authorizeUrl = await startOAuth(provider as OAuthProvider, token, oauthReturnTo);
       window.location.href = authorizeUrl;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not start the connection.");
@@ -125,7 +132,7 @@ export function ConnectorCard({
   }
 
   return (
-    <Card as="article" className="flex flex-col gap-4">
+    <Card as="article" variant={nested ? "nested" : "default"} className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-nest bg-chalk shadow-nest">
           {logoSrc ? (

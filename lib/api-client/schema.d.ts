@@ -1332,7 +1332,7 @@ export interface components {
              */
             provider: "openai" | "groq" | "modelscope" | "gemini";
             /** Model */
-            model: string;
+            model?: string | null;
         };
         /** LanguageEntry */
         LanguageEntry: {
@@ -3560,7 +3560,9 @@ export interface operations {
     };
     start_oauth_api_connections__provider__oauth_start_post: {
         parameters: {
-            query?: never;
+            query?: {
+                return_to?: "integrations" | "onboarding";
+            };
             header?: {
                 authorization?: string | null;
             };
@@ -3730,7 +3732,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                purpose: "resume_parse" | "outreach_draft";
+                purpose: "outreach_draft";
             };
             cookie?: never;
         };
@@ -3767,7 +3769,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                purpose: "resume_parse" | "outreach_draft";
+                purpose: "outreach_draft";
             };
             cookie?: never;
         };

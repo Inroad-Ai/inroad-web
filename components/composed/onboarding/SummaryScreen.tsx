@@ -197,7 +197,7 @@ export function SummaryScreen({
       <StepFooter
         onBack={onBack}
         onPrimary={onSubmit}
-        primaryLabel={submitting ? "Saving..." : "Complete setup"}
+        primaryLabel={submitting ? "Saving..." : "Save profile"}
         isLoading={submitting}
       />
     </div>

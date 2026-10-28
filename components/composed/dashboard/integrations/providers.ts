@@ -1,3 +1,6 @@
+import { LLM_PROVIDER_LABELS } from "@/lib/llm-purposes";
+import type { LlmAssignmentProvider } from "@/lib/api-client/client";
+
 // Lusha and ContactOut append here later - authMode "api_key" for either,
 // unless they turn out to offer OAuth too. No backend change required, see
 // schemas/connection.py's ConnectionProvider literal on the API side.
@@ -5,15 +8,28 @@ export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   Outreach: "Send outreach from your own accounts with full transparency and control.",
   "Contact data": "Enrich people found during research with verified email addresses.",
   "AI models":
-    "Use your own provider key for resume parsing and outreach drafts. If you set nothing, " +
-    "Inroad's default model is used. Company research is shared and never uses a personal key.",
+    "Optional. Run your outreach drafts on your own AI provider account instead of Inroad's " +
+    "model. Resume parsing and company research always use Inroad's model.",
 };
 
-// The same honest line in every AI-model key modal: what it powers and that
-// the key is never readable again. Kept out of the card body, which stays short.
+// Kept out of the card body, which stays short.
 const AI_KEY_NOTE =
-  "This key is used only for the features you point at it below. It is encrypted, " +
-  "stored write-only, and never shown again. You pay the provider's bill and quota.";
+  "Inroad uses this key only for your outreach drafts. It is encrypted, stored write-only " +
+  "and never shown again. You pay the provider directly for those calls.";
+
+function aiModelProvider<P extends LlmAssignmentProvider>(provider: P) {
+  const label = LLM_PROVIDER_LABELS[provider];
+  return {
+    provider,
+    label,
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description: `Writes your outreach drafts on your own ${label} account, with the model you pick.`,
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
+  } as const;
+}
 
 export const KNOWN_PROVIDERS = [
   {
@@ -54,54 +70,10 @@ export const KNOWN_PROVIDERS = [
     authMode: "api_key",
     keyNote: null,
   },
-  {
-    provider: "openai",
-    label: "OpenAI",
-    category: "AI models",
-    eyebrow: "Use your own key",
-    description:
-      "Runs resume parsing or outreach drafts on your own OpenAI account when you point a " +
-      "feature at it below. You pay OpenAI's bill and quota for those calls.",
-    logoSrc: null,
-    authMode: "api_key",
-    keyNote: AI_KEY_NOTE,
-  },
-  {
-    provider: "groq",
-    label: "Groq",
-    category: "AI models",
-    eyebrow: "Use your own key",
-    description:
-      "Runs resume parsing or outreach drafts on your own Groq account when you point a " +
-      "feature at it below. You pay Groq's bill and quota for those calls.",
-    logoSrc: null,
-    authMode: "api_key",
-    keyNote: AI_KEY_NOTE,
-  },
-  {
-    provider: "modelscope",
-    label: "ModelScope",
-    category: "AI models",
-    eyebrow: "Use your own key",
-    description:
-      "Runs resume parsing or outreach drafts on your own ModelScope account when you point a " +
-      "feature at it below. You pay ModelScope's bill and quota for those calls.",
-    logoSrc: null,
-    authMode: "api_key",
-    keyNote: AI_KEY_NOTE,
-  },
-  {
-    provider: "gemini",
-    label: "Gemini",
-    category: "AI models",
-    eyebrow: "Use your own key",
-    description:
-      "Runs resume parsing or outreach drafts on your own Gemini account when you point a " +
-      "feature at it below. You pay Google's bill and quota for those calls.",
-    logoSrc: null,
-    authMode: "api_key",
-    keyNote: AI_KEY_NOTE,
-  },
+  aiModelProvider("openai"),
+  aiModelProvider("gemini"),
+  aiModelProvider("groq"),
+  aiModelProvider("modelscope"),
 ] as const;
 
 export type KnownProvider = (typeof KNOWN_PROVIDERS)[number];
