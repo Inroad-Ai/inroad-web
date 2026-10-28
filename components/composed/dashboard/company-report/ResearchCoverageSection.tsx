@@ -37,7 +37,9 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
   const coverage = research.coverage ?? {};
   const names = Object.keys(LABELS).filter((name) => name in coverage);
   const usage = research.provider_usage ?? [];
-  const failures = research.partial_failures ?? [];
+  // Distinct stages (two job boards, say) can fail with the same message;
+  // repeating it tells the user nothing more.
+  const failures = [...new Set(research.partial_failures ?? [])];
   if (names.length === 0 && usage.length === 0) return null;
 
   return (

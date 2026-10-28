@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import { AccountMenu } from "@/components/composed/dashboard/AccountMenu";
+import { NotificationBell } from "@/components/composed/dashboard/NotificationBell";
 import { ResearchStatusPill } from "@/components/composed/dashboard/ResearchStatusPill";
 import { ThemeMenu } from "@/components/composed/dashboard/ThemeMenu";
 import { ChevronIcon, MenuIcon } from "@/components/ui/Icons";
@@ -38,6 +39,7 @@ export function DashboardHeader({
       <div className="flex shrink-0 items-center gap-2">
         <ResearchStatusPill />
         <CommandPaletteTrigger onOpen={onOpenPalette} />
+        <NotificationBell />
         <ThemeMenu />
         <AccountMenu profile={profile} />
       </div>

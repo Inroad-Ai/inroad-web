@@ -21,7 +21,8 @@ of five repos under the `Inroad-Ai` GitHub org:
   outside world (company discovery, crawling, extraction with evidence, ATS
   boards, public people, news and signals). Called only by `inroad-api`;
   this app never calls it.
-- `inroad-intelligence` — reserved for scoring and learning; nothing built.
+- `inroad-intelligence` — matching and recommendation (the opportunity
+  feed). Called only by `inroad-api`; this app never calls it.
 - `inroad-docs` — architecture docs, project history, local full-stack
   setup, and the enforceable rules this file mirrors
 

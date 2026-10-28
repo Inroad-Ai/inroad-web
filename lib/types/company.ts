@@ -125,7 +125,8 @@ export interface SourcedFact {
   evidence: SourcedEvidence[];
 }
 
-/** A dated event from the company's own news, press or blog pages. */
+/** A dated event from the company's own news, press or blog pages, or a
+ * hiring post the company made on Hacker News. */
 export interface CompanySignal {
   signal_type: string;
   title: string;
@@ -133,9 +134,15 @@ export interface CompanySignal {
   url: string;
   publisher_host: string | null;
   date: string | null;
-  /** "event" when the page dates the event itself, else "published". */
+  /** "event" when the source dates the event itself, else "published". */
   date_kind: string | null;
+  /** "day" or "month"; a month-precise date is the first of the month. */
+  date_precision: string | null;
+  /** "first_party" (the company's own pages) or "hn_hiring". */
+  provider: string | null;
   claim_source: string | null;
+  /** Whether it counts as current today; null when not reported. */
+  is_current: boolean | null;
   excerpt: string | null;
 }
 

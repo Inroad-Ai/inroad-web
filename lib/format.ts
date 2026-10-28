@@ -16,6 +16,16 @@ export function formatTimestamp(iso: string): string {
   });
 }
 
+/** A month-precise ISO date ("2026-10-01") as "October 2026", read in UTC
+ * so the reader's time zone never moves it into the previous month. */
+export function formatMonth(isoDate: string): string {
+  return new Date(`${isoDate.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 /** An ISO timestamp as "today" / "3 days ago" / "2 weeks ago". */
 export function formatRelativeDays(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
