@@ -48,14 +48,17 @@ export function LlmAssignmentRow({
     return connections.find((entry) => entry.provider === provider)?.status ?? null;
   }
 
-  // A saved assignment whose key was since removed or rejected: the backend
-  // falls back to the default, so say so rather than imply it is still in use.
+  // A removed key falls back to the default, but a rejected one keeps failing
+  // (the backend never moves the user's calls onto Inroad's key unasked).
   const assignedStatus = assignment ? statusOf(assignment.provider) : null;
+  const assignedLabel = assignment
+    ? (LLM_PROVIDER_LABELS[assignment.provider as LlmAssignmentProvider] ?? assignment.provider)
+    : null;
   const strandedNote =
     assignment && assignedStatus !== "connected"
       ? assignedStatus === "invalid"
-        ? `Your ${LLM_PROVIDER_LABELS[assignment.provider as LlmAssignmentProvider] ?? assignment.provider} key was rejected. Using the platform default until you update it.`
-        : `Your ${LLM_PROVIDER_LABELS[assignment.provider as LlmAssignmentProvider] ?? assignment.provider} key was removed. Using the platform default until you reconnect.`
+        ? `Your ${assignedLabel} key was rejected, so ${purpose.label.toLowerCase()} will fail until you update the key above or switch to Platform default.`
+        : `Your ${assignedLabel} key was removed. Using the platform default until you reconnect.`
       : null;
 
   const usingDefault = selected === DEFAULT;
