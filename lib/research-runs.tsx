@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useState, type ReactNode } from
 import { ApiError, streamResearchCompanyDomain } from "@/lib/api-client/client";
 import type { ResearchPhase, ResearchProgressEvent, ResearchSource } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { phaseIndex } from "@/lib/research-phases";
 import type { CardState, SourceState } from "@/lib/types";
 
 export interface ResearchRun {
@@ -42,10 +43,32 @@ const MAX_TRACKED_RUNS = 20;
 const RECONNECT_ATTEMPTS = 6;
 const RECONNECT_DELAY_MS = 3000;
 
-// Minimum time each phase (and the final result) stays on screen. A cached
-// run streams every phase within milliseconds, so without this the bar would
-// flash from empty to done instead of animating.
+// Minimum time each phase stays on screen before the next phase or the
+// outcome replaces it. A cached run streams every phase within milliseconds,
+// so without this the bar would flash from empty to done instead of animating.
 const MIN_PHASE_MS = 400;
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+type Enqueue = (apply: () => void, options?: { dwell?: boolean }) => Promise<void>;
+
+/** Applies one run's updates in arrival order. An update with `dwell` waits
+ * until the phase before it has been on screen for MIN_PHASE_MS; the rest
+ * (source results) only keep their place in line. No waiting at all for
+ * someone who asked for reduced motion: there is nothing to watch. */
+function createProgressQueue(): Enqueue {
+  const dwellMs = window.matchMedia(REDUCED_MOTION_QUERY).matches ? 0 : MIN_PHASE_MS;
+  let queue = Promise.resolve();
+  let phaseShownAt = 0;
+  return (apply, { dwell = false } = {}) => {
+    queue = queue.then(async () => {
+      const wait = dwell ? dwellMs - (Date.now() - phaseShownAt) : 0;
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      if (dwell) phaseShownAt = Date.now();
+      apply();
+    });
+    return queue;
+  };
+}
 
 function droppedStream(error: unknown): boolean {
   return !(error instanceof ApiError) || error.status === 0;
@@ -73,19 +96,10 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
       }
 
       (async () => {
-        // Pace visible updates so phases arriving back to back (a cached run)
-        // still animate one after another instead of flashing past.
-        let pacing = Promise.resolve();
-        let lastPacedAt = 0;
-        const pace = (apply: () => void): Promise<void> => {
-          pacing = pacing.then(async () => {
-            const wait = MIN_PHASE_MS - (Date.now() - lastPacedAt);
-            if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-            lastPacedAt = Date.now();
-            apply();
-          });
-          return pacing;
-        };
+        const enqueue = createProgressQueue();
+        // A reconnect replays progress from the start; only a phase past the
+        // furthest one reached moves the bar, so it never rewinds.
+        let reached = phaseIndex(null);
 
         try {
           const token = await ensureValidAccessToken();
@@ -95,13 +109,18 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
           }
           const onProgress = (event: ResearchProgressEvent) => {
             if (event.type === "phase") {
-              pace(() => settle({ phase: event.phase }));
+              const index = phaseIndex(event.phase);
+              if (index <= reached) return;
+              reached = index;
+              void enqueue(() => settle({ phase: event.phase }), { dwell: true });
             } else {
-              setRuns((prev) =>
-                prev.map((run) =>
-                  run.id === id
-                    ? { ...run, sources: { ...run.sources, [event.source]: event.status } }
-                    : run,
+              void enqueue(() =>
+                setRuns((prev) =>
+                  prev.map((run) =>
+                    run.id === id
+                      ? { ...run, sources: { ...run.sources, [event.source]: event.status } }
+                      : run,
+                  ),
                 ),
               );
             }
@@ -117,9 +136,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
                 onProgress,
                 streamOptions,
               );
-              // Let the last phase finish its minimum dwell before the report
-              // replaces the progress bar.
-              await pace(() => settle({ state: "done", companyId }));
+              await enqueue(() => settle({ state: "done", companyId }), { dwell: true });
               return;
             } catch (error) {
               if (attempt + 1 >= RECONNECT_ATTEMPTS || !resumable || !droppedStream(error)) {
@@ -129,7 +146,8 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (error) {
-          await pace(() =>
+          // Queued too, so a failure never lands ahead of progress already in line.
+          await enqueue(() =>
             settle({
               state: "failed",
               error:
