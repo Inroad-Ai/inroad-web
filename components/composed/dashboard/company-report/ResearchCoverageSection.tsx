@@ -37,7 +37,9 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
   const coverage = research.coverage ?? {};
   const names = Object.keys(LABELS).filter((name) => name in coverage);
   const usage = research.provider_usage ?? [];
-  const failures = research.partial_failures ?? [];
+  // Distinct stages (two job boards, say) can fail with the same message;
+  // repeating it tells the user nothing more.
+  const failures = [...new Set(research.partial_failures ?? [])];
   if (names.length === 0 && usage.length === 0) return null;
 
   return (
@@ -75,10 +77,8 @@ export function ResearchCoverageSection({ detail }: { detail: CompanyDetail }) {
 
       {failures.length > 0 ? (
         <ul className="mt-6 space-y-1">
-          {failures.map((failure, index) => (
-            // Two pages can fail with the same message, so the text alone is
-            // not a unique key.
-            <li key={`${failure}-${index}`} className="text-xs text-ink-muted">
+          {failures.map((failure) => (
+            <li key={failure} className="text-xs text-ink-muted">
               Partial: {failure}
             </li>
           ))}
