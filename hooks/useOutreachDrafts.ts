@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ApiError,
+  fetchActiveOutreachDraftRuns,
   fetchOutreachDrafts,
   startOutreachDraftRun,
   type OutreachDraft,
@@ -12,28 +13,26 @@ import { followOutreachDraftRun } from "@/lib/outreach-draft-run";
 import { requireAccessToken } from "@/lib/auth-native/browser";
 import { useAsyncResource } from "@/hooks/useAsyncResource";
 
-/** The backend's own message is the one to show for most of these - it says
- * what to do next. profile_not_found is the exception: "No profile yet for
- * this account" is true but doesn't explain why drafting needed it. */
-function describe(caught: unknown): string {
-  if (caught instanceof ApiError && caught.code === "profile_not_found") {
-    return "Finish your profile first. The draft is written from your resume and target roles.";
-  }
-  if (caught instanceof Error) return caught.message;
-  return "Could not draft outreach for this person.";
+const DEFAULT_ERROR = "Could not draft outreach for this person.";
+
+// Codes whose backend message is true but doesn't say what drafting needs.
+const GUIDANCE: Record<string, string> = {
+  profile_not_found:
+    "Finish your profile first. The draft is written from your resume and target roles.",
+  company_context_missing:
+    "This company has no research yet. Open the company and run research, then draft again.",
+};
+
+/** The backend's own message is the one to show for most failures, from a
+ * request or a failed run alike: it says what to do next. */
+function messageFor(code: string | null | undefined, message: string | null | undefined): string {
+  return (code ? GUIDANCE[code] : undefined) ?? message ?? DEFAULT_ERROR;
 }
 
-/** A failed run carries an error code, not an ApiError, so map the two the
- * job can end on to the same guidance describe() gives their synchronous
- * cousins. Everything else is already a next-step message from the backend. */
-function describeRunError(code: string | null): string {
-  if (code === "profile_not_found") {
-    return "Finish your profile first. The draft is written from your resume and target roles.";
-  }
-  if (code === "company_context_missing") {
-    return "This company has no research yet. Open the company and run research, then draft again.";
-  }
-  return "Could not draft outreach for this person.";
+function describe(caught: unknown): string {
+  if (caught instanceof ApiError) return messageFor(caught.code, caught.message);
+  if (caught instanceof Error) return caught.message;
+  return DEFAULT_ERROR;
 }
 
 export interface UseOutreachDraftsResult {
@@ -75,6 +74,52 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
   );
   const [drafting, setDrafting] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  // The run being followed; aborted when another starts or the page unmounts.
+  const following = useRef<AbortController | null>(null);
+
+  useEffect(() => () => following.current?.abort(), []);
+
+  const follow = useCallback(
+    async (runId: string, token: string) => {
+      following.current?.abort();
+      const controller = new AbortController();
+      following.current = controller;
+      setDrafting(true);
+      setDraftError(null);
+      try {
+        const run = await followOutreachDraftRun(personId, runId, token, {
+          signal: controller.signal,
+        });
+        if (run === null) {
+          setDraftError("Still drafting. Give it a moment, then refresh this page.");
+        } else if (run.status === "failed") {
+          setDraftError(messageFor(run.error_code, run.error));
+        } else {
+          setDrafts((current) => mergeDrafts(current, run.drafts));
+        }
+      } catch (caught) {
+        if (!controller.signal.aborted) setDraftError(describe(caught));
+      } finally {
+        if (following.current === controller) setDrafting(false);
+      }
+    },
+    [personId, setDrafts],
+  );
+
+  // A page opened or reloaded mid-draft keeps following the run in flight.
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const token = await requireAccessToken();
+        const [active] = await fetchActiveOutreachDraftRuns(personId, token, controller.signal);
+        if (active && !controller.signal.aborted) await follow(active.id, token);
+      } catch {
+        // Nothing to resume: the page shows the saved drafts, as it would anyway.
+      }
+    })();
+    return () => controller.abort();
+  }, [personId, follow]);
 
   const draft = useCallback(
     async (sequenceIndex = 0) => {
@@ -82,25 +127,14 @@ export function useOutreachDrafts(personId: string): UseOutreachDraftsResult {
       setDraftError(null);
       try {
         const token = await requireAccessToken();
-        // The POST only enqueues; the drafts arrive by polling the run.
         const started = await startOutreachDraftRun(personId, sequenceIndex, token);
-        const run = await followOutreachDraftRun(personId, started.id, token);
-        if (run === null) {
-          setDraftError("Still drafting. Give it a moment, then refresh this page.");
-          return;
-        }
-        if (run.status === "failed") {
-          setDraftError(describeRunError(run.error));
-          return;
-        }
-        setDrafts((current) => mergeDrafts(current, run.drafts));
+        await follow(started.id, token);
       } catch (caught) {
         setDraftError(describe(caught));
-      } finally {
         setDrafting(false);
       }
     },
-    [personId, setDrafts],
+    [personId, follow],
   );
 
   const replaceDraft = useCallback(

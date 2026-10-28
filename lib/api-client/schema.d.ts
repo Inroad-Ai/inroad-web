@@ -331,15 +331,32 @@ export interface paths {
         put?: never;
         /**
          * Draft Outreach
-         * @description Enqueues the draft and returns the run immediately; the model call runs
-         *     on the worker. Poll GET .../runs/{run_id} for the drafts. Cheap
-         *     preconditions (person open to outreach, follow-up ordering) are checked
-         *     here so a bad request still fails fast with a 404/409/400.
-         *
-         *     sequence_index 0 is the initial message; higher is a follow-up, drafted
-         *     with the earlier steps in the sequence as context.
+         * @description Queues the draft and returns the run; poll GET .../runs/{run_id} for
+         *     the drafts. A run already in flight for this position is returned instead
+         *     of a second one. sequence_index 0 is the initial message; higher is a
+         *     follow-up, drafted with the earlier steps as context.
          */
         post: operations["draft_outreach_api_people__person_id__outreach__sequence_index__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/people/{person_id}/outreach/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Active Outreach Draft Runs
+         * @description Draft runs still pending or running for this person, newest first.
+         */
+        get: operations["list_active_outreach_draft_runs_api_people__person_id__outreach_runs_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1399,6 +1416,8 @@ export interface components {
             status: components["schemas"]["PipelineRunStatus"];
             /** Error */
             error?: string | null;
+            /** Error Code */
+            error_code?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1562,6 +1581,8 @@ export interface components {
             status: components["schemas"]["PipelineRunStatus"];
             /** Error */
             error?: string | null;
+            /** Error Code */
+            error_code?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -1571,6 +1592,11 @@ export interface components {
             started_at?: string | null;
             /** Finished At */
             finished_at?: string | null;
+            /**
+             * Sequence Index
+             * @default 0
+             */
+            sequence_index: number;
             /** Drafts */
             drafts?: components["schemas"]["OutreachDraftOut"][];
         };
@@ -1778,6 +1804,8 @@ export interface components {
             status: components["schemas"]["PipelineRunStatus"];
             /** Error */
             error?: string | null;
+            /** Error Code */
+            error_code?: string | null;
             /**
              * Created At
              * Format: date-time
@@ -2930,6 +2958,39 @@ export interface operations {
             };
         };
     };
+    list_active_outreach_draft_runs_api_people__person_id__outreach_runs_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                person_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutreachDraftRunResult"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_outreach_draft_run_api_people__person_id__outreach_runs__run_id__get: {
         parameters: {
             query?: never;
@@ -2952,13 +3013,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OutreachDraftRunResult"];
                 };
-            };
-            /** @description Outreach is closed for this contact. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -505,11 +505,10 @@ export async function fetchOutreachDrafts(
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
 }
 
-/** Enqueues a draft and returns immediately with a pending run; the model
- * call runs on the worker. Poll getOutreachDraftRun for the drafts.
- * Replaces whatever was at this sequence position once it completes, saved
- * edits included. sequenceIndex 0 is the initial message; higher is a
- * follow-up, drafted with the earlier steps in the sequence as context. */
+/** Queues a draft and returns its run (the one already in flight, if any);
+ * poll getOutreachDraftRun for the drafts. Once it completes it replaces
+ * whatever was at this sequence position, saved edits included.
+ * sequenceIndex 0 is the initial message; higher is a follow-up. */
 export async function startOutreachDraftRun(
   personId: string,
   sequenceIndex: number,
@@ -538,6 +537,22 @@ export async function getOutreachDraftRun(
   });
 
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult;
+}
+
+/** Draft runs still pending or running for this person, newest first, so a
+ * page opened mid-draft can keep following one. */
+export async function fetchActiveOutreachDraftRuns(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraftRunResult[]> {
+  const result = await client.GET("/api/people/{person_id}/outreach/runs", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult[];
 }
 
 export async function saveOutreachDraft(

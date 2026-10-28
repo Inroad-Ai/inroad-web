@@ -11,7 +11,9 @@ export type PipelineRunStatus = (typeof PIPELINE_RUN_STATUSES)[number];
 export interface PipelineRunOut {
   id: string;
   status: PipelineRunStatus;
+  /** A message written for the user, and a code to branch on. */
   error: string | null;
+  error_code: string | null;
   created_at: string;
   started_at: string | null;
   finished_at: string | null;
@@ -28,6 +30,7 @@ export interface MatchRunResult extends PipelineRunOut {
  * status is "completed"; a completed run carries both channel rows at the
  * sequence position it drafted. */
 export interface OutreachDraftRunResult extends PipelineRunOut {
+  sequence_index: number;
   drafts: OutreachDraftOut[];
 }
 
