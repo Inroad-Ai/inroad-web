@@ -8,6 +8,7 @@ import type {
   CompanyListResponse,
   CompanySort,
   MatchRunResult,
+  OutreachDraftRunResult,
   OverviewStats,
   Person,
   PersonDetail,
@@ -34,10 +35,26 @@ export type GmailDraft = components["schemas"]["GmailDraftOut"];
 export type GmailSend = components["schemas"]["GmailSendOut"];
 export type UserSettings = components["schemas"]["UserSettingsOut"];
 export type FollowUpCadence = components["schemas"]["FollowUpCadence"];
+export type UserSettingsUpdate = components["schemas"]["UserSettingsUpdate"];
+export type Notification = components["schemas"]["NotificationOut"];
+export type NotificationPage = components["schemas"]["NotificationPage"];
+export type NotificationAction = components["schemas"]["NotificationAction"];
+export type LlmAssignment = components["schemas"]["LLMAssignmentOut"];
+/** The two request-scoped features a user may point at their own key. Read
+ * off the route's path param, same way as OAuthProvider. */
+export type LlmPurpose =
+  paths["/api/settings/llm/{purpose}"]["put"]["parameters"]["path"]["purpose"];
+/** The providers a user may bring a key for - narrower than
+ * ConnectionProvider, which also covers apollo/gmail/hunter. */
+export type LlmAssignmentProvider = components["schemas"]["LLMAssignmentUpsert"]["provider"];
 /** The providers that connect by redirect rather than a pasted key -
  * narrower than ConnectionProvider, and read off the route the same way. */
 export type OAuthProvider =
   paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["path"]["provider"];
+/** Which page an OAuth connect lands back on. */
+export type OAuthReturnTo = NonNullable<
+  paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["query"]
+>["return_to"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -488,23 +505,54 @@ export async function fetchOutreachDrafts(
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
 }
 
-/** Replaces whatever was at this sequence position, saved edits included -
- * asking for a new draft is asking for the old one to go. sequenceIndex 0
- * is the initial message; higher is a follow-up, drafted with the earlier
- * steps in the sequence as context. */
-export async function draftOutreach(
+/** Queues a draft and returns its run (the one already in flight, if any);
+ * poll getOutreachDraftRun for the drafts. Once it completes it replaces
+ * whatever was at this sequence position, saved edits included.
+ * sequenceIndex 0 is the initial message; higher is a follow-up. */
+export async function startOutreachDraftRun(
   personId: string,
   sequenceIndex: number,
   accessToken: string,
   signal?: AbortSignal,
-): Promise<OutreachDraft[]> {
+): Promise<PipelineRunOut> {
   const result = await client.POST("/api/people/{person_id}/outreach/{sequence_index}", {
     params: { path: { person_id: personId, sequence_index: sequenceIndex } },
     headers: authHeaders(accessToken),
     signal,
   });
 
-  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+  return unwrap(result, OUTREACH_UNREACHABLE) as PipelineRunOut;
+}
+
+export async function getOutreachDraftRun(
+  personId: string,
+  runId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraftRunResult> {
+  const result = await client.GET("/api/people/{person_id}/outreach/runs/{run_id}", {
+    params: { path: { person_id: personId, run_id: runId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult;
+}
+
+/** Draft runs still pending or running for this person, newest first, so a
+ * page opened mid-draft can keep following one. */
+export async function fetchActiveOutreachDraftRuns(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraftRunResult[]> {
+  const result = await client.GET("/api/people/{person_id}/outreach/runs", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult[];
 }
 
 export async function saveOutreachDraft(
@@ -570,7 +618,7 @@ export async function sendOutreachEmail(
 const SETTINGS_UNREACHABLE = "Could not reach the settings service.";
 
 /** Always returns a row, even for an account that never saved one - the
- * backend reads that as the default cadence rather than a 404. */
+ * backend reads that as the defaults rather than a 404. */
 export async function fetchSettings(
   accessToken: string,
   signal?: AbortSignal,
@@ -583,18 +631,125 @@ export async function fetchSettings(
   return unwrap(result, SETTINGS_UNREACHABLE);
 }
 
+/** Only the fields given change. */
 export async function updateSettings(
-  followUpCadence: FollowUpCadence,
+  changes: UserSettingsUpdate,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<UserSettings> {
   const result = await client.PUT("/api/settings", {
-    body: { follow_up_cadence: followUpCadence },
+    body: changes,
     headers: authHeaders(accessToken),
     signal,
   });
 
   return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+// --- notifications ---
+
+const NOTIFICATIONS_UNREACHABLE = "Could not reach the notifications service.";
+
+/** Newest first; pass `nextCursor` back for the next, older page. */
+export async function fetchNotifications(
+  cursor: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<NotificationPage> {
+  const result = await client.GET("/api/notifications", {
+    params: { query: cursor ? { cursor } : {} },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE);
+}
+
+export async function fetchUnreadNotificationCount(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<number> {
+  const result = await client.GET("/api/notifications/unread-count", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE).unread_count;
+}
+
+export async function markNotificationsSeen(accessToken: string): Promise<number> {
+  const result = await client.POST("/api/notifications/seen", {
+    headers: authHeaders(accessToken),
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE).unread_count;
+}
+
+export async function recordNotificationAction(
+  notificationId: string,
+  action: NotificationAction,
+  accessToken: string,
+): Promise<void> {
+  const result = await client.POST("/api/notifications/{notification_id}/actions", {
+    params: { path: { notification_id: notificationId } },
+    body: { action },
+    headers: authHeaders(accessToken),
+  });
+
+  if (result.response.status !== 204) unwrap(result, NOTIFICATIONS_UNREACHABLE);
+}
+
+// --- llm assignments: which feature uses a user's own provider key ---
+
+/** Returns one row per purpose the user has pointed at their own key. A
+ * purpose that's absent means the platform default is in use. No key or any
+ * part of one is ever on these rows - keys are write-only, stored through
+ * the connections routes. */
+export async function fetchLlmAssignments(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<LlmAssignment[]> {
+  const result = await client.GET("/api/settings/llm", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** Points one purpose at a connected provider and model; no model means the
+ * one Inroad runs on that provider. A 422 with code "provider_not_connected"
+ * means the user must save that provider's key first. */
+export async function setLlmAssignment(
+  purpose: LlmPurpose,
+  provider: LlmAssignmentProvider,
+  model: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<LlmAssignment> {
+  const result = await client.PUT("/api/settings/llm/{purpose}", {
+    params: { path: { purpose } },
+    body: { provider, model },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** Drops the assignment so the purpose falls back to the platform default. */
+export async function clearLlmAssignment(
+  purpose: LlmPurpose,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const result = await client.DELETE("/api/settings/llm/{purpose}", {
+    params: { path: { purpose } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  if (result.response.status !== 204) unwrap(result, SETTINGS_UNREACHABLE);
 }
 
 // --- auth ---
@@ -789,10 +944,11 @@ export async function deleteConnection(
 export async function startOAuth(
   provider: OAuthProvider,
   accessToken: string,
+  returnTo: OAuthReturnTo = "integrations",
   signal?: AbortSignal,
 ): Promise<string> {
   const result = await client.POST("/api/connections/{provider}/oauth/start", {
-    params: { path: { provider } },
+    params: { path: { provider }, query: { return_to: returnTo } },
     headers: authHeaders(accessToken),
     signal,
   });

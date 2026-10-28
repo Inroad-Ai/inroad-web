@@ -1,10 +1,35 @@
+import { LLM_PROVIDER_LABELS } from "@/lib/llm-purposes";
+import type { LlmAssignmentProvider } from "@/lib/api-client/client";
+
 // Lusha and ContactOut append here later - authMode "api_key" for either,
 // unless they turn out to offer OAuth too. No backend change required, see
 // schemas/connection.py's ConnectionProvider literal on the API side.
 export const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   Outreach: "Send outreach from your own accounts with full transparency and control.",
   "Contact data": "Enrich people found during research with verified email addresses.",
+  "AI models":
+    "Optional. Run your outreach drafts on your own AI provider account instead of Inroad's " +
+    "model. Resume parsing and company research always use Inroad's model.",
 };
+
+// Kept out of the card body, which stays short.
+const AI_KEY_NOTE =
+  "Inroad uses this key only for your outreach drafts. It is encrypted, stored write-only " +
+  "and never shown again. You pay the provider directly for those calls.";
+
+function aiModelProvider<P extends LlmAssignmentProvider>(provider: P) {
+  const label = LLM_PROVIDER_LABELS[provider];
+  return {
+    provider,
+    label,
+    category: "AI models",
+    eyebrow: "Use your own key",
+    description: `Writes your outreach drafts on your own ${label} account, with the model you pick.`,
+    logoSrc: null,
+    authMode: "api_key",
+    keyNote: AI_KEY_NOTE,
+  } as const;
+}
 
 export const KNOWN_PROVIDERS = [
   {
@@ -18,6 +43,7 @@ export const KNOWN_PROVIDERS = [
       "goes out on its own, and Inroad cannot read your existing mail.",
     logoSrc: "/logos/gmail.svg",
     authMode: "oauth",
+    keyNote: null,
   },
   {
     provider: "apollo",
@@ -30,6 +56,7 @@ export const KNOWN_PROVIDERS = [
       "lower tiers, separate from its no-code Zapier/CRM integrations.",
     logoSrc: "/logos/apollo.svg",
     authMode: "oauth",
+    keyNote: null,
   },
   {
     provider: "hunter",
@@ -41,7 +68,12 @@ export const KNOWN_PROVIDERS = [
       "50 lookups/month with no card required - a good fallback when Apollo doesn't have a match.",
     logoSrc: "/logos/hunter.png",
     authMode: "api_key",
+    keyNote: null,
   },
+  aiModelProvider("openai"),
+  aiModelProvider("gemini"),
+  aiModelProvider("groq"),
+  aiModelProvider("modelscope"),
 ] as const;
 
 export type KnownProvider = (typeof KNOWN_PROVIDERS)[number];

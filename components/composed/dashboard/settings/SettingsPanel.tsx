@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { DashboardPanel } from "../DashboardPanel";
 import { PageNotice, SetupNotice } from "../PageNotice";
 import { CadenceOptions } from "./CadenceOptions";
+import { OpportunityAlertsToggle } from "./OpportunityAlertsToggle";
 import { SettingRow } from "./SettingRow";
 
 const SKELETON_SECTIONS = 3;
@@ -60,6 +61,13 @@ export function SettingsPanel() {
         description="How many follow-ups get drafted after the initial outreach, for both email and LinkedIn. Each one is drafted on demand from its tab on a contact's page."
       >
         <CadenceOptions />
+      </DashboardPanel>
+
+      <DashboardPanel
+        title="Opportunity alerts"
+        description="Public posts that fit you: a hiring post for one of your target roles, or news from a company you saved. Matched on your target roles, skills, location, work preference and saved companies, each with the reasons it was picked. Your resume text, history and contact details are never used."
+      >
+        <OpportunityAlertsToggle />
       </DashboardPanel>
 
       {/* There is no file to show: what gets kept is the parsed result, not

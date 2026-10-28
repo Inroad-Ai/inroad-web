@@ -5,8 +5,8 @@ import { useCallback, useState } from "react";
 import {
   fetchSettings,
   updateSettings,
-  type FollowUpCadence,
   type UserSettings,
+  type UserSettingsUpdate,
 } from "@/lib/api-client/client";
 import { requireAccessToken } from "@/lib/auth-native/browser";
 import { useAsyncResource } from "@/hooks/useAsyncResource";
@@ -16,7 +16,7 @@ interface UseSettingsResult {
   loading: boolean;
   saving: boolean;
   error: string | null;
-  update: (cadence: FollowUpCadence) => Promise<void>;
+  update: (changes: UserSettingsUpdate) => Promise<void>;
 }
 
 export function useSettings(): UseSettingsResult {
@@ -35,12 +35,12 @@ export function useSettings(): UseSettingsResult {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const update = useCallback(
-    async (cadence: FollowUpCadence) => {
+    async (changes: UserSettingsUpdate) => {
       setSaving(true);
       setSaveError(null);
       try {
         const token = await requireAccessToken();
-        setSettings(await updateSettings(cadence, token));
+        setSettings(await updateSettings(changes, token));
       } catch (caught) {
         setSaveError(caught instanceof Error ? caught.message : "Could not save your settings.");
       } finally {
