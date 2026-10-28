@@ -235,3 +235,12 @@ export function CloseIcon({ className }: IconProps) {
     </Icon>
   );
 }
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <Icon className={className}>
+      <path d="M4 11.25V7a4 4 0 0 1 8 0v4.25l1.25 1.25H2.75L4 11.25Z" />
+      <path d="M6.5 14a1.5 1.5 0 0 0 3 0" />
+    </Icon>
+  );
+}

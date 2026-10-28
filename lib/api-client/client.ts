@@ -34,6 +34,10 @@ export type GmailDraft = components["schemas"]["GmailDraftOut"];
 export type GmailSend = components["schemas"]["GmailSendOut"];
 export type UserSettings = components["schemas"]["UserSettingsOut"];
 export type FollowUpCadence = components["schemas"]["FollowUpCadence"];
+export type UserSettingsUpdate = components["schemas"]["UserSettingsUpdate"];
+export type Notification = components["schemas"]["NotificationOut"];
+export type NotificationPage = components["schemas"]["NotificationPage"];
+export type NotificationAction = components["schemas"]["NotificationAction"];
 export type LlmAssignment = components["schemas"]["LLMAssignmentOut"];
 /** The two request-scoped features a user may point at their own key. Read
  * off the route's path param, same way as OAuthProvider. */
@@ -578,7 +582,7 @@ export async function sendOutreachEmail(
 const SETTINGS_UNREACHABLE = "Could not reach the settings service.";
 
 /** Always returns a row, even for an account that never saved one - the
- * backend reads that as the default cadence rather than a 404. */
+ * backend reads that as the defaults rather than a 404. */
 export async function fetchSettings(
   accessToken: string,
   signal?: AbortSignal,
@@ -591,18 +595,72 @@ export async function fetchSettings(
   return unwrap(result, SETTINGS_UNREACHABLE);
 }
 
+/** Only the fields given change. */
 export async function updateSettings(
-  followUpCadence: FollowUpCadence,
+  changes: UserSettingsUpdate,
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<UserSettings> {
   const result = await client.PUT("/api/settings", {
-    body: { follow_up_cadence: followUpCadence },
+    body: changes,
     headers: authHeaders(accessToken),
     signal,
   });
 
   return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+// --- notifications ---
+
+const NOTIFICATIONS_UNREACHABLE = "Could not reach the notifications service.";
+
+/** Newest first; pass `nextCursor` back for the next, older page. */
+export async function fetchNotifications(
+  cursor: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<NotificationPage> {
+  const result = await client.GET("/api/notifications", {
+    params: { query: cursor ? { cursor } : {} },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE);
+}
+
+export async function fetchUnreadNotificationCount(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<number> {
+  const result = await client.GET("/api/notifications/unread-count", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE).unread_count;
+}
+
+export async function markNotificationsSeen(accessToken: string): Promise<number> {
+  const result = await client.POST("/api/notifications/seen", {
+    headers: authHeaders(accessToken),
+  });
+
+  return unwrap(result, NOTIFICATIONS_UNREACHABLE).unread_count;
+}
+
+export async function recordNotificationAction(
+  notificationId: string,
+  action: NotificationAction,
+  accessToken: string,
+): Promise<void> {
+  const result = await client.POST("/api/notifications/{notification_id}/actions", {
+    params: { path: { notification_id: notificationId } },
+    body: { action },
+    headers: authHeaders(accessToken),
+  });
+
+  if (result.response.status !== 204) unwrap(result, NOTIFICATIONS_UNREACHABLE);
 }
 
 // --- llm assignments: which feature uses a user's own provider key ---

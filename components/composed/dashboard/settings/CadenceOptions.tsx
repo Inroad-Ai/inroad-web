@@ -39,7 +39,7 @@ export function CadenceOptions() {
             <SelectableCard
               key={option.value}
               selected={settings.follow_up_cadence === option.value}
-              onClick={() => update(option.value)}
+              onClick={() => update({ follow_up_cadence: option.value })}
             >
               <span className="block font-display text-lg font-sans-semibold tracking-heading">
                 {option.label}
