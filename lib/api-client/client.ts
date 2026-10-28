@@ -8,6 +8,7 @@ import type {
   CompanyListResponse,
   CompanySort,
   MatchRunResult,
+  OutreachDraftRunResult,
   OverviewStats,
   Person,
   PersonDetail,
@@ -504,23 +505,54 @@ export async function fetchOutreachDrafts(
   return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
 }
 
-/** Replaces whatever was at this sequence position, saved edits included -
- * asking for a new draft is asking for the old one to go. sequenceIndex 0
- * is the initial message; higher is a follow-up, drafted with the earlier
- * steps in the sequence as context. */
-export async function draftOutreach(
+/** Queues a draft and returns its run (the one already in flight, if any);
+ * poll getOutreachDraftRun for the drafts. Once it completes it replaces
+ * whatever was at this sequence position, saved edits included.
+ * sequenceIndex 0 is the initial message; higher is a follow-up. */
+export async function startOutreachDraftRun(
   personId: string,
   sequenceIndex: number,
   accessToken: string,
   signal?: AbortSignal,
-): Promise<OutreachDraft[]> {
+): Promise<PipelineRunOut> {
   const result = await client.POST("/api/people/{person_id}/outreach/{sequence_index}", {
     params: { path: { person_id: personId, sequence_index: sequenceIndex } },
     headers: authHeaders(accessToken),
     signal,
   });
 
-  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraft[];
+  return unwrap(result, OUTREACH_UNREACHABLE) as PipelineRunOut;
+}
+
+export async function getOutreachDraftRun(
+  personId: string,
+  runId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraftRunResult> {
+  const result = await client.GET("/api/people/{person_id}/outreach/runs/{run_id}", {
+    params: { path: { person_id: personId, run_id: runId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult;
+}
+
+/** Draft runs still pending or running for this person, newest first, so a
+ * page opened mid-draft can keep following one. */
+export async function fetchActiveOutreachDraftRuns(
+  personId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OutreachDraftRunResult[]> {
+  const result = await client.GET("/api/people/{person_id}/outreach/runs", {
+    params: { path: { person_id: personId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, OUTREACH_UNREACHABLE) as OutreachDraftRunResult[];
 }
 
 export async function saveOutreachDraft(
