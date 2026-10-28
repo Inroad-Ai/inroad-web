@@ -1,7 +1,7 @@
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { ResearchPhase } from "@/lib/api-client/client";
 
-import { PHASE_COUNT, phaseIndex } from "./research-progress";
+import { PHASE_COUNT, phaseIndex } from "@/lib/research-phases";
 
 /** One segment per research phase: done ones full, the current one half and pulsing. */
 export function ResearchPhaseBar({ phase }: { phase: ResearchPhase | null }) {

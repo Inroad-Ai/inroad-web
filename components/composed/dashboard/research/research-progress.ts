@@ -2,21 +2,6 @@ import type { ResearchPhase, ResearchSource } from "@/lib/api-client/client";
 import type { ResearchRun } from "@/lib/research-runs";
 import type { SourceState } from "@/lib/types";
 
-/** In order. `null` is the moment before the backend's first phase event. */
-const PHASES: readonly (ResearchPhase | null)[] = [
-  null,
-  "verified",
-  "gathering",
-  "creating_brief",
-  "saving",
-];
-
-export const PHASE_COUNT = PHASES.length;
-
-export function phaseIndex(phase: ResearchPhase | null): number {
-  return PHASES.indexOf(phase);
-}
-
 export function phaseLabel(phase: ResearchPhase | null): string {
   switch (phase) {
     case "verified":
