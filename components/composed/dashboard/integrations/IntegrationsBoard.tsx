@@ -6,6 +6,7 @@ import { Notice } from "@/components/ui/Notice";
 import { useConnections } from "@/hooks/useConnections";
 import type { Connection } from "@/lib/api-client/client";
 import { PageNotice } from "../PageNotice";
+import { AiModelsSection } from "./AiModelsSection";
 import { ConnectorCard } from "./ConnectorCard";
 import { IntegrationsSkeleton } from "./IntegrationsSkeleton";
 import { IntegrationsSummary } from "./IntegrationsSummary";
@@ -67,6 +68,7 @@ export function IntegrationsBoard() {
                   description={entry.description}
                   logoSrc={entry.logoSrc}
                   authMode={entry.authMode}
+                  keyNote={entry.keyNote}
                   connection={
                     connections.find((connection) => connection.provider === entry.provider) ?? null
                   }
@@ -75,6 +77,8 @@ export function IntegrationsBoard() {
                 />
               ))}
             </div>
+
+            {category === "AI models" ? <AiModelsSection connections={connections} /> : null}
           </section>
         );
       })}

@@ -51,4 +51,5 @@ export const PAGE_TITLES: Record<string, string> = {
   "/contacts": "People",
   "/integrations": "Integrations",
   "/settings": "Settings",
+  "/notifications": "Notifications",
 };
