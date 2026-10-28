@@ -38,10 +38,22 @@ export type UserSettingsUpdate = components["schemas"]["UserSettingsUpdate"];
 export type Notification = components["schemas"]["NotificationOut"];
 export type NotificationPage = components["schemas"]["NotificationPage"];
 export type NotificationAction = components["schemas"]["NotificationAction"];
+export type LlmAssignment = components["schemas"]["LLMAssignmentOut"];
+/** The two request-scoped features a user may point at their own key. Read
+ * off the route's path param, same way as OAuthProvider. */
+export type LlmPurpose =
+  paths["/api/settings/llm/{purpose}"]["put"]["parameters"]["path"]["purpose"];
+/** The providers a user may bring a key for - narrower than
+ * ConnectionProvider, which also covers apollo/gmail/hunter. */
+export type LlmAssignmentProvider = components["schemas"]["LLMAssignmentUpsert"]["provider"];
 /** The providers that connect by redirect rather than a pasted key -
  * narrower than ConnectionProvider, and read off the route the same way. */
 export type OAuthProvider =
   paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["path"]["provider"];
+/** Which page an OAuth connect lands back on. */
+export type OAuthReturnTo = NonNullable<
+  paths["/api/connections/{provider}/oauth/start"]["post"]["parameters"]["query"]
+>["return_to"];
 export type WorkHistoryEntry = components["schemas"]["WorkHistoryEntry"];
 export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
@@ -655,6 +667,59 @@ export async function recordNotificationAction(
   if (result.response.status !== 204) unwrap(result, NOTIFICATIONS_UNREACHABLE);
 }
 
+// --- llm assignments: which feature uses a user's own provider key ---
+
+/** Returns one row per purpose the user has pointed at their own key. A
+ * purpose that's absent means the platform default is in use. No key or any
+ * part of one is ever on these rows - keys are write-only, stored through
+ * the connections routes. */
+export async function fetchLlmAssignments(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<LlmAssignment[]> {
+  const result = await client.GET("/api/settings/llm", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** Points one purpose at a connected provider and model; no model means the
+ * one Inroad runs on that provider. A 422 with code "provider_not_connected"
+ * means the user must save that provider's key first. */
+export async function setLlmAssignment(
+  purpose: LlmPurpose,
+  provider: LlmAssignmentProvider,
+  model: string | null,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<LlmAssignment> {
+  const result = await client.PUT("/api/settings/llm/{purpose}", {
+    params: { path: { purpose } },
+    body: { provider, model },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** Drops the assignment so the purpose falls back to the platform default. */
+export async function clearLlmAssignment(
+  purpose: LlmPurpose,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const result = await client.DELETE("/api/settings/llm/{purpose}", {
+    params: { path: { purpose } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  if (result.response.status !== 204) unwrap(result, SETTINGS_UNREACHABLE);
+}
+
 // --- auth ---
 
 /** No session comes back: the account isn't usable until the emailed
@@ -847,10 +912,11 @@ export async function deleteConnection(
 export async function startOAuth(
   provider: OAuthProvider,
   accessToken: string,
+  returnTo: OAuthReturnTo = "integrations",
   signal?: AbortSignal,
 ): Promise<string> {
   const result = await client.POST("/api/connections/{provider}/oauth/start", {
-    params: { path: { provider } },
+    params: { path: { provider }, query: { return_to: returnTo } },
     headers: authHeaders(accessToken),
     signal,
   });

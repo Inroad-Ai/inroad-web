@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -8,7 +9,6 @@ import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 
 import { ContactDetailsScreen } from "./ContactDetailsScreen";
 import { EmailScreen } from "./EmailScreen";
-import { LaunchScreen } from "./LaunchScreen";
 import { LinksScreen } from "./LinksScreen";
 import { NameScreen } from "./NameScreen";
 import { clearDraft } from "./onboarding-draft";
@@ -32,15 +32,11 @@ import { DOCUMENT_ACCEPT, useResumeUpload } from "./useResumeUpload";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { WorkPreferenceScreen } from "./WorkPreferenceScreen";
 
-interface LaunchProfile {
-  role: string;
-  city: string;
-}
-
 export function OnboardingFlow() {
   const { stepIndex, setStepIndex, form, setForm, resume, setResume, userId, hydrated } =
     useOnboardingDraft();
   const selectResume = useResumeUpload(setForm, setResume);
+  const router = useRouter();
 
   const [direction, setDirection] = useState(1);
   // True while the current screen was reached via "Edit" on the summary:
@@ -48,7 +44,6 @@ export function OnboardingFlow() {
   const [editingFromSummary, setEditingFromSummary] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [launch, setLaunch] = useState<LaunchProfile | null>(null);
 
   const step = STEP_IDS[stepIndex];
 
@@ -95,10 +90,7 @@ export function OnboardingFlow() {
 
       await saveProfile(toProfileUpsert(form), token);
       if (userId) clearDraft(userId);
-      setLaunch({
-        role: form.targetRoles[0] ?? "",
-        city: form.location.split(",")[0]?.trim() ?? "",
-      });
+      router.push("/onboarding/connect");
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Something went wrong saving your profile.",
@@ -106,10 +98,6 @@ export function OnboardingFlow() {
     } finally {
       setSubmitting(false);
     }
-  }
-
-  if (launch) {
-    return <LaunchScreen role={launch.role} city={launch.city} />;
   }
 
   const onBack = stepIndex > 0 ? back : undefined;

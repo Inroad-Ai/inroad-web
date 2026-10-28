@@ -724,6 +724,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/llm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Llm Assignments */
+        get: operations["list_llm_assignments_api_settings_llm_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/llm/{purpose}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Put Llm Assignment */
+        put: operations["put_llm_assignment_api_settings_llm__purpose__put"];
+        post?: never;
+        /** Delete Llm Assignment */
+        delete: operations["delete_llm_assignment_api_settings_llm__purpose__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications": {
         parameters: {
             query?: never;
@@ -1269,6 +1304,35 @@ export interface components {
              * @description apple-touch-icon / favicon / og:image, in that preference order
              */
             logo_url?: string | null;
+        };
+        /** LLMAssignmentOut */
+        LLMAssignmentOut: {
+            /** Purpose */
+            purpose: string;
+            /** Provider */
+            provider: string;
+            /** Model */
+            model: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** LLMAssignmentUpsert */
+        LLMAssignmentUpsert: {
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "openai" | "groq" | "modelscope" | "gemini";
+            /** Model */
+            model?: string | null;
         };
         /** LanguageEntry */
         LanguageEntry: {
@@ -3433,7 +3497,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "gmail" | "hunter";
+                provider: "apollo" | "gmail" | "hunter" | "openai" | "groq" | "modelscope" | "gemini";
             };
             cookie?: never;
         };
@@ -3470,7 +3534,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                provider: "apollo" | "gmail" | "hunter";
+                provider: "apollo" | "gmail" | "hunter" | "openai" | "groq" | "modelscope" | "gemini";
             };
             cookie?: never;
         };
@@ -3496,7 +3560,9 @@ export interface operations {
     };
     start_oauth_api_connections__provider__oauth_start_post: {
         parameters: {
-            query?: never;
+            query?: {
+                return_to?: "integrations" | "onboarding";
+            };
             header?: {
                 authorization?: string | null;
             };
@@ -3616,6 +3682,105 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UserSettingsOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_llm_assignments_api_settings_llm_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMAssignmentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_llm_assignment_api_settings_llm__purpose__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                purpose: "outreach_draft";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LLMAssignmentUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMAssignmentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_llm_assignment_api_settings_llm__purpose__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                purpose: "outreach_draft";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
