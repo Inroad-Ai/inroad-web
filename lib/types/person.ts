@@ -53,6 +53,10 @@ export interface Person {
   email: string | null;
   linkedin_url: string | null;
   source: string | null;
+  /** Who to contact about the role, 1 first; null for everyone else. */
+  contact_rank: number | null;
+  /** Why they were picked, shown next to them. */
+  contact_reason: string | null;
   stage: PersonStage;
   contacted_at: string | null;
   created_at: string;

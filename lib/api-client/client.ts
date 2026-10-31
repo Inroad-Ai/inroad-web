@@ -398,6 +398,22 @@ export async function setPrimaryContact(
   return unwrap(result, COMPANIES_UNREACHABLE) as Company;
 }
 
+/** One Hunter search with the user's own key, then who to contact is chosen
+ * again. Spends the user's Hunter credits, so only on a click. */
+export async function searchMoreContacts(
+  companyId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CompanyDetail> {
+  const result = await client.POST("/api/companies/{company_id}/contacts/search", {
+    params: { path: { company_id: companyId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
+}
+
 /** Aggregates for the Overview page. */
 export async function fetchOverviewStats(
   accessToken: string,

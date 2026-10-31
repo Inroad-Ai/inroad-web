@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { setPrimaryContact, updatePersonStage } from "@/lib/api-client/client";
 import type { Company, CompanyDetail, Person } from "@/lib/types";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { PersonStage } from "@/components/ui/PersonStageBadge";
 import { Notice } from "@/components/ui/Notice";
@@ -24,6 +25,8 @@ export function PeopleSection({
   const [primaryContactId, setPrimaryContactId] = useState(detail.primary_contact_id);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
+  // Everyone the research found is rarely worth reading; the picks above are.
+  const [expanded, setExpanded] = useState(false);
 
   async function changeStage(person: Person, stage: PersonStage) {
     setPendingId(person.id);
@@ -55,15 +58,22 @@ export function PeopleSection({
 
   return (
     <DashboardPanel
-      title="People"
+      title="Everyone found"
       meta={
         people.length > 0 ? (
-          <span className="utility-label text-ink-faint">{people.length}</span>
+          <Button variant="quiet" size="sm" onClick={() => setExpanded((open) => !open)}>
+            {expanded ? "Hide" : `Show all ${people.length}`}
+          </Button>
         ) : undefined
       }
     >
       {people.length === 0 ? (
         <EmptyState>No named people came back with the last run.</EmptyState>
+      ) : !expanded ? (
+        <p className="text-sm text-ink-muted">
+          {people.length === 1 ? "1 person" : `${people.length} people`} named on the company&apos;s
+          pages. Open the list to set a stage or a different contact.
+        </p>
       ) : (
         <ul className="divide-y divide-line">
           {people.map((person) => (
