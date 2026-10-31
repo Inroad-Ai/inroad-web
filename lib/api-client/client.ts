@@ -318,6 +318,18 @@ export async function startMatchRun(
   return unwrap(result, COMPANIES_UNREACHABLE) as PipelineRunOut;
 }
 
+export async function getLatestMatchRun(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<MatchRunResult> {
+  const result = await client.GET("/api/companies/match/latest", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE) as MatchRunResult;
+}
+
 export async function getMatchRun(
   runId: string,
   accessToken: string,

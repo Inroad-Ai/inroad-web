@@ -19,11 +19,13 @@ export interface PipelineRunOut {
   finished_at: string | null;
 }
 
-/** GET /api/companies/match/{run_id}. Empty matched_company_ids until
- * status is "completed" - and it can stay empty on a completed run that
- * matched nothing, which is a valid outcome, not a failure. */
+/** GET /api/companies/match/{run_id} and /match/latest. matched_company_ids
+ * fills as soon as the matches are saved, while their research is still
+ * running; researched_company_ids grows as each one's research lands. Both
+ * can stay empty on a completed run that matched nothing, a valid outcome. */
 export interface MatchRunResult extends PipelineRunOut {
   matched_company_ids: string[];
+  researched_company_ids: string[];
 }
 
 /** GET /api/people/{person_id}/outreach/runs/{run_id}. Empty drafts until

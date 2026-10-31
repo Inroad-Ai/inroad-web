@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { fetchCompanies } from "@/lib/api-client/client";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import type { PipelineStage } from "@/components/ui/StatusBadge";
 
 import { CompaniesEmpty } from "./companies/CompaniesEmpty";
+import { MatchProgressNotice } from "./companies/MatchProgressNotice";
 import { CompaniesToolbar, type CompaniesView } from "./companies/CompaniesToolbar";
 import { CompanyCardGrid } from "./companies/CompanyCardGrid";
 import { CompanyRowsTable } from "./companies/CompanyRowsTable";
@@ -37,6 +38,14 @@ export function CompaniesTable() {
   const [state, setState] = useState<LoadState>("loading");
   const [data, setData] = useState<{ items: Company[]; total: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  // Bumped as matched companies' research lands; that reload keeps the rows
+  // on screen instead of flashing the loading state.
+  const [refreshKey, setRefreshKey] = useState(0);
+  const quietReload = useRef(false);
+  const refreshQuietly = useCallback(() => {
+    quietReload.current = true;
+    setRefreshKey((key) => key + 1);
+  }, []);
 
   // Read after mount so the server and first client render agree.
   useEffect(() => {
@@ -58,7 +67,8 @@ export function CompaniesTable() {
     const controller = new AbortController();
 
     async function load() {
-      setState("loading");
+      if (!quietReload.current) setState("loading");
+      quietReload.current = false;
       const token = await ensureValidAccessToken();
       if (!token) {
         setErrorMessage(SESSION_EXPIRED);
@@ -89,7 +99,7 @@ export function CompaniesTable() {
 
     load();
     return () => controller.abort();
-  }, [search, stage, sort, page]);
+  }, [search, stage, sort, page, refreshKey]);
 
   function changeView(next: CompaniesView) {
     setView(next);
@@ -110,6 +120,7 @@ export function CompaniesTable() {
 
   return (
     <div className="flex flex-col gap-5">
+      <MatchProgressNotice onResearched={refreshQuietly} />
       <CompaniesToolbar
         searchInput={searchInput}
         onSearchInput={setSearchInput}
