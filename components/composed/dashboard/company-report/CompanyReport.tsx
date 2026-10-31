@@ -10,16 +10,14 @@ import { PageNotice } from "../PageNotice";
 import { CompanyReportSkeleton } from "./CompanyReportSkeleton";
 import { HiringSection } from "./HiringSection";
 import { IdentityHeader } from "./IdentityHeader";
-import { LatestResearchSection } from "./LatestResearchSection";
-import { NotCollectedNotice } from "./NotCollectedNotice";
+import { NewsSection } from "./NewsSection";
 import { NotesSection } from "./NotesSection";
-import { PartialRunNotice } from "./PartialRunNotice";
 import { PeopleSection } from "./PeopleSection";
 import { ProductsLeadershipSection } from "./ProductsLeadershipSection";
 import { ProfileSection } from "./ProfileSection";
-import { ResearchCoverageSection } from "./ResearchCoverageSection";
-import { ResearchHistorySection } from "./ResearchHistorySection";
 import { SourcedFactsSection } from "./SourcedFactsSection";
+import { WhoToContactSection } from "./WhoToContactSection";
+import { FittingRolesSection } from "./FittingRolesSection";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -29,6 +27,8 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   const [detail, setDetail] = useState<CompanyDetail | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [loadError, setLoadError] = useState("");
+  // PeopleSection keeps its own copy of the people; a new search remounts it.
+  const [peopleVersion, setPeopleVersion] = useState(0);
 
   const accessToken = useCallback(async () => {
     const token = await ensureValidAccessToken();
@@ -55,6 +55,11 @@ export function CompanyReport({ companyId }: { companyId: string }) {
     return () => controller.abort();
   }, [companyId, accessToken]);
 
+  function replaceDetail(next: CompanyDetail) {
+    setDetail(next);
+    setPeopleVersion((version) => version + 1);
+  }
+
   function mergeCompany(company: Company) {
     setDetail((current) => (current === null ? current : { ...current, ...company }));
   }
@@ -65,30 +70,33 @@ export function CompanyReport({ companyId }: { companyId: string }) {
     return <PageNotice isError>{loadError}</PageNotice>;
   }
 
-  const research = detail.latest_research;
-
   return (
     <div className="flex flex-col gap-6">
       <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
 
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          {/* A partial run is still a 200 with nulls in it. Say so plainly
-              rather than letting empty fields read as "nothing to report". */}
-          {research?.partial ? <PartialRunNotice errors={research.errors} /> : null}
-          {research ? <NotCollectedNotice notCollected={research.not_collected ?? {}} /> : null}
           <ProfileSection detail={detail} />
+          <FittingRolesSection detail={detail} />
+          <HiringSection detail={detail} />
           <SourcedFactsSection detail={detail} />
           <ProductsLeadershipSection detail={detail} />
-          <HiringSection detail={detail} />
-          <LatestResearchSection detail={detail} />
-          <ResearchCoverageSection detail={detail} />
+          <NewsSection detail={detail} />
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-6" aria-label="People, notes and history">
-          <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
+        <aside className="flex min-w-0 flex-col gap-6" aria-label="Who to contact and notes">
+          <WhoToContactSection
+            detail={detail}
+            accessToken={accessToken}
+            onDetailChange={replaceDetail}
+          />
           <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
-          <ResearchHistorySection detail={detail} />
+          <PeopleSection
+            key={peopleVersion}
+            detail={detail}
+            accessToken={accessToken}
+            onCompanyChange={mergeCompany}
+          />
         </aside>
       </div>
     </div>

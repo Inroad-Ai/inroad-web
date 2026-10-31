@@ -11,7 +11,7 @@ interface PageShellProps {
  * the gap below it, so a page's first block never sets its own top margin. */
 export function PageShell({ title, description, action, children }: PageShellProps) {
   return (
-    <div className="w-full max-w-7xl px-page pb-16 pt-8 sm:pt-10">
+    <div className="mx-auto w-full max-w-page px-page pb-16 pt-8 sm:pt-10">
       <header className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="min-w-0 max-w-3xl">
           <h1 className="text-balance break-words font-display text-title font-sans-semibold tracking-display text-ink">

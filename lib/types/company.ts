@@ -293,6 +293,17 @@ export interface CompanyDetail extends Company {
   recent_research_runs: ResearchRunSummary[];
   people: Person[];
   primary_contact: Person | null;
+  /** Open jobs here that fit the user, by matching's rules. */
+  fitting_roles: FittingRole[];
+  /** What to search LinkedIn for when nobody listed fits. */
+  contact_search_title: string | null;
+}
+
+export interface FittingRole {
+  title: string;
+  url: string | null;
+  /** Why it fits, e.g. "remote, open to Pakistan". */
+  reason: string;
 }
 
 export const COMPANY_SORTS = [

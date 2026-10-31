@@ -1,14 +1,8 @@
-import type { CompanyDetail, ResearchCoverage } from "@/lib/types";
-import { EmptyState } from "@/components/ui/EmptyState";
+import type { CompanyDetail } from "@/lib/types";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 
 import { DashboardPanel } from "../DashboardPanel";
 import { EvidenceQuote } from "./EvidenceQuote";
-
-function Missing({ coverage, fallback }: { coverage?: ResearchCoverage; fallback: string }) {
-  // The coverage reason says what research did, never that none exist.
-  return <EmptyState className="mt-2">{coverage?.reason ?? fallback}</EmptyState>;
-}
 
 interface Entry {
   key: string;
@@ -46,43 +40,43 @@ export function ProductsLeadershipSection({ detail }: { detail: CompanyDetail })
   if (research?.research_backend !== "sourcing") return null;
   const products = research.products ?? [];
   const leaders = research.leadership ?? [];
-  const coverage = research.coverage ?? {};
+  if (products.length === 0 && leaders.length === 0) return null;
 
   return (
     <DashboardPanel title="Products and leadership">
-      <Eyebrow as="h3">Products and services</Eyebrow>
-      {products.length === 0 ? (
-        <Missing coverage={coverage.products} fallback="No product was named on the pages read." />
-      ) : (
-        <EntryList
-          entries={products.map((product, index) => ({
-            key: `${product.name}-${index}`,
-            name: product.name,
-            detail: product.description,
-            separator: ": ",
-            sourceUrl: product.source_url,
-            excerpt: product.excerpt,
-          }))}
-        />
-      )}
+      {products.length > 0 ? (
+        <>
+          <Eyebrow as="h3">Products and services</Eyebrow>
+          <EntryList
+            entries={products.map((product, index) => ({
+              key: `${product.name}-${index}`,
+              name: product.name,
+              detail: product.description,
+              separator: ": ",
+              sourceUrl: product.source_url,
+              excerpt: product.excerpt,
+            }))}
+          />
+        </>
+      ) : null}
 
-      <Eyebrow as="h3" className="mt-8">
-        Leadership
-      </Eyebrow>
-      {leaders.length === 0 ? (
-        <Missing coverage={coverage.leadership} fallback="No leader was named on the pages read." />
-      ) : (
-        <EntryList
-          entries={leaders.map((leader, index) => ({
-            key: `${leader.name}-${index}`,
-            name: leader.name,
-            detail: leader.title,
-            separator: ", ",
-            sourceUrl: leader.source_url,
-            excerpt: leader.excerpt,
-          }))}
-        />
-      )}
+      {leaders.length > 0 ? (
+        <>
+          <Eyebrow as="h3" className={products.length > 0 ? "mt-8" : undefined}>
+            Leadership
+          </Eyebrow>
+          <EntryList
+            entries={leaders.map((leader, index) => ({
+              key: `${leader.name}-${index}`,
+              name: leader.name,
+              detail: leader.title,
+              separator: ", ",
+              sourceUrl: leader.source_url,
+              excerpt: leader.excerpt,
+            }))}
+          />
+        </>
+      ) : null}
     </DashboardPanel>
   );
 }

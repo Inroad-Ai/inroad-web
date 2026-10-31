@@ -251,6 +251,27 @@ export interface paths {
         patch: operations["update_primary_contact_api_companies__company_id__primary_contact_patch"];
         trace?: never;
     };
+    "/api/companies/{company_id}/contacts/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search More Contacts
+         * @description One Hunter domain search with the caller's own key, then who to
+         *     contact is chosen again. Spends the caller's Hunter credits.
+         */
+        post: operations["search_more_contacts_api_companies__company_id__contacts_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/people": {
         parameters: {
             query?: never;
@@ -988,6 +1009,10 @@ export interface components {
             /** People */
             people?: components["schemas"]["PersonOut"][];
             primary_contact?: components["schemas"]["PersonOut"] | null;
+            /** Fitting Roles */
+            fitting_roles?: components["schemas"]["FittingRoleOut"][];
+            /** Contact Search Title */
+            contact_search_title?: string | null;
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -1258,6 +1283,15 @@ export interface components {
             start_date?: string | null;
             /** End Date */
             end_date?: string | null;
+        };
+        /** FittingRoleOut */
+        FittingRoleOut: {
+            /** Title */
+            title: string;
+            /** Url */
+            url?: string | null;
+            /** Reason */
+            reason: string;
         };
         /**
          * FollowUpCadence
@@ -1666,7 +1700,7 @@ export interface components {
             email?: string | null;
             /**
              * Source
-             * @description team-page | linkedin-search, possibly suffixed +apollo
+             * @description company-site | job-posting | team-page | linkedin-search, possibly suffixed +apollo or +hunter
              */
             source: string;
         };
@@ -1693,6 +1727,10 @@ export interface components {
             linkedin_url?: string | null;
             /** Source */
             source?: string | null;
+            /** Contact Rank */
+            contact_rank?: number | null;
+            /** Contact Reason */
+            contact_reason?: string | null;
             stage: components["schemas"]["PersonStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -1739,6 +1777,10 @@ export interface components {
             linkedin_url?: string | null;
             /** Source */
             source?: string | null;
+            /** Contact Rank */
+            contact_rank?: number | null;
+            /** Contact Reason */
+            contact_reason?: string | null;
             stage: components["schemas"]["PersonStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -1789,6 +1831,10 @@ export interface components {
             linkedin_url?: string | null;
             /** Source */
             source?: string | null;
+            /** Contact Rank */
+            contact_rank?: number | null;
+            /** Contact Reason */
+            contact_reason?: string | null;
             stage: components["schemas"]["PersonStage"];
             /** Contacted At */
             contacted_at?: string | null;
@@ -1844,6 +1890,23 @@ export interface components {
          * @enum {string}
          */
         PipelineRunStatus: "pending" | "running" | "completed" | "failed";
+        /**
+         * PostingContact
+         * @description Someone a posting itself names: who the role reports to
+         *     (relation "reports_to"), or who to contact about it ("hiring_contact").
+         */
+        PostingContact: {
+            /** Relation */
+            relation: string;
+            /** Name */
+            name?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Excerpt */
+            excerpt: string;
+        };
         /** PrimaryContactUpdate */
         PrimaryContactUpdate: {
             /** Person Id */
@@ -2153,6 +2216,12 @@ export interface components {
             apply_url_state: components["schemas"]["ApplyUrlState"];
             /** Availability */
             availability?: string | null;
+            /** Country */
+            country?: string | null;
+            /** Workplace Type */
+            workplace_type?: string | null;
+            /** Contacts */
+            contacts?: components["schemas"]["PostingContact"][];
         };
         /** SignupRequest */
         SignupRequest: {
@@ -2796,6 +2865,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_more_contacts_api_companies__company_id__contacts_search_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyDetail"];
                 };
             };
             /** @description Validation Error */

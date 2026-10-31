@@ -102,6 +102,7 @@ const config: Config = {
       maxWidth: {
         bubble: "var(--size-bubble)",
         drawer: "var(--size-drawer)",
+        page: "var(--size-page)",
         popover: "var(--size-popover)",
       },
       gridTemplateColumns: {
