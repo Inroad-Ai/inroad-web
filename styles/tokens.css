@@ -193,6 +193,8 @@
   --size-bleed: 160vw; /* glows wider than the viewport so their edges never show */
   --size-bubble: 88%; /* console message bubbles */
   --size-drawer: 85vw;
+  /* Dashboard content width: fills a laptop, stays readable on a wide monitor. */
+  --size-page: 100rem;
   --size-popover: calc(100vw - 1.5rem);
 
   --grid-main-aside: minmax(0, 1fr) 17rem;
