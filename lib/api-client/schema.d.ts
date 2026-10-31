@@ -161,6 +161,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/match/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Latest Match
+         * @description The caller's most recent match run: its saved matches and how many
+         *     are researched. 404 when they have never run one.
+         */
+        get: operations["get_latest_match_api_companies_match_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/match/{run_id}": {
         parameters: {
             query?: never;
@@ -1429,6 +1450,8 @@ export interface components {
             finished_at?: string | null;
             /** Matched Company Ids */
             matched_company_ids?: string[];
+            /** Researched Company Ids */
+            researched_company_ids?: string[];
         };
         /** MessageResponse */
         MessageResponse: {
@@ -1866,6 +1889,8 @@ export interface components {
             } | null;
             /** Work Preference */
             work_preference: components["schemas"]["WorkPreferenceOption"][];
+            /** Regions */
+            regions?: components["schemas"]["RegionOption"][];
             /** Target Roles */
             target_roles: string[];
             /** Summary */
@@ -1908,6 +1933,8 @@ export interface components {
             x_url?: string | null;
             /** Work Preference */
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
+            /** Regions */
+            regions?: components["schemas"]["RegionOption"][];
             /** Target Roles */
             target_roles?: string[];
             /**
@@ -1991,6 +2018,11 @@ export interface components {
              */
             token_type: string;
         };
+        /**
+         * RegionOption
+         * @enum {string}
+         */
+        RegionOption: "pakistan" | "middle_east" | "gulf_saudi" | "uae" | "europe" | "uk" | "us" | "canada" | "worldwide";
         /**
          * ResearchCoverage
          * @description What research did for one category - never a claim about the
@@ -2556,6 +2588,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PipelineRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_latest_match_api_companies_match_latest_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchRunResult"];
                 };
             };
             /** @description Validation Error */

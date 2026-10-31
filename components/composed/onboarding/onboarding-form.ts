@@ -9,6 +9,8 @@ import type {
 import {
   RESUME_FILLABLE_FIELDS,
   type UploadState,
+  regionsToSave,
+  type RegionOption,
   type WorkPreferenceOption,
 } from "@/lib/onboarding";
 import type { ParsedFields } from "@/lib/resume";
@@ -32,6 +34,7 @@ export interface FormState {
   certificates: CertificateEntry[];
   languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
+  regions: RegionOption[];
   targetRoles: string[];
   fieldSource: FieldSourceMap;
 }
@@ -54,6 +57,7 @@ export const INITIAL_FORM: FormState = {
   certificates: [],
   languages: [],
   workPreference: [],
+  regions: [],
   targetRoles: [],
   fieldSource: {},
 };
@@ -138,6 +142,7 @@ export function toProfileUpsert(form: FormState): ProfileUpsert {
     certificates: form.certificates,
     languages: form.languages,
     work_preference: form.workPreference,
+    regions: regionsToSave(form.workPreference, form.regions),
     target_roles: form.targetRoles,
   };
 }

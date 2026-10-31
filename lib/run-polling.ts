@@ -11,9 +11,9 @@ function wait(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-/** Polls a pipeline run until it completes or fails, reporting each poll.
- * Resolves with the settled run, or null once the poll budget runs out while
- * the run is still going. Request errors and an abort reject. */
+/** Polls a pipeline run until it completes or fails (or `until` says it has
+ * gone far enough), reporting each poll. Resolves with that run, or null once
+ * the poll budget runs out first. Request errors and an abort reject. */
 export async function followRun<T extends PipelineRunOut>(
   fetchRun: (signal?: AbortSignal) => Promise<T>,
   {
@@ -21,17 +21,19 @@ export async function followRun<T extends PipelineRunOut>(
     maxAttempts,
     signal,
     onPoll,
+    until,
   }: {
     intervalMs: number;
     maxAttempts: number;
     signal?: AbortSignal;
     onPoll?: (run: T) => void;
+    until?: (run: T) => boolean;
   },
 ): Promise<T | null> {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const run = await fetchRun(signal);
     onPoll?.(run);
-    if (!isRunActive(run.status)) return run;
+    if (!isRunActive(run.status) || until?.(run)) return run;
     await wait(intervalMs, signal);
     signal?.throwIfAborted();
   }

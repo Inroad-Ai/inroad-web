@@ -224,6 +224,8 @@ export function OnboardingFlow() {
             <WorkPreferenceScreen
               selected={form.workPreference}
               onChange={(workPreference) => setForm((prev) => ({ ...prev, workPreference }))}
+              regions={form.regions}
+              onRegionsChange={(regions) => setForm((prev) => ({ ...prev, regions }))}
               onNext={next}
               onBack={onBack}
             />

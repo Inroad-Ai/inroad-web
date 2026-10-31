@@ -40,8 +40,9 @@ async function loadMatches(ids: string[], token: string, signal: AbortSignal) {
   );
 }
 
-/** Starts the profile match scan once the profile is saved and follows it to
- * a result, polling the same way the Research page does. */
+/** Starts the profile match scan once the profile is saved and follows it
+ * until the first matches are saved; their research carries on in the
+ * background and the Companies page shows it landing. */
 export function useFirstMatchScan(): FirstMatchScan {
   const [scan, setScan] = useState<FirstMatchScan>(() => ({
     status: "searching",
@@ -60,7 +61,10 @@ export function useFirstMatchScan(): FirstMatchScan {
         return { status: "failed", message: "Your session expired. Sign in again to run this." };
 
       const started = await startMatchRun(token, signal);
-      const result = await followMatchRun(started.id, token, { signal });
+      const result = await followMatchRun(started.id, token, {
+        signal,
+        until: (run) => run.matched_company_ids.length > 0,
+      });
       if (!result) return { status: "timedOut" };
       if (result.status === "failed") {
         return { status: "failed", message: result.error ?? "The match scan could not complete." };

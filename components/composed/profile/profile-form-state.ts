@@ -7,7 +7,7 @@ import type {
   ProjectEntry,
   WorkHistoryEntry,
 } from "@/lib/api-client/client";
-import type { WorkPreferenceOption } from "@/lib/onboarding";
+import { regionsToSave, type RegionOption, type WorkPreferenceOption } from "@/lib/onboarding";
 import {
   validateEmail,
   validateLocation,
@@ -35,6 +35,7 @@ export interface FormState {
   certificates: CertificateEntry[];
   languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
+  regions: RegionOption[];
   targetRoles: string[];
 }
 
@@ -96,6 +97,7 @@ export function toFormState(profile: Profile): FormState {
     certificates: profile.certificates ?? [],
     languages: profile.languages ?? [],
     workPreference: profile.work_preference,
+    regions: profile.regions ?? [],
     targetRoles: profile.target_roles,
   };
 }
@@ -131,6 +133,7 @@ export function toProfileUpsert(profile: Profile, form: FormState): ProfileUpser
     certificates: withoutBlanks(form.certificates),
     languages: withoutBlanks(form.languages),
     work_preference: form.workPreference,
+    regions: regionsToSave(form.workPreference, form.regions),
     target_roles: form.targetRoles,
   });
 }
