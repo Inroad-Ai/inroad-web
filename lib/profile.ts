@@ -26,6 +26,7 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
     certificates: profile.certificates,
     languages: profile.languages,
     work_preference: profile.work_preference,
+    regions: profile.regions ?? [],
     target_roles: profile.target_roles,
     ...changes,
   };

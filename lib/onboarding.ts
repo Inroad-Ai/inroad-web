@@ -20,6 +20,40 @@ export const WORK_PREFERENCE_OPTIONS: {
   },
 ];
 
+export type RegionOption =
+  | "pakistan"
+  | "middle_east"
+  | "gulf_saudi"
+  | "uae"
+  | "europe"
+  | "uk"
+  | "us"
+  | "canada"
+  | "worldwide";
+
+/** Where someone open to relocation would move. Click-only: the backend maps
+ * each code to countries, so free text is never stored. */
+export const REGION_OPTIONS: { value: RegionOption; label: string }[] = [
+  { value: "pakistan", label: "Pakistan" },
+  { value: "middle_east", label: "Middle East" },
+  { value: "gulf_saudi", label: "Gulf / Saudi Arabia" },
+  { value: "uae", label: "UAE" },
+  { value: "europe", label: "Europe" },
+  { value: "uk", label: "United Kingdom" },
+  { value: "us", label: "United States" },
+  { value: "canada", label: "Canada" },
+  { value: "worldwide", label: "Anywhere" },
+];
+
+/** Regions only mean something alongside relocation; dropping relocation
+ * drops them on save. */
+export function regionsToSave(
+  workPreference: readonly WorkPreferenceOption[],
+  regions: readonly RegionOption[],
+): RegionOption[] {
+  return workPreference.includes("relocation") ? [...regions] : [];
+}
+
 export function workPreferenceLabels(values: readonly WorkPreferenceOption[]): string[] {
   return values.map(
     (value) => WORK_PREFERENCE_OPTIONS.find((option) => option.value === value)?.label ?? value,

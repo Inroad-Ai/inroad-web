@@ -1889,6 +1889,8 @@ export interface components {
             } | null;
             /** Work Preference */
             work_preference: components["schemas"]["WorkPreferenceOption"][];
+            /** Regions */
+            regions?: components["schemas"]["RegionOption"][];
             /** Target Roles */
             target_roles: string[];
             /** Summary */
@@ -1931,6 +1933,8 @@ export interface components {
             x_url?: string | null;
             /** Work Preference */
             work_preference?: components["schemas"]["WorkPreferenceOption"][];
+            /** Regions */
+            regions?: components["schemas"]["RegionOption"][];
             /** Target Roles */
             target_roles?: string[];
             /**
@@ -2014,6 +2018,11 @@ export interface components {
              */
             token_type: string;
         };
+        /**
+         * RegionOption
+         * @enum {string}
+         */
+        RegionOption: "pakistan" | "middle_east" | "gulf_saudi" | "uae" | "europe" | "uk" | "us" | "canada" | "worldwide";
         /**
          * ResearchCoverage
          * @description What research did for one category - never a claim about the

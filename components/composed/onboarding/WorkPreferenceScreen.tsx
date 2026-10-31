@@ -4,7 +4,13 @@ import { useState } from "react";
 
 import { Notice } from "@/components/ui/Notice";
 import { SelectableCard } from "@/components/ui/SelectableCard";
-import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
+import {
+  WORK_PREFERENCE_OPTIONS,
+  type RegionOption,
+  type WorkPreferenceOption,
+} from "@/lib/onboarding";
+
+import { RegionPicker } from "../profile/RegionPicker";
 
 import { StepFooter } from "./StepFooter";
 import { StepHeading } from "./StepHeading";
@@ -12,11 +18,15 @@ import { StepHeading } from "./StepHeading";
 export function WorkPreferenceScreen({
   selected,
   onChange,
+  regions,
+  onRegionsChange,
   onNext,
   onBack,
 }: {
   selected: WorkPreferenceOption[];
   onChange: (next: WorkPreferenceOption[]) => void;
+  regions: RegionOption[];
+  onRegionsChange: (next: RegionOption[]) => void;
   onNext: () => void;
   onBack?: () => void;
 }) {
@@ -60,6 +70,12 @@ export function WorkPreferenceScreen({
       </div>
 
       {touched && !valid ? <Notice className="mt-3">Pick at least one.</Notice> : null}
+
+      {selected.includes("relocation") ? (
+        <div className="mt-7">
+          <RegionPicker selected={regions} onChange={onRegionsChange} />
+        </div>
+      ) : null}
 
       <StepFooter onBack={onBack} />
     </form>
