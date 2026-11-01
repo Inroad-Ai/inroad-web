@@ -19,6 +19,7 @@ interface MatchRun {
   error: string | null;
   matchedCompanyIds: string[];
   timedOut: boolean;
+  previousSuccessfulMatch?: boolean;
 }
 
 const MATCH_POLL_INTERVAL_MS = 3000;
@@ -32,43 +33,6 @@ export default function ResearchPage() {
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
-  useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadRecentSuccessfulMatch() {
-      const token = await ensureValidAccessToken();
-      if (!token) return;
-      try {
-        const { items } = await fetchCompanies(
-          { sort: "created_desc", pageSize: 50 },
-          token,
-          controller.signal,
-        );
-        const company = items.find((item) => item.matched_role_title !== null);
-        if (!company) return;
-        setMatchRuns((previous) =>
-          previous.length > 0
-            ? previous
-            : [
-                {
-                  id: `saved-match-${company.id}`,
-                  status: "completed",
-                  startedAt: new Date(company.created_at).getTime(),
-                  error: null,
-                  matchedCompanyIds: [company.id],
-                  timedOut: false,
-                },
-              ],
-        );
-      } catch {
-        // A new scan can still run if loading the previous successful match fails.
-      }
-    }
-
-    void loadRecentSuccessfulMatch();
-    return () => controller.abort();
-  }, []);
-
   function runResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextDomain = domain.trim();
@@ -81,6 +45,32 @@ export default function ResearchPage() {
     );
   }
 
+  async function showPreviousSuccessfulMatch(token: string, currentRunId: string) {
+    try {
+      const { items } = await fetchCompanies({ sort: "created_desc", pageSize: 50 }, token);
+      const company = items.find((item) => item.matched_role_title !== null);
+      if (!company) return;
+      setMatchRuns((previous) => {
+        const current = previous.find((run) => run.id === currentRunId);
+        if (!current) return previous;
+        return [
+          current,
+          {
+            id: `saved-match-${company.id}`,
+            status: "completed",
+            startedAt: new Date(company.created_at).getTime(),
+            error: null,
+            matchedCompanyIds: [company.id],
+            timedOut: false,
+            previousSuccessfulMatch: true,
+          },
+        ];
+      });
+    } catch {
+      // The current empty result remains useful even if this optional lookup fails.
+    }
+  }
+
   async function pollMatch(runId: string, token: string, attempt = 0) {
     try {
       const result = await getMatchRun(runId, token);
@@ -90,6 +80,9 @@ export default function ResearchPage() {
         matchedCompanyIds: result.matched_company_ids,
         timedOut: false,
       });
+      if (result.status === "completed" && result.matched_company_ids.length === 0) {
+        await showPreviousSuccessfulMatch(token, runId);
+      }
       if (result.status === "pending" || result.status === "running") {
         if (attempt + 1 >= MATCH_POLL_MAX_ATTEMPTS) {
           settleMatch(runId, { timedOut: true });
@@ -123,7 +116,7 @@ export default function ResearchPage() {
     try {
       const token = await ensureValidAccessToken();
       if (!token) {
-        setMatchRuns((previous) => [
+        setMatchRuns([
           {
             id: `local-${Date.now()}`,
             status: "failed",
@@ -132,12 +125,11 @@ export default function ResearchPage() {
             matchedCompanyIds: [],
             timedOut: false,
           },
-          ...previous,
         ]);
         return;
       }
       const initial = await startMatchRun(token);
-      setMatchRuns((previous) => [
+      setMatchRuns([
         {
           id: initial.id,
           status: initial.status,
@@ -146,11 +138,10 @@ export default function ResearchPage() {
           matchedCompanyIds: [],
           timedOut: false,
         },
-        ...previous,
       ]);
       void pollMatch(initial.id, token);
     } catch (error) {
-      setMatchRuns((previous) => [
+      setMatchRuns([
         {
           id: `local-${Date.now()}`,
           status: "failed",
@@ -162,7 +153,6 @@ export default function ResearchPage() {
           matchedCompanyIds: [],
           timedOut: false,
         },
-        ...previous,
       ]);
     } finally {
       setMatchBusy(false);
@@ -422,7 +412,9 @@ function RunStatusRow(props: RunStatusRowProps) {
         : "done";
   const title = isResearch
     ? props.run.domain
-    : props.run.timedOut
+    : props.run.previousSuccessfulMatch
+      ? "Previous successful job match"
+      : props.run.timedOut
       ? "Taking longer than expected"
       : inFlight
         ? "Searching for relevant companies"
@@ -439,6 +431,8 @@ function RunStatusRow(props: RunStatusRowProps) {
         : "Research brief ready"
     : inFlight
       ? "Using your profile and current hiring signals"
+      : props.run.previousSuccessfulMatch
+        ? "Already researched and saved in your Companies"
       : props.run.timedOut
         ? "The worker may still be processing this scan."
         : props.run.status === "failed"
