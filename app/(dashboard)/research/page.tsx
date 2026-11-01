@@ -7,7 +7,7 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
 import { AlertCircleIcon, CheckCircleIcon, SpinnerIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
-import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
+import { ApiError, fetchCompanies, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
 import type { CardState, PipelineRunStatus } from "@/lib/types";
@@ -31,6 +31,43 @@ export default function ResearchPage() {
   const busy = Boolean(activeRun);
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadRecentSuccessfulMatch() {
+      const token = await ensureValidAccessToken();
+      if (!token) return;
+      try {
+        const { items } = await fetchCompanies(
+          { sort: "created_desc", pageSize: 50 },
+          token,
+          controller.signal,
+        );
+        const company = items.find((item) => item.matched_role_title !== null);
+        if (!company) return;
+        setMatchRuns((previous) =>
+          previous.length > 0
+            ? previous
+            : [
+                {
+                  id: `saved-match-${company.id}`,
+                  status: "completed",
+                  startedAt: new Date(company.created_at).getTime(),
+                  error: null,
+                  matchedCompanyIds: [company.id],
+                  timedOut: false,
+                },
+              ],
+        );
+      } catch {
+        // A new scan can still run if loading the previous successful match fails.
+      }
+    }
+
+    void loadRecentSuccessfulMatch();
+    return () => controller.abort();
+  }, []);
 
   function runResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
