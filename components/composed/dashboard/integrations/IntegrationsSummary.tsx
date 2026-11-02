@@ -23,7 +23,7 @@ export function IntegrationsSummary({ connected, total }: { connected: number; t
         <Card variant="nested" padding="sm" className="shrink-0 lg:w-64">
           <p className="utility-label text-ink-muted">Connected</p>
           <p className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-3xl font-sans-semibold tracking-display text-ink">
+            <span className="font-display text-2xl font-sans-semibold tracking-heading text-ink">
               {connected}
             </span>
             <span className="text-sm text-ink-muted">of {total}</span>

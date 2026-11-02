@@ -34,7 +34,7 @@ export function DashboardPanel({
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           {eyebrow ? <Eyebrow className="mb-2">{eyebrow}</Eyebrow> : null}
-          <h2 id={titleId} className="text-xl font-sans-semibold tracking-heading text-ink">
+          <h2 id={titleId} className="text-lg font-sans-semibold tracking-heading text-ink">
             {title}
           </h2>
           {description ? (

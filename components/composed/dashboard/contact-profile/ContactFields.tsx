@@ -1,3 +1,4 @@
+import { companyDisplayName } from "@/lib/company-brief";
 import { formatTimestamp } from "@/lib/format";
 import type { PersonDetail } from "@/lib/types";
 import { DataField } from "@/components/ui/DataField";
@@ -14,7 +15,10 @@ export function ContactFields({ detail }: { detail: PersonDetail }) {
     <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
       <DataField label="Company">
         <TextLink href={`/companies/${detail.company_id}`}>
-          {detail.company_homepage_title ?? detail.company_domain}
+          {companyDisplayName({
+            domain: detail.company_domain,
+            homepage_title: detail.company_homepage_title,
+          })}
         </TextLink>
       </DataField>
       <DataField label="Email">

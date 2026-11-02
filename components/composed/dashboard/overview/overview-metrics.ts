@@ -15,14 +15,10 @@ export interface FunnelRow {
 }
 
 export interface OverviewMetrics {
-  researched: number;
-  active: number;
   progressed: number;
   /** Companies that have been reached out to, whatever happened next. */
   outreachBase: number;
   responseRate: number;
-  outreachDelta: number;
-  researchedShare: number;
   weekly: WeeklyPoint[];
   added: number;
   hasActivityTrend: boolean;
@@ -39,7 +35,6 @@ function percent(part: number, whole: number): number {
 
 export function deriveOverviewMetrics(stats: OverviewStats): OverviewMetrics {
   const count = (stage: PipelineStage) => stats.by_stage[stage] ?? 0;
-  const researched = count("researched");
   const active = count("contacted") + count("responded") + count("interviewing");
   const progressed = count("responded") + count("interviewing") + count("closed");
   const outreachBase = active + count("closed") + count("rejected");
@@ -49,13 +44,9 @@ export function deriveOverviewMetrics(stats: OverviewStats): OverviewMetrics {
   }));
 
   return {
-    researched,
-    active,
     progressed,
     outreachBase,
     responseRate: percent(progressed, outreachBase),
-    outreachDelta: stats.contacted_within_window - stats.contacted_within_prior_window,
-    researchedShare: percent(researched, stats.total_companies),
     weekly,
     added: weekly.reduce((total, item) => total + item.companies, 0),
     hasActivityTrend: weekly.filter((item) => item.companies > 0).length > 1,

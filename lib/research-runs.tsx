@@ -3,7 +3,12 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 import { ApiError, streamResearchCompanyDomain } from "@/lib/api-client/client";
-import type { ResearchPhase, ResearchProgressEvent, ResearchSource } from "@/lib/api-client/client";
+import type {
+  ResearchPhase,
+  ResearchProgressEvent,
+  ResearchSource,
+  ResearchStep,
+} from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { phaseIndex } from "@/lib/research-phases";
 import type { CardState, SourceState } from "@/lib/types";
@@ -16,6 +21,14 @@ export interface ResearchRun {
   error: string | null;
   phase: ResearchPhase | null;
   sources: Record<ResearchSource, SourceState>;
+  /** Live steps as the backend reports them; absent until a step starts. */
+  steps: Partial<Record<ResearchStep, StepState>>;
+  startedAt: number;
+}
+
+export interface StepState {
+  status: "running" | "done";
+  count: number | null;
 }
 
 interface ResearchRunsContextValue {
@@ -70,6 +83,17 @@ function createProgressQueue(): Enqueue {
   };
 }
 
+/** A finished step never goes back to running (a reconnect replays events);
+ * a later "done" may still bring the count an earlier one lacked. */
+function withStep(
+  run: ResearchRun,
+  { step, status, count }: Extract<ResearchProgressEvent, { type: "step" }>,
+): ResearchRun {
+  const current = run.steps[step];
+  if (current?.status === "done" && (status === "running" || count === null)) return run;
+  return { ...run, steps: { ...run.steps, [step]: { status, count } } };
+}
+
 function droppedStream(error: unknown): boolean {
   return !(error instanceof ApiError) || error.status === 0;
 }
@@ -88,6 +112,8 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
         error: null,
         phase: null,
         sources: { homepage: "idle", news: "idle", hiring: "idle", people: "idle" },
+        steps: {},
+        startedAt: Date.now(),
       };
       setRuns((prev) => [run, ...prev].slice(0, MAX_TRACKED_RUNS));
 
@@ -113,6 +139,10 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
               if (index <= reached) return;
               reached = index;
               void enqueue(() => settle({ phase: event.phase }), { dwell: true });
+            } else if (event.type === "step") {
+              void enqueue(() =>
+                setRuns((prev) => prev.map((run) => (run.id === id ? withStep(run, event) : run))),
+              );
             } else {
               void enqueue(() =>
                 setRuns((prev) =>

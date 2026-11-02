@@ -28,7 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-paper text-ink antialiased">
+      {/* Browser extensions (ColorZilla's cz-shortcut-listen, Grammarly) add
+          attributes to body before React hydrates. Covers this element only. */}
+      <body className="min-h-screen bg-paper text-ink antialiased" suppressHydrationWarning>
         <ThemeSync />
         {children}
       </body>

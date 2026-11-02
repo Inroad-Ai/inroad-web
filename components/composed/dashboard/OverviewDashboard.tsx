@@ -2,19 +2,22 @@
 
 import { ActivityChart } from "./overview/ActivityChart";
 import { FollowUpList } from "./overview/FollowUpList";
+import { HiringMomentumChart } from "./overview/HiringMomentumChart";
+import { NextStepsSection } from "./overview/NextStepsSection";
 import { deriveOverviewMetrics } from "./overview/overview-metrics";
 import { OverviewEmpty } from "./overview/OverviewEmpty";
-import { OverviewHero } from "./overview/OverviewHero";
-import { OverviewKpis } from "./overview/OverviewKpis";
 import { OverviewSkeleton } from "./overview/OverviewSkeleton";
-import { PageNotice } from "./PageNotice";
-import { PipelineFunnel } from "./overview/PipelineFunnel";
+import { PipelineChart } from "./overview/PipelineChart";
 import { RecentActivity } from "./overview/RecentActivity";
-import { ResponseRateChart } from "./overview/ResponseRateChart";
+import { SkillsDemandChart } from "./overview/SkillsDemandChart";
+import { StatTiles } from "./overview/StatTiles";
 import { useOverviewData } from "./overview/useOverviewData";
+import { PageNotice } from "./PageNotice";
 
+/** Headline numbers first, then what to do next and where things stand,
+ * then the trends behind them, then the lists to work through. */
 export function OverviewDashboard() {
-  const { state, stats, message, followUps, recent } = useOverviewData();
+  const { state, stats, message, followUps, recent, insights } = useOverviewData();
 
   if (state === "loading") return <OverviewSkeleton />;
   if (state === "error") {
@@ -27,26 +30,27 @@ export function OverviewDashboard() {
 
   return (
     <div className="space-y-5">
-      <OverviewHero active={metrics.active} />
-      <OverviewKpis stats={stats} metrics={metrics} />
-      <div className="grid gap-5 xl:grid-cols-5">
-        <div className="grid min-w-0 content-start gap-5 xl:col-span-3">
-          <ActivityChart
-            weekly={metrics.weekly}
-            added={metrics.added}
-            hasTrend={metrics.hasActivityTrend}
-          />
-          {followUps.length > 0 ? <FollowUpList companies={followUps} /> : null}
+      <StatTiles stats={stats} metrics={metrics} insights={insights} />
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
+        <div className="min-w-0 xl:col-span-3">
+          <NextStepsSection steps={insights?.next_steps ?? []} />
         </div>
-        <div className="grid min-w-0 content-start gap-5 xl:col-span-2">
-          <ResponseRateChart
-            responseRate={metrics.responseRate}
-            progressed={metrics.progressed}
-            outreachBase={metrics.outreachBase}
-          />
-          <PipelineFunnel funnel={metrics.funnel} active={metrics.active} />
-          {recent.length > 0 ? <RecentActivity companies={recent} /> : null}
+        <div className="min-w-0 xl:col-span-2">
+          <PipelineChart funnel={metrics.funnel} total={stats.total_companies} />
         </div>
+      </div>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <ActivityChart
+          weekly={metrics.weekly}
+          added={metrics.added}
+          hasTrend={metrics.hasActivityTrend}
+        />
+        <HiringMomentumChart hiring={insights?.hiring ?? []} />
+      </div>
+      <SkillsDemandChart skills={insights?.skills ?? []} roles={insights?.fitting_roles ?? 0} />
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        {followUps.length > 0 ? <FollowUpList companies={followUps} /> : null}
+        {recent.length > 0 ? <RecentActivity companies={recent} /> : null}
       </div>
     </div>
   );

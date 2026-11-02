@@ -9,6 +9,7 @@ import { DashboardPanel } from "../DashboardPanel";
 import { PageNotice, SetupNotice } from "../PageNotice";
 import { CadenceOptions } from "./CadenceOptions";
 import { OpportunityAlertsToggle } from "./OpportunityAlertsToggle";
+import { PasswordForm } from "./PasswordForm";
 import { SettingRow } from "./SettingRow";
 
 const SKELETON_SECTIONS = 3;
@@ -48,6 +49,10 @@ export function SettingsPanel() {
         >
           <p className="break-all font-mono text-sm text-ink">{profile.email}</p>
         </SettingRow>
+      </DashboardPanel>
+
+      <DashboardPanel title="Password">
+        <PasswordForm />
       </DashboardPanel>
 
       <DashboardPanel title="Appearance">

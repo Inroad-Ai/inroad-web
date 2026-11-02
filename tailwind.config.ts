@@ -67,6 +67,10 @@ const config: Config = {
         "3xl": ["var(--text-3xl-size)", { lineHeight: "var(--text-3xl-line-height)" }],
         "4xl": ["var(--text-4xl-size)", { lineHeight: "var(--text-4xl-line-height)" }],
         title: ["var(--text-title-size)", { lineHeight: "var(--text-title-line-height)" }],
+        "page-title": [
+          "var(--text-page-title-size)",
+          { lineHeight: "var(--text-page-title-line-height)" },
+        ],
         section: ["var(--text-section-size)", { lineHeight: "var(--text-section-line-height)" }],
         chapter: ["var(--text-chapter-size)", { lineHeight: "var(--text-chapter-line-height)" }],
         "chapter-xl": [

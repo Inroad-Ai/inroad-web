@@ -13,6 +13,7 @@ import { ApiError, login, resendVerification, signup } from "@/lib/api-client/cl
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
 import { isValidEmail } from "@/lib/onboarding";
+import { MIN_PASSWORD_LENGTH, newPasswordProblem } from "@/lib/password";
 
 import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
 import { AuthHeading } from "./AuthHeading";
@@ -20,8 +21,6 @@ import { CheckYourEmail } from "./CheckYourEmail";
 import { GoogleSignIn } from "./GoogleSignIn";
 
 type Mode = "login" | "signup";
-
-const MIN_PASSWORD_LENGTH = 8;
 
 const COPY: Record<
   Mode,
@@ -73,10 +72,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
   function validationMessage(): string {
     if (!isValidEmail(email)) return "That doesn't look like a real email.";
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      return `Password needs to be at least ${MIN_PASSWORD_LENGTH} characters.`;
-    }
-    return "Those passwords don't match.";
+    return (
+      newPasswordProblem(password, mode === "login" ? password : confirmPassword) ??
+      "Those passwords don't match."
+    );
   }
 
   async function handleResendFromLogin() {

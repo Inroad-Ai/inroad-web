@@ -55,6 +55,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Overview Insights
+         * @description The Overview's view of the caller's companies: next steps, roles that
+         *     fit, hiring momentum and skills in demand.
+         */
+        get: operations["overview_insights_api_companies_insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/overview": {
         parameters: {
             query?: never;
@@ -643,6 +664,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Signs out every other session; the pair returned keeps this one.
+         */
+        post: operations["change_password_api_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/refresh": {
         parameters: {
             query?: never;
@@ -947,6 +988,13 @@ export interface components {
             /** Credential Url */
             credential_url?: string | null;
         };
+        /** ChangePasswordRequest */
+        ChangePasswordRequest: {
+            /** Current Password */
+            current_password?: string | null;
+            /** New Password */
+            new_password: string;
+        };
         /** CompanyDetail */
         CompanyDetail: {
             /**
@@ -1013,6 +1061,8 @@ export interface components {
             fitting_roles?: components["schemas"]["FittingRoleOut"][];
             /** Contact Search Title */
             contact_search_title?: string | null;
+            skill_match?: components["schemas"]["SkillMatchOut"] | null;
+            role_team?: components["schemas"]["RoleTeamOut"] | null;
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -1270,6 +1320,11 @@ export interface components {
             email: string;
             /** Email Verified */
             email_verified: boolean;
+            /**
+             * Has Password
+             * @default false
+             */
+            has_password: boolean;
         };
         /** EducationEntry */
         EducationEntry: {
@@ -1335,6 +1390,22 @@ export interface components {
             service_timeout: number;
             /** Total Timeout */
             total_timeout: number;
+        };
+        /** HiringPoint */
+        HiringPoint: {
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Domain */
+            domain: string;
+            /** Homepage Title */
+            homepage_title?: string | null;
+            /** New Roles 30D */
+            new_roles_30d: number;
+            /** Open Roles */
+            open_roles?: number | null;
         };
         /** HiringResult */
         HiringResult: {
@@ -1516,6 +1587,67 @@ export interface components {
             items?: components["schemas"]["NewsItem"][];
         };
         /**
+         * NextStep
+         * @description One company on the Overview's "what to do next" list.
+         */
+        NextStep: {
+            /**
+             * Company Id
+             * Format: uuid
+             */
+            company_id: string;
+            /** Domain */
+            domain: string;
+            /** Homepage Title */
+            homepage_title?: string | null;
+            /** Logo Url */
+            logo_url?: string | null;
+            /** Stage */
+            stage: string;
+            /** Role Title */
+            role_title?: string | null;
+            /** Role Url */
+            role_url?: string | null;
+            /** Fit Reason */
+            fit_reason?: string | null;
+            /**
+             * Fitting Roles
+             * @default 0
+             */
+            fitting_roles: number;
+            /** Skills Matched */
+            skills_matched?: number | null;
+            /** Skills Total */
+            skills_total?: number | null;
+            /**
+             * New Roles 30D
+             * @default 0
+             */
+            new_roles_30d: number;
+            contact?: components["schemas"]["NextStepContact"] | null;
+            /** Action */
+            action: string;
+        };
+        /** NextStepContact */
+        NextStepContact: {
+            /**
+             * Person Id
+             * Format: uuid
+             */
+            person_id: string;
+            /** Name */
+            name: string;
+            /** Title */
+            title?: string | null;
+            /**
+             * Has Email
+             * @default false
+             */
+            has_email: boolean;
+            /** Reason */
+            reason?: string | null;
+        };
+        /**
          * NotificationAction
          * @enum {string}
          */
@@ -1656,6 +1788,44 @@ export interface components {
             sequence_index: number;
             /** Drafts */
             drafts?: components["schemas"]["OutreachDraftOut"][];
+        };
+        /**
+         * OverviewInsights
+         * @description What the Overview shows about the person's companies, from their
+         *     latest research.
+         */
+        OverviewInsights: {
+            /** Next Steps */
+            next_steps?: components["schemas"]["NextStep"][];
+            /**
+             * Companies Considered
+             * @default 0
+             */
+            companies_considered: number;
+            /**
+             * Companies With Fit
+             * @default 0
+             */
+            companies_with_fit: number;
+            /**
+             * Fitting Roles
+             * @default 0
+             */
+            fitting_roles: number;
+            /**
+             * Contacts Ready
+             * @default 0
+             */
+            contacts_ready: number;
+            /**
+             * Contacts With Email
+             * @default 0
+             */
+            contacts_with_email: number;
+            /** Hiring */
+            hiring?: components["schemas"]["HiringPoint"][];
+            /** Skills */
+            skills?: components["schemas"]["SkillDemand"][];
         };
         /** OverviewStats */
         OverviewStats: {
@@ -2222,6 +2392,22 @@ export interface components {
             workplace_type?: string | null;
             /** Contacts */
             contacts?: components["schemas"]["PostingContact"][];
+            /** Skills */
+            skills?: string[];
+        };
+        /** RoleTeamOut */
+        RoleTeamOut: {
+            /** Role Title */
+            role_title: string;
+            /** Department */
+            department?: string | null;
+            /** Reports To */
+            reports_to?: string | null;
+            /**
+             * Team Size
+             * @default 0
+             */
+            team_size: number;
         };
         /** SignupRequest */
         SignupRequest: {
@@ -2232,6 +2418,29 @@ export interface components {
             email: string;
             /** Password */
             password: string;
+        };
+        /** SkillDemand */
+        SkillDemand: {
+            /** Skill */
+            skill: string;
+            /** Roles */
+            roles: number;
+            /** Have */
+            have: boolean;
+        };
+        /**
+         * SkillMatchOut
+         * @description How the person's own skills meet the role's (or the company's stack).
+         */
+        SkillMatchOut: {
+            /** Role Title */
+            role_title?: string | null;
+            /** Matched */
+            matched?: string[];
+            /** Missing */
+            missing?: string[];
+            /** Basis */
+            basis: string;
         };
         /** SourceDocumentRef */
         SourceDocumentRef: {
@@ -2490,6 +2699,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_insights_api_companies_insights_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewInsights"];
                 };
             };
             /** @description Validation Error */
@@ -3587,6 +3827,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CurrentUser"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_password_api_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenPair"];
                 };
             };
             /** @description Validation Error */

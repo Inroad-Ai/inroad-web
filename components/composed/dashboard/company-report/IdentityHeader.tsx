@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchCompany, updateCompanyStage } from "@/lib/api-client/client";
 import { formatTimestamp } from "@/lib/format";
 import { useResearchRuns } from "@/lib/research-runs";
+import type { CompanyBrief } from "@/lib/company-brief";
 import type { Company, CompanyDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -17,10 +18,12 @@ import { RerunProgress } from "./RerunProgress";
 
 export function IdentityHeader({
   detail,
+  brief,
   accessToken,
   onCompanyChange,
 }: {
   detail: CompanyDetail;
+  brief: CompanyBrief;
   accessToken: () => Promise<string>;
   onCompanyChange: (company: Company) => void;
 }) {
@@ -82,7 +85,7 @@ export function IdentityHeader({
 
   return (
     <Card as="section" padding="none" className="overflow-hidden" aria-label={detail.domain}>
-      <HeroBand detail={detail} />
+      <HeroBand detail={detail} brief={brief} />
 
       <div className="flex flex-col gap-4 px-6 py-5 sm:px-8">
         <div className="flex flex-wrap items-center gap-3">
