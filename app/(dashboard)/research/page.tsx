@@ -9,6 +9,11 @@ import { AlertCircleIcon, CheckCircleIcon, SpinnerIcon } from "@/components/ui/I
 import { Input } from "@/components/ui/Input";
 import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import {
+  clearLatestMatchRun,
+  loadLatestMatchRun,
+  saveLatestMatchRun,
+} from "@/lib/latest-match-run";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
 import type { CardState, PipelineRunStatus } from "@/lib/types";
 
@@ -18,6 +23,7 @@ interface MatchRun {
   startedAt: number;
   error: string | null;
   matchedCompanyIds: string[];
+  viewedCompanyIds: string[];
   timedOut: boolean;
 }
 
@@ -32,6 +38,11 @@ export default function ResearchPage() {
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
 
+  useEffect(() => {
+    const latestRun = loadLatestMatchRun();
+    if (latestRun) setMatchRuns([latestRun]);
+  }, []);
+
   function runResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextDomain = domain.trim();
@@ -44,7 +55,7 @@ export default function ResearchPage() {
     );
   }
 
-  async function pollMatch(runId: string, token: string, attempt = 0) {
+  async function pollMatch(runId: string, token: string, startedAt: number, attempt = 0) {
     try {
       const result = await getMatchRun(runId, token);
       settleMatch(runId, {
@@ -53,12 +64,26 @@ export default function ResearchPage() {
         matchedCompanyIds: result.matched_company_ids,
         timedOut: false,
       });
+      if (result.status === "completed" && result.matched_company_ids.length > 0) {
+        saveLatestMatchRun({
+          id: runId,
+          status: "completed",
+          startedAt,
+          error: null,
+          matchedCompanyIds: result.matched_company_ids,
+          viewedCompanyIds: [],
+          timedOut: false,
+        });
+      }
       if (result.status === "pending" || result.status === "running") {
         if (attempt + 1 >= MATCH_POLL_MAX_ATTEMPTS) {
           settleMatch(runId, { timedOut: true });
           return;
         }
-        setTimeout(() => void pollMatch(runId, token, attempt + 1), MATCH_POLL_INTERVAL_MS);
+        setTimeout(
+          () => void pollMatch(runId, token, startedAt, attempt + 1),
+          MATCH_POLL_INTERVAL_MS,
+        );
       }
     } catch (error) {
       settleMatch(runId, {
@@ -78,7 +103,8 @@ export default function ResearchPage() {
       });
       return;
     }
-    void pollMatch(runId, token);
+    const run = matchRuns.find((item) => item.id === runId);
+    void pollMatch(runId, token, run?.startedAt ?? Date.now());
   }
 
   async function runMatch() {
@@ -93,6 +119,7 @@ export default function ResearchPage() {
             startedAt: Date.now(),
             error: "Your session expired. Sign in again to run this.",
             matchedCompanyIds: [],
+            viewedCompanyIds: [],
             timedOut: false,
           },
           ...previous,
@@ -100,18 +127,20 @@ export default function ResearchPage() {
         return;
       }
       const initial = await startMatchRun(token);
+      const startedAt = Date.now();
       setMatchRuns((previous) => [
         {
           id: initial.id,
           status: initial.status,
-          startedAt: Date.now(),
+          startedAt,
           error: initial.error,
           matchedCompanyIds: [],
+          viewedCompanyIds: [],
           timedOut: false,
         },
         ...previous,
       ]);
-      void pollMatch(initial.id, token);
+      void pollMatch(initial.id, token, startedAt);
     } catch (error) {
       setMatchRuns((previous) => [
         {
@@ -123,6 +152,7 @@ export default function ResearchPage() {
               ? error.message
               : "Something went wrong before the match could start.",
           matchedCompanyIds: [],
+          viewedCompanyIds: [],
           timedOut: false,
         },
         ...previous,
@@ -130,6 +160,22 @@ export default function ResearchPage() {
     } finally {
       setMatchBusy(false);
     }
+  }
+
+  function markMatchViewed(runId: string, companyId: string) {
+    setMatchRuns((previous) =>
+      previous.flatMap((run) => {
+        if (run.id !== runId) return [run];
+        const viewedCompanyIds = [...new Set([...run.viewedCompanyIds, companyId])];
+        if (run.matchedCompanyIds.every((id) => viewedCompanyIds.includes(id))) {
+          clearLatestMatchRun();
+          return [];
+        }
+        const updated = { ...run, viewedCompanyIds };
+        saveLatestMatchRun(updated);
+        return [updated];
+      }),
+    );
   }
 
   return (
@@ -220,7 +266,13 @@ export default function ResearchPage() {
           empty="Run a match scan to surface companies aligned with your profile."
         >
           {matchRuns.map((run) => (
-            <RunStatusRow key={run.id} kind="match" run={run} onRetry={retryMatchPoll} />
+            <RunStatusRow
+              key={run.id}
+              kind="match"
+              run={run}
+              onRetry={retryMatchPoll}
+              onMatchViewed={markMatchViewed}
+            />
           ))}
         </RunPanel>
       </section>
@@ -369,7 +421,12 @@ function useElapsedSeconds(startedAt: number) {
 
 type RunStatusRowProps =
   | { kind: "research"; run: ResearchRun }
-  | { kind: "match"; run: MatchRun; onRetry: (runId: string) => void };
+  | {
+      kind: "match";
+      run: MatchRun;
+      onRetry: (runId: string) => void;
+      onMatchViewed: (runId: string, companyId: string) => void;
+    };
 
 function RunStatusRow(props: RunStatusRowProps) {
   const isResearch = props.kind === "research";
@@ -434,15 +491,23 @@ function RunStatusRow(props: RunStatusRowProps) {
       props.run.status === "completed" &&
       props.run.matchedCompanyIds.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
-          {props.run.matchedCompanyIds.map((companyId, index) => (
-            <Link
-              key={companyId}
-              href={`/companies/${companyId}`}
-              className="rounded-full border border-signal-teal/20 bg-signal-teal-subtle px-3 py-1.5 text-xs font-medium text-signal-teal transition-colors hover:bg-signal-teal hover:text-surface"
-            >
-              View match {index + 1}
-            </Link>
-          ))}
+          {props.run.matchedCompanyIds.map((companyId, index) => {
+            const viewed = props.run.viewedCompanyIds.includes(companyId);
+            return (
+              <Link
+                key={companyId}
+                href={`/companies/${companyId}`}
+                onClick={() => props.onMatchViewed(props.run.id, companyId)}
+                className={
+                  viewed
+                    ? "rounded-full border border-line bg-surface-raised px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-surface-raised/70"
+                    : "rounded-full border border-signal-teal/20 bg-signal-teal-subtle px-3 py-1.5 text-xs font-medium text-signal-teal transition-colors hover:bg-signal-teal hover:text-surface"
+                }
+              >
+                {viewed ? "Viewed" : "View"} match {index + 1}
+              </Link>
+            );
+          })}
         </div>
       ) : null}
     </>
