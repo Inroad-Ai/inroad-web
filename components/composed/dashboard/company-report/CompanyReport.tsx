@@ -1,23 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { fetchCompany } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { buildBrief } from "@/lib/company-brief";
 import type { Company, CompanyDetail } from "@/lib/types";
 
 import { PageNotice } from "../PageNotice";
+import { AboutSection } from "./AboutSection";
 import { CompanyReportSkeleton } from "./CompanyReportSkeleton";
-import { HiringSection } from "./HiringSection";
+import { FittingRolesSection } from "./FittingRolesSection";
+import { HighlightsSection } from "./HighlightsSection";
 import { IdentityHeader } from "./IdentityHeader";
 import { NewsSection } from "./NewsSection";
 import { NotesSection } from "./NotesSection";
+import { OpenRolesSection } from "./OpenRolesSection";
 import { PeopleSection } from "./PeopleSection";
-import { ProductsLeadershipSection } from "./ProductsLeadershipSection";
-import { ProfileSection } from "./ProfileSection";
-import { SourcedFactsSection } from "./SourcedFactsSection";
+import { ProductsSection } from "./ProductsSection";
 import { WhoToContactSection } from "./WhoToContactSection";
-import { FittingRolesSection } from "./FittingRolesSection";
+import { YouAndThemCard } from "./YouAndThemCard";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -64,29 +66,42 @@ export function CompanyReport({ companyId }: { companyId: string }) {
     setDetail((current) => (current === null ? current : { ...current, ...company }));
   }
 
+  const brief = useMemo(() => (detail === null ? null : buildBrief(detail)), [detail]);
+
   if (loadState === "loading") return <CompanyReportSkeleton />;
 
-  if (loadState === "error" || detail === null) {
+  if (loadState === "error" || detail === null || brief === null) {
     return <PageNotice isError>{loadError}</PageNotice>;
   }
 
   return (
     <div className="flex flex-col gap-6">
-      <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
+      <IdentityHeader
+        detail={detail}
+        brief={brief}
+        accessToken={accessToken}
+        onCompanyChange={mergeCompany}
+      />
+      <YouAndThemCard detail={detail} brief={brief} />
 
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <ProfileSection detail={detail} />
+          <AboutSection brief={brief} />
           <FittingRolesSection detail={detail} />
-          <HiringSection detail={detail} />
-          <SourcedFactsSection detail={detail} />
-          <ProductsLeadershipSection detail={detail} />
-          <NewsSection detail={detail} />
+          <OpenRolesSection brief={brief} />
+          <ProductsSection brief={brief} />
+          <HighlightsSection brief={brief} />
+          <NewsSection brief={brief} />
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-6" aria-label="Who to contact and notes">
+        {/* Stays beside the brief while it scrolls: who to contact is the next step. */}
+        <aside
+          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-20"
+          aria-label="Who to contact and notes"
+        >
           <WhoToContactSection
             detail={detail}
+            companyName={brief.name}
             accessToken={accessToken}
             onDetailChange={replaceDetail}
           />

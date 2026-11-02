@@ -21,6 +21,10 @@ import type { components, paths } from "./schema";
 
 export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
+export type NextStep = components["schemas"]["NextStep"];
+export type OverviewInsights = components["schemas"]["OverviewInsights"];
+export type HiringPoint = components["schemas"]["HiringPoint"];
+export type SkillDemand = components["schemas"]["SkillDemand"];
 export type Profile = components["schemas"]["ProfileOut"];
 export type ProfileUpsert = components["schemas"]["ProfileUpsert"];
 export type Connection = components["schemas"]["ConnectionOut"];
@@ -187,9 +191,13 @@ export async function fetchCompany(
 
 export type ResearchPhase = "verified" | "gathering" | "creating_brief" | "saving";
 export type ResearchSource = "homepage" | "news" | "hiring" | "people";
+/** What a running research is doing right now, with a count once done. */
+export type ResearchStep = "site" | "jobs" | "facts" | "news" | "people";
+export const RESEARCH_STEPS: readonly ResearchStep[] = ["site", "jobs", "facts", "news", "people"];
 export type ResearchProgressEvent =
   | { type: "phase"; phase: ResearchPhase }
-  | { type: "source"; source: ResearchSource; status: "done" | "failed" | "not_collected" };
+  | { type: "source"; source: ResearchSource; status: "done" | "failed" | "not_collected" }
+  | { type: "step"; step: ResearchStep; status: "running" | "done"; count: number | null };
 
 type ResearchStreamEvent =
   | ResearchProgressEvent
@@ -231,6 +239,18 @@ function parseResearchStreamEvent(data: string): ResearchStreamEvent {
     (event.status === "done" || event.status === "failed" || event.status === "not_collected")
   ) {
     return { type: "source", source: event.source, status: event.status };
+  }
+  if (
+    event.type === "step" &&
+    RESEARCH_STEPS.includes(event.step as ResearchStep) &&
+    (event.status === "running" || event.status === "done")
+  ) {
+    return {
+      type: "step",
+      step: event.step as ResearchStep,
+      status: event.status,
+      count: typeof event.count === "number" ? event.count : null,
+    };
   }
   throw new ApiError("The research progress response was invalid.", 0);
 }
@@ -412,6 +432,20 @@ export async function searchMoreContacts(
   });
 
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
+}
+
+/** The Overview's view of the user's companies: next steps, roles that fit,
+ * hiring momentum and skills in demand. */
+export async function fetchOverviewInsights(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<OverviewInsights> {
+  const result = await client.GET("/api/companies/insights", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE);
 }
 
 /** Aggregates for the Overview page. */
@@ -823,6 +857,22 @@ export async function forgotPassword(email: string): Promise<string> {
  * revoked, this one included, so it is issued after that sweep. */
 export async function resetPassword(token: string, password: string): Promise<TokenPair> {
   const result = await client.POST("/api/auth/reset-password", { body: { token, password } });
+
+  return unwrap(result, AUTH_UNREACHABLE);
+}
+
+/** Sets the first password of a Google-only account (no current one), or
+ * changes it. Every other session is signed out; the pair returned keeps
+ * this one. */
+export async function changePassword(
+  currentPassword: string | null,
+  newPassword: string,
+  accessToken: string,
+): Promise<TokenPair> {
+  const result = await client.POST("/api/auth/password", {
+    body: { current_password: currentPassword, new_password: newPassword },
+    headers: authHeaders(accessToken),
+  });
 
   return unwrap(result, AUTH_UNREACHABLE);
 }

@@ -10,11 +10,10 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { ApiError, resetPassword } from "@/lib/api-client/client";
 import { resolvePostAuthPath } from "@/lib/auth";
 import { storeTokens } from "@/lib/auth-native/browser";
+import { MIN_PASSWORD_LENGTH, newPasswordProblem } from "@/lib/password";
 
 import { AuthFooterNote, AuthLink } from "./AuthFooterNote";
 import { AuthHeading } from "./AuthHeading";
-
-const MIN_PASSWORD_LENGTH = 8;
 
 export function ResetPasswordForm() {
   const router = useRouter();
@@ -28,8 +27,8 @@ export function ResetPasswordForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const passwordsMatch = password === confirmPassword;
-  const valid = password.length >= MIN_PASSWORD_LENGTH && passwordsMatch;
+  const problem = newPasswordProblem(password, confirmPassword);
+  const valid = problem === null;
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -96,13 +95,7 @@ export function ResetPasswordForm() {
           />
         </Field>
 
-        {touched && !valid ? (
-          <Notice>
-            {password.length < MIN_PASSWORD_LENGTH
-              ? `Password needs to be at least ${MIN_PASSWORD_LENGTH} characters.`
-              : "Those passwords don't match."}
-          </Notice>
-        ) : null}
+        {touched && problem ? <Notice>{problem}</Notice> : null}
         {error ? <Notice>{error}</Notice> : null}
 
         <Button type="submit" size="lg" loading={submitting} className="mt-2 w-full">

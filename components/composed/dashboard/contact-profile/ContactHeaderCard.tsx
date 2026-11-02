@@ -1,3 +1,4 @@
+import { companyDisplayName } from "@/lib/company-brief";
 import { PERSON_ROLE_LABEL, type PersonDetail, type PersonStage } from "@/lib/types";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
@@ -48,7 +49,10 @@ export function ContactHeaderCard({
         </h2>
         <p className="mt-1 text-sm text-ink-muted">
           {detail.title ?? "Title not listed"} at{" "}
-          {detail.company_homepage_title ?? detail.company_domain}
+          {companyDisplayName({
+            domain: detail.company_domain,
+            homepage_title: detail.company_homepage_title,
+          })}
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Badge tone="neutral">{PERSON_ROLE_LABEL[detail.role_category]}</Badge>

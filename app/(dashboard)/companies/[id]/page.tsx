@@ -8,7 +8,7 @@ export default async function CompanyReportPage({ params }: { params: Promise<{ 
   return (
     <PageShell
       title="Company"
-      description="Everything saved for this company, and what the last research run found."
+      hideTitle
       action={
         <Button href="/companies" variant="ghost" size="sm" icon={<ArrowLeftIcon />}>
           Back to companies

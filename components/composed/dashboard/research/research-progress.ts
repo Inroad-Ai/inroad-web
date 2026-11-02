@@ -1,51 +1,39 @@
-import type { ResearchPhase, ResearchSource } from "@/lib/api-client/client";
-import type { ResearchRun } from "@/lib/research-runs";
-import type { SourceState } from "@/lib/types";
+import type { ResearchStep } from "@/lib/api-client/client";
 
-export function phaseLabel(phase: ResearchPhase | null): string {
-  switch (phase) {
-    case "verified":
-      return "Website address accepted. Getting started...";
-    case "gathering":
-      return "Checking website, news, people and hiring information";
-    case "creating_brief":
-      return "Putting your research brief together";
-    case "saving":
-      return "Saving your research brief";
-    default:
-      return "Starting research";
-  }
-}
+/** What each live step says while it runs, and once done, with its count. */
+export const RESEARCH_STEP_COPY: Record<
+  ResearchStep,
+  { running: string; done: (count: number | null) => string }
+> = {
+  site: {
+    running: "Reading their website",
+    done: (n) => (n === null ? "Read their website" : `Read ${n} ${plural(n, "page")}`),
+  },
+  jobs: {
+    running: "Checking their job board",
+    done: (n) =>
+      n === null
+        ? "Job board checked"
+        : n
+          ? `Found ${n} open ${plural(n, "role")}`
+          : "No job board we can read",
+  },
+  facts: {
+    running: "Pulling out facts, each with its source",
+    done: (n) => (n === null ? "Facts pulled out" : `${n} ${plural(n, "fact")} with sources`),
+  },
+  news: {
+    running: "Checking for recent news",
+    done: (n) =>
+      n === null ? "News checked" : n ? `${n} news ${plural(n, "item")}` : "No recent news",
+  },
+  people: {
+    running: "Finding people on their team",
+    done: (n) =>
+      n ? `${n} ${plural(n, "person", "people")} named` : "No team page listing people",
+  },
+};
 
-export const RESEARCH_SOURCES: readonly {
-  key: ResearchSource;
-  label: string;
-  description: string;
-}[] = [
-  { key: "homepage", label: "Website", description: "How the company describes itself." },
-  { key: "news", label: "News", description: "Recent moments worth mentioning." },
-  { key: "hiring", label: "Hiring", description: "Open roles and where they are posted." },
-  { key: "people", label: "People", description: "Who works there, and who to write to." },
-];
-
-/** A source the backend hasn't reported on yet is being checked once the
- * gathering phase starts. */
-export function sourceState(run: ResearchRun, key: ResearchSource): SourceState {
-  const state = run.sources[key];
-  return state === "idle" && run.phase === "gathering" ? "pending" : state;
-}
-
-export function sourceStatusLabel(state: SourceState): string {
-  switch (state) {
-    case "done":
-      return "Checked";
-    case "failed":
-      return "Failed";
-    case "not_collected":
-      return "Not covered";
-    case "pending":
-      return "Checking";
-    default:
-      return "Waiting";
-  }
+function plural(n: number, one: string, many = `${one}s`): string {
+  return n === 1 ? one : many;
 }

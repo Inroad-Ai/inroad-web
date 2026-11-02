@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 
 import type { PipelineStage } from "@/components/ui/StatusBadge";
-import { fetchCompanies, fetchOverviewStats } from "@/lib/api-client/client";
+import {
+  fetchCompanies,
+  fetchOverviewInsights,
+  fetchOverviewStats,
+  type OverviewInsights,
+} from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import type { Company, OverviewStats } from "@/lib/types";
 
@@ -23,6 +28,7 @@ interface OverviewData {
   message: string;
   followUps: Company[];
   recent: Company[];
+  insights: OverviewInsights | null;
 }
 
 export function useOverviewData(): OverviewData {
@@ -32,6 +38,7 @@ export function useOverviewData(): OverviewData {
   // Independent of `state`: a list failing shouldn't blank the dashboard.
   const [followUps, setFollowUps] = useState<Company[]>([]);
   const [recent, setRecent] = useState<Company[]>([]);
+  const [insights, setInsights] = useState<OverviewInsights | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -80,6 +87,14 @@ export function useOverviewData(): OverviewData {
       }
     }
 
+    async function loadInsights(token: string) {
+      try {
+        setInsights(await fetchOverviewInsights(token, signal));
+      } catch {
+        // Best-effort widget - leave the list empty on failure.
+      }
+    }
+
     async function load() {
       const token = await ensureValidAccessToken();
       if (!token) {
@@ -87,12 +102,17 @@ export function useOverviewData(): OverviewData {
         setState("error");
         return;
       }
-      await Promise.all([loadStats(token), loadFollowUps(token), loadRecent(token)]);
+      await Promise.all([
+        loadStats(token),
+        loadFollowUps(token),
+        loadRecent(token),
+        loadInsights(token),
+      ]);
     }
 
     void load();
     return () => controller.abort();
   }, []);
 
-  return { state, stats, message, followUps, recent };
+  return { state, stats, message, followUps, recent, insights };
 }

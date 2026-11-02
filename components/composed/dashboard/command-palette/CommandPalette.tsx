@@ -8,6 +8,7 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { SearchIcon } from "@/components/ui/Icons";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
+import { companyDisplayName } from "@/lib/company-brief";
 import { LANDING_EASE } from "@/lib/landing-motion";
 
 import { PaletteOption } from "./PaletteOption";
@@ -54,7 +55,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
   const companyMatches: PaletteCommand[] = search.companies.map((company) => ({
     id: `company:${company.id}`,
     group: "Companies",
-    label: company.homepage_title || company.domain,
+    label: companyDisplayName(company),
     hint: company.domain,
     icon: <CompanyLogo logoUrl={company.logo_url} seed={company.domain} size="xs" />,
     run: () => router.push(`/companies/${company.id}`),

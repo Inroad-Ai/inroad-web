@@ -5,28 +5,29 @@ import { useState } from "react";
 
 import { searchMoreContacts } from "@/lib/api-client/client";
 import { contactPicks, contactSourceLabel, linkedInSearchUrl } from "@/lib/contacts";
-import type { CompanyDetail } from "@/lib/types";
+import type { CompanyDetail, Person } from "@/lib/types";
+import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
-import { TextLink } from "@/components/ui/TextLink";
 
 import { DashboardPanel } from "../DashboardPanel";
 import { ExternalLink } from "./ExternalLink";
 
 export function WhoToContactSection({
   detail,
+  companyName,
   accessToken,
   onDetailChange,
 }: {
   detail: CompanyDetail;
+  companyName: string;
   accessToken: () => Promise<string>;
   onDetailChange: (detail: CompanyDetail) => void;
 }) {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState("");
   const picks = contactPicks(detail.people ?? []);
-  const companyName = detail.homepage_title ?? detail.domain;
 
   async function searchMore() {
     setSearching(true);
@@ -43,54 +44,81 @@ export function WhoToContactSection({
   return (
     <DashboardPanel title="Who to contact">
       {picks.length === 0 ? (
-        <EmptyState>Nobody listed here looks right for this role yet.</EmptyState>
+        <p className="text-sm text-ink-muted">
+          Nobody listed on their site looks right for this role yet.
+        </p>
       ) : (
-        <ol className="flex flex-col gap-4">
+        <ol className="flex flex-col gap-3">
           {picks.map((person) => (
-            <li key={person.id} className="flex flex-col gap-1">
-              <p className="text-sm text-ink">
-                <span className="font-sans-semibold">{person.name}</span>
-                {person.title ? <span className="text-ink-muted">, {person.title}</span> : null}
-              </p>
-              {person.contact_reason ? (
-                <p className="text-sm text-ink-muted">{person.contact_reason}</p>
-              ) : null}
-              <p className="text-xs text-ink-faint">Found on {contactSourceLabel(person.source)}</p>
-              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-                {person.email ? (
-                  <TextLink href={`mailto:${person.email}`} className="break-all">
-                    {person.email}
-                  </TextLink>
-                ) : null}
-                {person.linkedin_url ? (
-                  <ExternalLink href={person.linkedin_url}>LinkedIn</ExternalLink>
-                ) : null}
-                <Link
-                  href={`/contacts/${person.id}`}
-                  className="text-ink underline underline-offset-4"
-                >
-                  Draft outreach
-                </Link>
-              </div>
-            </li>
+            <ContactCard key={person.id} person={person} />
           ))}
         </ol>
       )}
 
-      <div className="mt-4 flex flex-col gap-2 text-xs">
+      <div className="mt-5 flex flex-col gap-3 border-t border-line pt-4">
         {detail.contact_search_title ? (
-          <ExternalLink href={linkedInSearchUrl(detail.contact_search_title, companyName)}>
-            Search LinkedIn for {detail.contact_search_title} at {companyName}
+          <ExternalLink
+            href={linkedInSearchUrl(detail.contact_search_title, companyName)}
+            className="text-sm"
+          >
+            Search LinkedIn: {detail.contact_search_title} at {companyName}
           </ExternalLink>
         ) : null}
         <div>
           <Button variant="quiet" size="sm" disabled={searching} onClick={searchMore}>
             {searching ? "Searching..." : "Find more people with Hunter"}
           </Button>
-          <p className="mt-1 text-ink-faint">Uses one search from your own Hunter credits.</p>
+          <p className="mt-1.5 text-xs text-ink-faint">Uses one search from your Hunter credits.</p>
         </div>
       </div>
       {error ? <Notice className="mt-3">{error}</Notice> : null}
     </DashboardPanel>
+  );
+}
+
+function ContactCard({ person }: { person: Person }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyEmail() {
+    if (!person.email) return;
+    try {
+      await navigator.clipboard.writeText(person.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard can be blocked by the browser; the address is still shown to select.
+    }
+  }
+
+  return (
+    <Card as="li" variant="nested" padding="sm" className="flex flex-col gap-3">
+      <div className="flex items-start gap-3">
+        <Avatar name={person.name} size="md" />
+        <div className="min-w-0">
+          <p className="text-sm font-sans-semibold text-ink">{person.name}</p>
+          {person.title ? <p className="text-sm text-ink-muted">{person.title}</p> : null}
+        </div>
+      </div>
+      {person.contact_reason ? (
+        <p className="text-sm leading-relaxed text-ink">{person.contact_reason}</p>
+      ) : null}
+      <p className="text-xs text-ink-faint">Found on {contactSourceLabel(person.source)}</p>
+      {person.email ? <p className="break-all text-xs text-ink-muted">{person.email}</p> : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button href={`/contacts/${person.id}`} size="sm">
+          Draft outreach
+        </Button>
+        {person.email ? (
+          <Button variant="quiet" size="sm" onClick={copyEmail}>
+            {copied ? "Copied" : "Copy email"}
+          </Button>
+        ) : null}
+        {person.linkedin_url ? (
+          <ExternalLink href={person.linkedin_url} className="text-sm">
+            LinkedIn
+          </ExternalLink>
+        ) : null}
+      </div>
+    </Card>
   );
 }

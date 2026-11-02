@@ -61,9 +61,15 @@ export interface RolePosting {
   /** Sourcing boards only: "listed_in_latest_complete_scan" |
    * "listed_in_latest_scan" | "not_seen_in_latest_scan". */
   availability?: string | null;
+  workplace_type?: string | null;
+  country?: string | null;
+  /** Technologies the posting names. */
+  skills?: string[];
 }
 
 interface HiringResult {
+  /** The company's own name where a source states it. */
+  company_name?: string | null;
   /** null: unknown (a careers page, but nothing said whether roles are open). */
   is_hiring: boolean | null;
   /** null means "could not count", not 0 ("counted, none open"). */
@@ -297,6 +303,25 @@ export interface CompanyDetail extends Company {
   fitting_roles: FittingRole[];
   /** What to search LinkedIn for when nobody listed fits. */
   contact_search_title: string | null;
+  /** How the user's skills meet the role's, or the company's stack. */
+  skill_match: SkillMatch | null;
+  /** The team the target role sits in. */
+  role_team: RoleTeam | null;
+}
+
+export interface SkillMatch {
+  role_title: string | null;
+  matched: string[];
+  missing: string[];
+  /** "posting" when the role's own posting named the skills, else "company". */
+  basis: string;
+}
+
+export interface RoleTeam {
+  role_title: string;
+  department: string | null;
+  reports_to: string | null;
+  team_size: number;
 }
 
 export interface FittingRole {

@@ -25,7 +25,8 @@ import {
 } from "./chart-theme";
 import type { WeeklyPoint } from "./overview-metrics";
 
-const BAR_RADIUS: [number, number, number, number] = [6, 6, 0, 0];
+const BAR_RADIUS: [number, number, number, number] = [4, 4, 0, 0];
+const MAX_BAR_SIZE = 24;
 const BAR_GAP = "28%";
 const Y_AXIS_WIDTH = 28;
 // Headroom above the tallest bar for its value label.
@@ -79,7 +80,12 @@ export function ActivityChart({
                 itemStyle={TOOLTIP_ITEM_STYLE}
                 cursor={{ fill: CHART_COLOR.cursor }}
               />
-              <Bar dataKey="companies" name="Companies added" radius={BAR_RADIUS}>
+              <Bar
+                dataKey="companies"
+                name="Companies added"
+                radius={BAR_RADIUS}
+                maxBarSize={MAX_BAR_SIZE}
+              >
                 {weekly.map((point, index) => (
                   <Cell
                     key={point.label}
@@ -89,6 +95,8 @@ export function ActivityChart({
                 <LabelList
                   dataKey="companies"
                   position="top"
+                  // Weeks with nothing added stay unlabelled: a row of zeros is noise.
+                  formatter={(value: number) => (value ? value : "")}
                   fill={CHART_COLOR.value}
                   fontSize={CHART_TICK.fontSize}
                   fontFamily={CHART_TICK.fontFamily}

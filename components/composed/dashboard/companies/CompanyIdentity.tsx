@@ -1,8 +1,9 @@
+import { companyDisplayName } from "@/lib/company-brief";
 import type { Company } from "@/lib/types";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
 
-/** Logo, domain and the homepage's own title: how a company is named in
- * lists. The saved row has no separate company name, so none is made up. */
+/** Logo, name and domain: how a company is named in lists. The name comes
+ * from the homepage's own title, never made up. */
 export function CompanyIdentity({
   company,
   size = "md",
@@ -14,10 +15,10 @@ export function CompanyIdentity({
     <div className="flex min-w-0 items-center gap-3">
       <CompanyLogo logoUrl={company.logo_url} seed={company.domain} size={size} />
       <div className="min-w-0">
-        <p className="truncate text-sm font-sans-semibold text-ink">{company.domain}</p>
-        {company.homepage_title ? (
-          <p className="truncate text-xs text-ink-muted">{company.homepage_title}</p>
-        ) : null}
+        <p className="truncate text-sm font-sans-semibold text-ink">
+          {companyDisplayName(company)}
+        </p>
+        <p className="truncate text-xs text-ink-muted">{company.domain}</p>
       </div>
     </div>
   );

@@ -1,24 +1,30 @@
-import type { CompanyDetail } from "@/lib/types";
+import type { CompanyBrief } from "@/lib/company-brief";
+import { formatMonth } from "@/lib/format";
+import { Badge } from "@/components/ui/Badge";
 
 import { DashboardPanel } from "../DashboardPanel";
-import { NewsSummary } from "./NewsSummary";
-import { SignalsList } from "./SignalsList";
+import { ExternalLink } from "./ExternalLink";
 
-/** Dated news about the company. Nothing renders when there is none. */
-export function NewsSection({ detail }: { detail: CompanyDetail }) {
-  const research = detail.latest_research;
-  if (research === null) return null;
-  const signals = research.signals ?? [];
-  const legacyNews = research.research_backend !== "sourcing" && research.news?.items.length;
-  if (signals.length === 0 && !legacyNews) return null;
+export function NewsSection({ brief }: { brief: CompanyBrief }) {
+  if (brief.news.length === 0) return null;
 
   return (
-    <DashboardPanel title="News">
-      {signals.length > 0 ? (
-        <SignalsList signals={signals} companyNewsCollected />
-      ) : (
-        <NewsSummary news={research.news} />
-      )}
+    <DashboardPanel title="Recent news">
+      <ol className="flex flex-col gap-4 border-l border-line pl-5">
+        {brief.news.map((item) => (
+          <li key={item.url} className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="neutral">{item.kind}</Badge>
+              {item.date ? (
+                <span className="utility-label text-ink-faint">{formatMonth(item.date)}</span>
+              ) : null}
+            </div>
+            <ExternalLink href={item.url} className="text-sm font-sans-semibold">
+              {item.title}
+            </ExternalLink>
+          </li>
+        ))}
+      </ol>
     </DashboardPanel>
   );
 }

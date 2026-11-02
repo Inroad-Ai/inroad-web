@@ -6,6 +6,8 @@ export const CHART_COLOR = {
   amber: "rgb(var(--color-signal-amber))",
   teal: "rgb(var(--color-signal-teal))",
   bar: "rgb(var(--color-ink) / 0.14)",
+  // "Not yet": grey with enough weight to read as a mark, always labelled.
+  muted: "rgb(var(--color-ink) / 0.32)",
   track: "rgb(var(--color-ink) / 0.1)",
   grid: "rgb(var(--color-line))",
   cursor: "rgb(var(--color-ink) / 0.05)",
