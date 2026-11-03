@@ -50,8 +50,10 @@ const SECTIONS: readonly LegalSection[] = [
         </li>
         <li>
           <strong>Your browser:</strong> two sign-in cookies that keep you logged in, and browser
-          storage for your theme choice and an unfinished onboarding form. We use no analytics,
-          advertising or tracking tools.
+          storage for your theme choice and an unfinished onboarding form. If product analytics is
+          enabled for the service, it records only fixed product events after you are authenticated;
+          it does not record page paths, form text, session replay, advertising data or DOM
+          interaction.
         </li>
       </ul>
     ),
@@ -130,6 +132,12 @@ const SECTIONS: readonly LegalSection[] = [
           </li>
           <li>
             <strong>Hosting:</strong> the providers that host our website, servers and database.
+          </li>
+          <li>
+            <strong>Error reporting and product analytics:</strong> if enabled, Sentry receives
+            error reports with request and user data removed, and PostHog receives only fixed event
+            names and a stable account identifier. Neither gets your resume, email address, profile
+            text, prompts, AI responses or connected-account credentials.
           </li>
         </ul>
         <p>We may also disclose information if the law requires it.</p>
