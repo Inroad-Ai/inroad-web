@@ -169,10 +169,14 @@ export async function fetchCompany(
 }
 
 export type ResearchPhase = "verified" | "gathering" | "creating_brief" | "saving";
-export type ResearchSource = "homepage" | "news" | "hiring";
+export type ResearchSource = "homepage" | "news" | "hiring" | "people";
 export type ResearchProgressEvent =
   | { type: "phase"; phase: ResearchPhase }
-  | { type: "source"; source: ResearchSource; status: "done" | "failed" };
+  | {
+      type: "source";
+      source: ResearchSource;
+      status: "pending" | "done" | "failed" | "not_collected";
+    };
 
 type ResearchStreamEvent =
   | ResearchProgressEvent
@@ -207,8 +211,14 @@ function parseResearchStreamEvent(data: string): ResearchStreamEvent {
   }
   if (
     event.type === "source" &&
-    (event.source === "homepage" || event.source === "news" || event.source === "hiring") &&
-    (event.status === "done" || event.status === "failed")
+    (event.source === "homepage" ||
+      event.source === "news" ||
+      event.source === "hiring" ||
+      event.source === "people") &&
+    (event.status === "pending" ||
+      event.status === "done" ||
+      event.status === "failed" ||
+      event.status === "not_collected")
   ) {
     return { type: "source", source: event.source, status: event.status };
   }

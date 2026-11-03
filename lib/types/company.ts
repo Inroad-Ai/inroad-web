@@ -89,6 +89,14 @@ export interface PeopleResult {
   people: DossierPerson[];
 }
 
+export interface ResearchCoverage {
+  status:
+    "not_researched" | "not_found" | "found_verified" | "found_uncertain" | "collection_failed";
+  reason: string;
+  items: number;
+  fresh_until: string | null;
+}
+
 export interface CompanyDossier {
   domain: string;
   homepage: HomepageResult | null;
@@ -97,8 +105,11 @@ export interface CompanyDossier {
   linkedin: LinkedInCompanyResult | null;
   people: PeopleResult | null;
   profile: CompanyProfile | null;
+  coverage: Record<string, ResearchCoverage>;
   /** Source name -> reason. Only contains entries for sources that failed. */
   errors: Record<string, string>;
+  /** Source name -> why no usable public information was available. */
+  not_collected: Record<string, string>;
   partial: boolean;
   from_cache: boolean;
   elapsed_ms: number;

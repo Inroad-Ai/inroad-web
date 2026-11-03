@@ -3,14 +3,13 @@ import type { CompanyDetail } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { DataField } from "@/components/ui/DataField";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Section } from "@/components/ui/Section";
 
 export function HiringSection({ detail }: { detail: CompanyDetail }) {
   const hiring = describeHiring(detail);
   const additionalSources = detail.latest_research?.hiring?.additional_sources ?? [];
 
   return (
-    <Section title="Hiring">
+    <>
       <dl className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <DataField label="Status">
           {detail.is_hiring === null ? (
@@ -72,6 +71,6 @@ export function HiringSection({ detail }: { detail: CompanyDetail }) {
           </div>
         </div>
       ) : null}
-    </Section>
+    </>
   );
 }

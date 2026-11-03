@@ -8,13 +8,13 @@ import type { Company, CompanyDetail } from "@/lib/types";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { CompanyReportSkeleton } from "./CompanyReportSkeleton";
-import { HiringSection } from "./HiringSection";
 import { IdentityHeader } from "./IdentityHeader";
 import { LatestResearchSection } from "./LatestResearchSection";
 import { NotesSection } from "./NotesSection";
 import { PeopleSection } from "./PeopleSection";
-import { ProfileSection } from "./ProfileSection";
 import { ResearchHistorySection } from "./ResearchHistorySection";
+import { ResearchCoverageSection } from "./ResearchCoverageSection";
+import { WebsiteResearchSection } from "./WebsiteResearchSection";
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -67,8 +67,8 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <IdentityHeader detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
-      <ProfileSection detail={detail} />
-      <HiringSection detail={detail} />
+      <ResearchCoverageSection research={detail.latest_research} />
+      <WebsiteResearchSection detail={detail} />
       <PeopleSection detail={detail} accessToken={accessToken} onCompanyChange={mergeCompany} />
       <LatestResearchSection detail={detail} />
       <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />

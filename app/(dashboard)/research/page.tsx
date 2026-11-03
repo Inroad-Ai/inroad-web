@@ -7,7 +7,7 @@ import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { Button } from "@/components/ui/Button";
 import { AlertCircleIcon, CheckCircleIcon, SpinnerIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
-import { ApiError, getMatchRun, startMatchRun } from "@/lib/api-client/client";
+import { ApiError, getMatchRun, startMatchRun, type ResearchSource } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { useResearchRuns, type ResearchRun } from "@/lib/research-runs";
 import type { CardState, PipelineRunStatus } from "@/lib/types";
@@ -28,6 +28,11 @@ export default function ResearchPage() {
   const [domain, setDomain] = useState("");
   const { runs, startResearch } = useResearchRuns();
   const activeRun = runs.find((run) => run.state === "pending");
+  // A completed run can remain in context from an earlier screen visit.
+  // Active work belongs first in the history card, regardless of that order.
+  const orderedResearchRuns = [...runs].sort(
+    (left, right) => Number(right.state === "pending") - Number(left.state === "pending"),
+  );
   const busy = Boolean(activeRun);
   const [matchBusy, setMatchBusy] = useState(false);
   const [matchRuns, setMatchRuns] = useState<MatchRun[]>([]);
@@ -209,7 +214,7 @@ export default function ResearchPage() {
           count={runs.length}
           empty="Research a company to create your first brief."
         >
-          {runs.map((run) => (
+          {orderedResearchRuns.map((run) => (
             <RunStatusRow key={run.id} kind="research" run={run} />
           ))}
         </RunPanel>
@@ -280,18 +285,26 @@ function MatchElapsedStatus({ startedAt }: { startedAt: number }) {
   );
 }
 
-const RESEARCH_SOURCES = [
-  { key: "homepage", label: "Website" },
-  { key: "news", label: "News" },
-  { key: "hiring", label: "Hiring" },
+const RESEARCH_CATEGORIES = [
+  { key: "company", label: "Company research", sources: ["homepage", "hiring"] },
+  { key: "news", label: "News", sources: ["news"] },
+  { key: "people", label: "People", sources: ["people"] },
 ] as const;
+
+function categoryState(run: ResearchRun, sources: readonly ResearchSource[]): CardState {
+  const states = sources.map((source) => run.sources[source]);
+  if (states.some((state) => state === "failed")) return "failed";
+  if (states.every((state) => state === "done")) return "done";
+  if (states.some((state) => state === "pending")) return "pending";
+  return "idle";
+}
 
 function ResearchProgress({ run }: { run: ResearchRun }) {
   const phaseLabel =
     run.phase === "verified"
       ? "Website address accepted. Getting started..."
       : run.phase === "gathering"
-        ? "Checking website, news, and hiring information"
+        ? "Checking company research, news, and people"
         : run.phase === "creating_brief"
           ? "Putting your research brief together"
           : run.phase === "saving"
@@ -303,9 +316,8 @@ function ResearchProgress({ run }: { run: ResearchRun }) {
       <p className="text-sm font-medium text-ink">{phaseLabel}</p>
       <p className="mt-1 text-xs text-text-secondary">{run.domain}</p>
       <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-text-secondary">
-        {RESEARCH_SOURCES.map(({ key, label }) => {
-          const state =
-            run.sources[key] === "idle" && run.phase === "gathering" ? "pending" : run.sources[key];
+        {RESEARCH_CATEGORIES.map(({ key, label, sources }) => {
+          const state = categoryState(run, sources);
           const status =
             state === "done"
               ? "Checked"

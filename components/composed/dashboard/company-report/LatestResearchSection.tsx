@@ -12,7 +12,7 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
 
   if (research === null) {
     return (
-      <Section title="Latest research">
+      <Section id="news-research" title="News">
         <EmptyState>
           Nothing saved for this company yet. Run research again to fill this in.
         </EmptyState>
@@ -22,7 +22,8 @@ export function LatestResearchSection({ detail }: { detail: CompanyDetail }) {
 
   return (
     <Section
-      title="Latest research"
+      id="news-research"
+      title="News"
       meta={
         <div className="flex flex-wrap items-center gap-3">
           <Badge tone={research.from_cache ? "amber" : "teal"}>

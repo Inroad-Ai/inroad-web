@@ -49,7 +49,7 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
       companyId: null,
       error: null,
       phase: null,
-      sources: { homepage: "idle", news: "idle", hiring: "idle" },
+      sources: { homepage: "idle", news: "idle", hiring: "idle", people: "idle" },
     };
     setRuns((prev) => [run, ...prev].slice(0, MAX_TRACKED_RUNS));
 
@@ -71,7 +71,13 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
             setRuns((prev) =>
               prev.map((run) =>
                 run.id === id
-                  ? { ...run, sources: { ...run.sources, [event.source]: event.status } }
+                  ? {
+                      ...run,
+                      sources: {
+                        ...run.sources,
+                        [event.source]: event.status === "not_collected" ? "done" : event.status,
+                      },
+                    }
                   : run,
               ),
             );

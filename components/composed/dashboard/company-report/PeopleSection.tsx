@@ -58,7 +58,7 @@ export function PeopleSection({
   }
 
   return (
-    <Section title="People">
+    <Section id="people-research" title="People">
       {people.length === 0 ? (
         <EmptyState>No named people came back with the last run.</EmptyState>
       ) : (

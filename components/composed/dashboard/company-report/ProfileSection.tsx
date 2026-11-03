@@ -2,7 +2,6 @@ import type { Company, CompanyProfile } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { DataField } from "@/components/ui/DataField";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Section } from "@/components/ui/Section";
 
 /** Narrative fields in reading order: what they do, then why that matters
  * to whoever is about to write to them, then the factual footnotes. */
@@ -21,44 +20,36 @@ export function ProfileSection({ detail }: { detail: Company }) {
 
   if (profile === null) {
     return (
-      <Section title="Profile">
-        <EmptyState>
-          Not enough was found on the last run to write a profile. Run research again to try.
-        </EmptyState>
-      </Section>
+      <EmptyState>
+        Not enough was found on the last run to write a profile. Run research again to try.
+      </EmptyState>
     );
   }
 
   const written = NARRATIVE_FIELDS.filter(({ key }) => profile[key]);
 
   if (written.length === 0 && profile.tech_stack.length === 0) {
-    return (
-      <Section title="Profile">
-        <EmptyState>Nothing came back that was substantial enough to write down.</EmptyState>
-      </Section>
-    );
+    return <EmptyState>Nothing came back that was substantial enough to write down.</EmptyState>;
   }
 
   return (
-    <Section title="Profile">
-      <dl className="flex flex-col gap-5">
-        {written.map(({ key, label }) => (
-          <DataField key={key} label={label}>
-            {profile[key]}
-          </DataField>
-        ))}
-        {profile.tech_stack.length > 0 ? (
-          <DataField label="Tech stack">
-            <div className="flex flex-wrap gap-2">
-              {profile.tech_stack.map((tech) => (
-                <Badge key={tech} tone="neutral">
-                  {tech}
-                </Badge>
-              ))}
-            </div>
-          </DataField>
-        ) : null}
-      </dl>
-    </Section>
+    <dl className="flex flex-col gap-5">
+      {written.map(({ key, label }) => (
+        <DataField key={key} label={label}>
+          {profile[key]}
+        </DataField>
+      ))}
+      {profile.tech_stack.length > 0 ? (
+        <DataField label="Tech stack">
+          <div className="flex flex-wrap gap-2">
+            {profile.tech_stack.map((tech) => (
+              <Badge key={tech} tone="neutral">
+                {tech}
+              </Badge>
+            ))}
+          </div>
+        </DataField>
+      ) : null}
+    </dl>
   );
 }
