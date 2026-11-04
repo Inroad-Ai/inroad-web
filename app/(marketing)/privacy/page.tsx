@@ -69,6 +69,10 @@ const SECTIONS: readonly LegalSection[] = [
           <li>To research companies and keep the results you save.</li>
           <li>To draft outreach for you, and to send it only when you choose to.</li>
           <li>To keep the service secure and fix problems.</li>
+          <li>
+            Authorized Inroad staff may access account data when needed for support, security, or
+            operations. This access is limited by role and recorded in an internal audit log.
+          </li>
         </ul>
         <p>We do not sell your information and we do not use it for advertising.</p>
       </>
