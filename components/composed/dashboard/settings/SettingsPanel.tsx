@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { DashboardPanel } from "../DashboardPanel";
 import { PageNotice, SetupNotice } from "../PageNotice";
 import { CadenceOptions } from "./CadenceOptions";
+import { LearningSection } from "./LearningSection";
 import { OpportunityAlertsToggle } from "./OpportunityAlertsToggle";
 import { PasswordForm } from "./PasswordForm";
 import { SettingRow } from "./SettingRow";
@@ -74,6 +75,15 @@ export function SettingsPanel() {
       >
         <OpportunityAlertsToggle />
       </DashboardPanel>
+
+      <section id="learning" className="scroll-mt-24">
+        <DashboardPanel
+          title="Learning from your ratings"
+          description="Inroad learns from your ratings. When you mark a role or company as a good fit or not for me, that rating changes which roles and companies you see. Only the rated job's facts are used: its company, role type, technologies, location and level. Never your resume or contact details."
+        >
+          <LearningSection />
+        </DashboardPanel>
+      </section>
 
       {/* There is no file to show: what gets kept is the parsed result, not
           the document it came from. */}

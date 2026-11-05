@@ -13,3 +13,13 @@ export function describeHiring(company: Company): { label: string; muted: boolea
   const noun = company.open_roles === 1 ? "role" : "roles";
   return { label: `${company.open_roles} open ${noun}`, muted: false };
 }
+
+/** What the user typed ("https://www.acme.com/jobs") as the bare domain the
+ * API researches ("acme.com"). */
+export function bareDomain(input: string): string {
+  const host = input
+    .trim()
+    .replace(/^[a-z]+:\/\//i, "")
+    .split(/[/?#]/)[0];
+  return host.replace(/^www\./i, "").toLowerCase() || input;
+}

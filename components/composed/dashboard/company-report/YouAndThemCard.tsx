@@ -91,7 +91,12 @@ function TeamLine({ team }: { team: RoleTeam }) {
 
 function SkillSummary({ skills }: { skills: SkillMatch }) {
   const total = skills.matched.length + skills.missing.length;
-  const against = skills.basis === "posting" ? "this role asks for" : "their stack uses";
+  const against =
+    skills.basis === "company"
+      ? "their stack uses"
+      : skills.role_title
+        ? `${skills.role_title} asks for`
+        : "this role asks for";
   return (
     <>
       <p className="text-sm text-ink">

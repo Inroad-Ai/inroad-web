@@ -7,6 +7,7 @@ import type {
   CompanyDetail,
   CompanyListResponse,
   CompanySort,
+  MatchRating,
   MatchRunResult,
   OutreachDraftRunResult,
   OverviewStats,
@@ -16,6 +17,8 @@ import type {
   PersonStage,
   PipelineRunOut,
   PipelineStage,
+  RatingReason,
+  RatingVerdict,
 } from "@/lib/types";
 import type { components, paths } from "./schema";
 
@@ -44,6 +47,8 @@ export type Notification = components["schemas"]["NotificationOut"];
 export type NotificationPage = components["schemas"]["NotificationPage"];
 export type NotificationAction = components["schemas"]["NotificationAction"];
 export type LlmAssignment = components["schemas"]["LLMAssignmentOut"];
+export type Learning = components["schemas"]["LearningOut"];
+export type LearnedItem = components["schemas"]["LearnedItem"];
 /** The two request-scoped features a user may point at their own key. Read
  * off the route's path param, same way as OAuthProvider. */
 export type LlmPurpose =
@@ -434,6 +439,37 @@ export async function searchMoreContacts(
   return unwrap(result, COMPANIES_UNREACHABLE) as CompanyDetail;
 }
 
+/** Good fit or not for me, on the company (empty roleKey) or one of its
+ * fitting roles. Rating it again replaces the earlier verdict. */
+export async function rateMatch(
+  companyId: string,
+  roleKey: string,
+  verdict: RatingVerdict,
+  reasons: RatingReason[],
+  accessToken: string,
+): Promise<MatchRating> {
+  const result = await client.PUT("/api/companies/{company_id}/ratings", {
+    params: { path: { company_id: companyId } },
+    body: { role_key: roleKey, verdict, reasons },
+    headers: authHeaders(accessToken),
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE);
+}
+
+export async function withdrawRating(
+  companyId: string,
+  roleKey: string,
+  accessToken: string,
+): Promise<void> {
+  const result = await client.DELETE("/api/companies/{company_id}/ratings", {
+    params: { path: { company_id: companyId }, query: { role_key: roleKey } },
+    headers: authHeaders(accessToken),
+  });
+
+  if (result.response.status !== 204) unwrap(result, COMPANIES_UNREACHABLE);
+}
+
 /** The Overview's view of the user's companies: next steps, roles that fit,
  * hiring momentum and skills in demand. */
 export async function fetchOverviewInsights(
@@ -703,6 +739,25 @@ export async function updateSettings(
     body: changes,
     headers: authHeaders(accessToken),
     signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** What Inroad has learned from the user's ratings. */
+export async function fetchLearning(accessToken: string, signal?: AbortSignal): Promise<Learning> {
+  const result = await client.GET("/api/settings/learning", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, SETTINGS_UNREACHABLE);
+}
+
+/** Forgets every rating and everything learned from them. */
+export async function resetLearning(accessToken: string): Promise<Learning> {
+  const result = await client.DELETE("/api/settings/learning", {
+    headers: authHeaders(accessToken),
   });
 
   return unwrap(result, SETTINGS_UNREACHABLE);
