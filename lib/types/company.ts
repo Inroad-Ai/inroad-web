@@ -4,6 +4,7 @@
  * serialises the key, so a missing one is a bug.
  */
 
+import type { components } from "@/lib/api-client/schema";
 import type { DossierPerson, Person } from "@/lib/types/person";
 
 /** Mirrors the `companies.stage` CHECK constraint; update both together. */
@@ -301,12 +302,18 @@ export interface CompanyDetail extends Company {
   primary_contact: Person | null;
   /** Open jobs here that fit the user, by matching's rules. */
   fitting_roles: FittingRole[];
+  /** Open roles posted over 90 days ago, left out of fitting_roles. */
+  old_roles: number;
   /** What to search LinkedIn for when nobody listed fits. */
   contact_search_title: string | null;
   /** How the user's skills meet the role's, or the company's stack. */
   skill_match: SkillMatch | null;
   /** The team the target role sits in. */
   role_team: RoleTeam | null;
+  /** How well the company fits; null when no open role does. */
+  match: CompanyMatch | null;
+  /** The user's good fit / not for me verdicts here, newest first. */
+  ratings: MatchRating[];
 }
 
 export interface SkillMatch {
@@ -329,7 +336,20 @@ export interface FittingRole {
   url: string | null;
   /** Why it fits, e.g. "remote, open to Pakistan". */
   reason: string;
+  /** What a rating names this role by. */
+  key: string;
+  match: RoleMatch;
 }
+
+/** 0 to 100 with every part that made it; see inroad-api match_score.py. */
+export type RoleMatch = components["schemas"]["RoleMatchOut"];
+export type CompanyMatch = components["schemas"]["CompanyMatchOut"];
+export type MatchPart = components["schemas"]["MatchPartOut"];
+
+/** A good fit / not for me verdict; an empty role_key rates the company. */
+export type MatchRating = components["schemas"]["RatingOut"];
+export type RatingVerdict = components["schemas"]["RatingVerdict"];
+export type RatingReason = components["schemas"]["RatingReason"];
 
 export const COMPANY_SORTS = [
   "updated_desc",

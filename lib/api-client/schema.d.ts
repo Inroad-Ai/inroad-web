@@ -293,6 +293,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/{company_id}/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rate Match
+         * @description Good fit or not for me, on the company (no role_key) or one of its
+         *     fitting roles. Rating it again replaces the earlier verdict.
+         */
+        put: operations["rate_match_api_companies__company_id__ratings_put"];
+        post?: never;
+        /** Withdraw Rating */
+        delete: operations["withdraw_rating_api_companies__company_id__ratings_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/people": {
         parameters: {
             query?: never;
@@ -885,6 +907,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/settings/learning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Learning */
+        get: operations["get_learning_api_settings_learning_get"];
+        put?: never;
+        post?: never;
+        /**
+         * Reset Learning
+         * @description Forgets every rating, here and in inroad-intelligence.
+         */
+        delete: operations["reset_learning_api_settings_learning_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications": {
         parameters: {
             query?: never;
@@ -1059,10 +1102,18 @@ export interface components {
             primary_contact?: components["schemas"]["PersonOut"] | null;
             /** Fitting Roles */
             fitting_roles?: components["schemas"]["FittingRoleOut"][];
+            /**
+             * Old Roles
+             * @default 0
+             */
+            old_roles: number;
             /** Contact Search Title */
             contact_search_title?: string | null;
             skill_match?: components["schemas"]["SkillMatchOut"] | null;
             role_team?: components["schemas"]["RoleTeamOut"] | null;
+            match?: components["schemas"]["CompanyMatchOut"] | null;
+            /** Ratings */
+            ratings?: components["schemas"]["RatingOut"][];
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -1154,6 +1205,15 @@ export interface components {
             page_size: number;
             /** Total */
             total: number;
+        };
+        /** CompanyMatchOut */
+        CompanyMatchOut: {
+            /** Score */
+            score: number;
+            /** Band */
+            band: string;
+            /** Parts */
+            parts: components["schemas"]["MatchPartOut"][];
         };
         /** CompanyOut */
         CompanyOut: {
@@ -1345,6 +1405,9 @@ export interface components {
             title: string;
             /** Url */
             url?: string | null;
+            /** Key */
+            key: string;
+            match: components["schemas"]["RoleMatchOut"];
             /** Reason */
             reason: string;
         };
@@ -1510,6 +1573,40 @@ export interface components {
             /** Proficiency */
             proficiency?: ("beginner" | "intermediate" | "professional" | "fluent" | "native") | null;
         };
+        /** LearnedItem */
+        LearnedItem: {
+            /** Kind */
+            kind: string;
+            /** Label */
+            label: string;
+            /** Evidence */
+            evidence?: number | null;
+        };
+        /**
+         * LearningOut
+         * @description What Inroad has learned from the person's ratings, for Settings.
+         */
+        LearningOut: {
+            /**
+             * Ratings
+             * @default 0
+             */
+            ratings: number;
+            /**
+             * Rated Down
+             * @default 0
+             */
+            rated_down: number;
+            /** Showing Fewer */
+            showing_fewer?: components["schemas"]["LearnedItem"][];
+            /** Showing More */
+            showing_more?: components["schemas"]["LearnedItem"][];
+            /**
+             * Updating
+             * @default false
+             */
+            updating: boolean;
+        };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {
             /** Url */
@@ -1531,6 +1628,15 @@ export interface components {
         LogoutRequest: {
             /** Refresh Token */
             refresh_token: string;
+        };
+        /** MatchPartOut */
+        MatchPartOut: {
+            /** Name */
+            name: string;
+            /** Detail */
+            detail: string;
+            /** Value */
+            value?: number | null;
         };
         /** MatchRunResult */
         MatchRunResult: {
@@ -1608,8 +1714,15 @@ export interface components {
             role_title?: string | null;
             /** Role Url */
             role_url?: string | null;
+            /** Role Key */
+            role_key?: string | null;
+            role_rating?: components["schemas"]["RatingOut"] | null;
             /** Fit Reason */
             fit_reason?: string | null;
+            /** Match Score */
+            match_score?: number | null;
+            /** Match Band */
+            match_band?: string | null;
             /**
              * Fitting Roles
              * @default 0
@@ -2236,6 +2349,44 @@ export interface components {
             /** Cache Hits */
             cache_hits?: number | null;
         };
+        /** RatingIn */
+        RatingIn: {
+            /**
+             * Role Key
+             * @default
+             */
+            role_key: string;
+            verdict: components["schemas"]["RatingVerdict"];
+            /** Reasons */
+            reasons?: components["schemas"]["RatingReason"][];
+        };
+        /** RatingOut */
+        RatingOut: {
+            /** Role Key */
+            role_key: string;
+            /** Role Title */
+            role_title?: string | null;
+            /** Role Url */
+            role_url?: string | null;
+            verdict: components["schemas"]["RatingVerdict"];
+            /** Reasons */
+            reasons?: components["schemas"]["RatingReason"][];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * RatingReason
+         * @enum {string}
+         */
+        RatingReason: "wrong_stack" | "wrong_location" | "too_senior" | "too_junior" | "wrong_role" | "not_this_company";
+        /**
+         * RatingVerdict
+         * @enum {string}
+         */
+        RatingVerdict: "up" | "down";
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -2354,6 +2505,22 @@ export interface components {
             certificates?: components["schemas"]["CertificateEntry"][];
             /** Languages */
             languages?: components["schemas"]["LanguageEntry"][];
+        };
+        /**
+         * RoleMatchOut
+         * @description How well a role fits the person, 0 to 100, and from what.
+         */
+        RoleMatchOut: {
+            /** Score */
+            score: number;
+            /** Band */
+            band: string;
+            /** Parts */
+            parts: components["schemas"]["MatchPartOut"][];
+            /** Matched Skills */
+            matched_skills?: string[];
+            /** Missing Skills */
+            missing_skills?: string[];
         };
         /**
          * RolePosting
@@ -3139,6 +3306,76 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CompanyDetail"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rate_match_api_companies__company_id__ratings_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_rating_api_companies__company_id__ratings_delete: {
+        parameters: {
+            query?: {
+                role_key?: string;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                company_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -4364,6 +4601,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_learning_api_settings_learning_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_learning_api_settings_learning_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearningOut"];
+                };
             };
             /** @description Validation Error */
             422: {

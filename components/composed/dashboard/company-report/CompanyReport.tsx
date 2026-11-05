@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { fetchCompany } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { buildBrief } from "@/lib/company-brief";
+import { useMatchRatings } from "@/lib/match-ratings";
 import type { Company, CompanyDetail } from "@/lib/types";
 
 import { PageNotice } from "../PageNotice";
@@ -67,6 +68,16 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   }
 
   const brief = useMemo(() => (detail === null ? null : buildBrief(detail)), [detail]);
+  // Keyed on the ratings list, not the detail: a stage or notes change
+  // replaces the detail and must not drop ratings made on this page.
+  const detailId = detail?.id;
+  const detailRatings = detail?.ratings;
+  const loadedRatings = useMemo(
+    () =>
+      detailId ? (detailRatings ?? []).map((rating) => ({ companyId: detailId, rating })) : [],
+    [detailId, detailRatings],
+  );
+  const ratings = useMatchRatings(loadedRatings);
 
   if (loadState === "loading") return <CompanyReportSkeleton />;
 
@@ -81,13 +92,14 @@ export function CompanyReport({ companyId }: { companyId: string }) {
         brief={brief}
         accessToken={accessToken}
         onCompanyChange={mergeCompany}
+        ratings={ratings}
       />
       <YouAndThemCard detail={detail} brief={brief} />
 
       <div className="grid items-start gap-6 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <AboutSection brief={brief} />
-          <FittingRolesSection detail={detail} />
+          <FittingRolesSection detail={detail} ratings={ratings} />
           <OpenRolesSection brief={brief} />
           <ProductsSection brief={brief} />
           <HighlightsSection brief={brief} />

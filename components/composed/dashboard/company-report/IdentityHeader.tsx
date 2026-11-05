@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { fetchCompany, updateCompanyStage } from "@/lib/api-client/client";
 import { formatTimestamp } from "@/lib/format";
+import type { MatchRatings } from "@/lib/match-ratings";
 import { useResearchRuns } from "@/lib/research-runs";
 import type { CompanyBrief } from "@/lib/company-brief";
 import type { Company, CompanyDetail } from "@/lib/types";
@@ -13,6 +14,8 @@ import { Notice } from "@/components/ui/Notice";
 import { StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
 
 import { StageMenu } from "../companies/StageMenu";
+import { MatchDetails } from "../match/MatchDetails";
+import { RateMatch } from "../ratings/RateMatch";
 import { HeroBand } from "./HeroBand";
 import { RerunProgress } from "./RerunProgress";
 
@@ -21,11 +24,13 @@ export function IdentityHeader({
   brief,
   accessToken,
   onCompanyChange,
+  ratings,
 }: {
   detail: CompanyDetail;
   brief: CompanyBrief;
   accessToken: () => Promise<string>;
   onCompanyChange: (company: Company) => void;
+  ratings: MatchRatings;
 }) {
   const [movingStage, setMovingStage] = useState(false);
   const [stageError, setStageError] = useState("");
@@ -104,6 +109,22 @@ export function IdentityHeader({
           <Button size="sm" onClick={rerunResearch} loading={rerunning} className="sm:ml-auto">
             {rerunning ? "Checking again..." : "Run research again"}
           </Button>
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-line pt-4 sm:flex-row sm:items-start sm:justify-between">
+          {detail.match ? (
+            <MatchDetails
+              band={detail.match.band}
+              score={detail.match.score}
+              parts={detail.match.parts}
+            />
+          ) : (
+            <span className="text-sm text-ink-muted">No open role here fits you yet.</span>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-ink-muted">Is this company right for you?</span>
+            <RateMatch ratings={ratings} companyId={detail.id} subject={brief.name} />
+          </div>
         </div>
 
         {rerunning && activeRun ? <RerunProgress run={activeRun} /> : null}

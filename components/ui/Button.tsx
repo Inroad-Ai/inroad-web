@@ -4,7 +4,7 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "reac
 import { SpinnerIcon } from "./Icons";
 
 type Variant = "primary" | "quiet" | "ghost";
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 type IconPosition = "start" | "end";
 
 const VARIANTS: Record<Variant, string> = {
@@ -15,6 +15,8 @@ const VARIANTS: Record<Variant, string> = {
 };
 
 const SIZES: Record<Size, string> = {
+  /** Matches Menu's `sm` trigger, for inline actions beside one. */
+  xs: "h-8 gap-1.5 px-3 text-xs",
   sm: "h-9 gap-1.5 px-4 text-sm",
   md: "h-11 gap-2 px-5 text-sm",
   lg: "h-12 gap-2 px-6 text-base",

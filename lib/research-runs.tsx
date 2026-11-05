@@ -10,6 +10,7 @@ import type {
   ResearchStep,
 } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { bareDomain } from "@/lib/companies";
 import { phaseIndex } from "@/lib/research-phases";
 import type { CardState, SourceState } from "@/lib/types";
 
@@ -104,9 +105,10 @@ export function ResearchRunsProvider({ children }: { children: ReactNode }) {
   const startResearch = useCallback(
     (domain: string, options: { refresh?: boolean } = {}): number => {
       const id = nextRunId++;
+      // Shown in every message about the run; the API is sent what was typed.
       const run: ResearchRun = {
         id,
-        domain,
+        domain: bareDomain(domain),
         state: "pending",
         companyId: null,
         error: null,
