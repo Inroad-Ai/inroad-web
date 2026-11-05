@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { DashboardShell } from "@/components/composed/dashboard/DashboardShell";
+import { ProductAnalytics, ProductAnalyticsIdentity } from "@/components/composed/ProductAnalytics";
 import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-native/constants";
 import { verifyAccessToken } from "@/lib/auth-native/verify";
 
@@ -20,5 +21,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/");
   }
 
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell>
+      <ProductAnalyticsIdentity userId={userId} />
+      <ProductAnalytics userId={userId} />
+      {children}
+    </DashboardShell>
+  );
 }

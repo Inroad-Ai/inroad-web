@@ -15,12 +15,14 @@
     "generate-api-client": "openapi-typescript \"${NEXT_PUBLIC_API_URL:-http://127.0.0.1:8000}/openapi.json\" -o lib/api-client/schema.d.ts"
   },
   "dependencies": {
+    "@sentry/nextjs": "^11.10.0",
     "country-region-data": "^4.1.0",
     "framer-motion": "^13.4.1",
     "jose": "^6.2.12",
     "libphonenumber-js": "^1.13.13",
     "next": "^15.5.28",
     "openapi-fetch": "^0.17.0",
+    "posthog-js": "^1.444.2",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "recharts": "^2.15.4",

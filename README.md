@@ -1,7 +1,7 @@
 # Inroad — Web
 
 The frontend for [`inroad-api`](https://github.com/Inroad-Ai/inroad-api).
-Next.js 14 App Router, TypeScript, Tailwind.
+Next.js 15 App Router, TypeScript, Tailwind.
 
 ## Where this fits
 
