@@ -2237,6 +2237,8 @@ export interface components {
             work_preference: components["schemas"]["WorkPreferenceOption"][];
             /** Regions */
             regions?: components["schemas"]["RegionOption"][];
+            /** Excluded Places */
+            excluded_places?: string[];
             /** Target Roles */
             target_roles: string[];
             /** Summary */
@@ -2283,6 +2285,11 @@ export interface components {
             regions?: components["schemas"]["RegionOption"][];
             /** Target Roles */
             target_roles?: string[];
+            /**
+             * Excluded Places
+             * @description Countries (ISO 3166-1 alpha-2) and regions whose roles are never shown: onsite, relocation, or remote only there. Omit to leave the saved list untouched; send an empty list to clear it. Regions: europe, middle_east, africa, asia_pacific, latin_america, north_america
+             */
+            excluded_places?: string[] | null;
             /**
              * Skills
              * @description Stored inside resume_parsed_json. Omit the field to leave the saved resume data untouched; send an empty list to clear it. A form that does not carry resume data must omit these rather than send empty lists, or it will wipe the user's parsed resume.

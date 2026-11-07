@@ -32,6 +32,16 @@ export function toUpsert(profile: Profile, changes: Partial<ProfileUpsert>): Pro
   };
 }
 
+/** Regions the API accepts in `excluded_places`, besides country codes. */
+export const EXCLUDED_REGION_OPTIONS: { value: string; label: string }[] = [
+  { value: "europe", label: "Europe" },
+  { value: "middle_east", label: "Middle East" },
+  { value: "africa", label: "Africa" },
+  { value: "asia_pacific", label: "Asia Pacific" },
+  { value: "latin_america", label: "Latin America" },
+  { value: "north_america", label: "North America" },
+];
+
 /** Resume parsing is wired up; the career-arc document is not yet. Files are
  * parsed in process and discarded either way, so there is never a document to
  * show here, only whether a parse exists. */

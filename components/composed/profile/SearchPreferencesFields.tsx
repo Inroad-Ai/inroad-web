@@ -3,6 +3,7 @@ import { SelectableCard } from "@/components/ui/SelectableCard";
 import { TagInput } from "@/components/ui/TagInput";
 import { WORK_PREFERENCE_OPTIONS, type WorkPreferenceOption } from "@/lib/onboarding";
 import type { FormState, UpdateField, ValidationErrors } from "./profile-form-state";
+import { ExcludedPlacesPicker } from "./ExcludedPlacesPicker";
 import { RegionPicker } from "./RegionPicker";
 
 export function SearchPreferencesFields({
@@ -55,6 +56,10 @@ export function SearchPreferencesFields({
       {form.workPreference.includes("relocation") ? (
         <RegionPicker selected={form.regions} onChange={(regions) => update("regions", regions)} />
       ) : null}
+      <ExcludedPlacesPicker
+        selected={form.excludedPlaces}
+        onChange={(places) => update("excludedPlaces", places)}
+      />
     </div>
   );
 }
