@@ -36,6 +36,7 @@ export interface FormState {
   languages: LanguageEntry[];
   workPreference: WorkPreferenceOption[];
   regions: RegionOption[];
+  excludedPlaces: string[];
   targetRoles: string[];
 }
 
@@ -98,6 +99,7 @@ export function toFormState(profile: Profile): FormState {
     languages: profile.languages ?? [],
     workPreference: profile.work_preference,
     regions: profile.regions ?? [],
+    excludedPlaces: profile.excluded_places ?? [],
     targetRoles: profile.target_roles,
   };
 }
@@ -134,6 +136,7 @@ export function toProfileUpsert(profile: Profile, form: FormState): ProfileUpser
     languages: withoutBlanks(form.languages),
     work_preference: form.workPreference,
     regions: regionsToSave(form.workPreference, form.regions),
+    excluded_places: form.excludedPlaces,
     target_roles: form.targetRoles,
   });
 }
