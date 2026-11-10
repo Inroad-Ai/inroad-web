@@ -9,7 +9,12 @@ export const metadata: Metadata = {
   description: "What Inroad collects, why, who it is shared with, and how to have it deleted.",
 };
 
-const mail = <TextLink href={`mailto:${LEGAL.contactEmail}`}>{LEGAL.contactEmail}</TextLink>;
+const mail = (
+  <>
+    <TextLink href={`mailto:${LEGAL.contactEmails[0]}`}>{LEGAL.contactEmails[0]}</TextLink> or{" "}
+    <TextLink href={`mailto:${LEGAL.contactEmails[1]}`}>{LEGAL.contactEmails[1]}</TextLink>
+  </>
+);
 
 const SECTIONS: readonly LegalSection[] = [
   {

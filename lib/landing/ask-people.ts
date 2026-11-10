@@ -1,6 +1,6 @@
 import type { DemoPerson } from "./ask-types";
 
-export const DEMO_SENDER = "jordan.reyes@hey.com";
+export const DEMO_SENDER = "jordan.reyes@example.com";
 
 export const DEMO_PEOPLE: readonly DemoPerson[] = [
   {
@@ -8,17 +8,17 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
     companyId: "ledgerline",
     name: "Priya Natarajan",
     title: "VP Engineering",
-    email: "priya@ledgerline.com",
-    linkedin: "linkedin.com/in/priyanatarajan",
+    email: "priya@ledgerline.example",
+    linkedin: "linkedin.com/in/priyanatarajan-example",
     commonGround: [
       "Both ex-payments infrastructure",
       "Spoke at GopherCon EU 2025",
       "TU Berlin alum",
     ],
     foundVia: {
-      label: "ledgerline.com/team",
+      label: "ledgerline.example/team",
       quote: "“Priya Natarajan, VP Engineering” · found on the team page and Apollo.io",
-      url: "https://ledgerline.com/team",
+      url: "https://ledgerline.example/team",
     },
     draft: {
       subject: "Your ledger platform team, and a reconciliation rebuild I just did",
@@ -30,13 +30,13 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
     companyId: "tessellate",
     name: "Marta Oliveira",
     title: "CTO",
-    email: "marta@tessellate.dev",
-    linkedin: "linkedin.com/in/martaoliveira",
+    email: "marta@tessellate.example",
+    linkedin: "linkedin.com/in/martaoliveira-example",
     commonGround: ["Both maintain open-source Postgres tools"],
     foundVia: {
       label: "linkedin.com",
       quote: "“Marta Oliveira, CTO” · found via LinkedIn search and Hunter.io",
-      url: "https://linkedin.com/in/martaoliveira",
+      url: "https://linkedin.com/in/martaoliveira-example",
     },
     draft: {
       subject: "Founding backend role, from someone who has been paged at 3am",
@@ -48,13 +48,13 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
     companyId: "orrery",
     name: "Tomas Lindqvist",
     title: "Head of Platform",
-    email: "tomas@orrery.ai",
-    linkedin: "linkedin.com/in/tomaslindqvist",
+    email: "tomas@orrery.example",
+    linkedin: "linkedin.com/in/tomaslindqvist-example",
     commonGround: ["Both ran Kafka at 1B+ events a day"],
     foundVia: {
-      label: "orrery.ai/team",
+      label: "orrery.example/team",
       quote: "“Tomas Lindqvist, Head of Platform” · found on the team page and Apollo.io",
-      url: "https://orrery.ai/team",
+      url: "https://orrery.example/team",
     },
     draft: {
       subject: "Fleet telemetry after the logistics pilot",
@@ -66,13 +66,13 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
     companyId: "gridlight",
     name: "Elena Petrova",
     title: "VP Engineering",
-    email: "elena@gridlight.energy",
-    linkedin: "linkedin.com/in/elenapetrova",
+    email: "elena@gridlight.example",
+    linkedin: "linkedin.com/in/elenapetrova-example",
     commonGround: ["Both ex-Datasmith network", "Berlin Go meetup"],
     foundVia: {
-      label: "gridlight.energy/team",
+      label: "gridlight.example/team",
       quote: "“Elena Petrova, VP Engineering” · found on the team page and Apollo.io",
-      url: "https://gridlight.energy/team",
+      url: "https://gridlight.example/team",
     },
     draft: {
       subject: "Market data ingestion at Gridlight",
@@ -84,13 +84,13 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
     companyId: "fernway",
     name: "Lukas Hofmann",
     title: "Co-founder",
-    email: "lukas@fernway.co",
-    linkedin: "linkedin.com/in/lukashofmann",
+    email: "lukas@fernway.example",
+    linkedin: "linkedin.com/in/lukashofmann-example",
     commonGround: ["Both lived in Munich"],
     foundVia: {
-      label: "fernway.co/team",
+      label: "fernway.example/team",
       quote: "“Lukas Hofmann, Co-founder” · found on the team page and Hunter.io",
-      url: "https://fernway.co/team",
+      url: "https://fernway.example/team",
     },
     draft: {
       subject: "Your first data platform engineer",

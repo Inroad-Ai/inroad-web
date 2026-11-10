@@ -6,12 +6,12 @@ export interface AuthPanelEvent {
 }
 
 export const AUTH_PANEL_EVENTS: readonly AuthPanelEvent[] = [
-  { company: "Ledgerline", domain: "ledgerline.com", text: "hiring manager found" },
-  { company: "Tessellate", domain: "tessellate.io", text: "Marta replied" },
-  { company: "Gridlight", domain: "gridlight.energy", text: "draft ready to approve" },
-  { company: "Fernway", domain: "fernway.co", text: "research brief ready" },
-  { company: "Kiln Health", domain: "kilnhealth.com", text: "new match, fit 74" },
-  { company: "Copperleaf", domain: "copperleaf.dev", text: "interview booked with Sam" },
+  { company: "Ledgerline", domain: "ledgerline.example", text: "hiring manager found" },
+  { company: "Tessellate", domain: "tessellate.example", text: "Marta replied" },
+  { company: "Gridlight", domain: "gridlight.example", text: "draft ready to approve" },
+  { company: "Fernway", domain: "fernway.example", text: "research brief ready" },
+  { company: "Kiln Health", domain: "kilnhealth.example", text: "new match, fit 74" },
+  { company: "Copperleaf", domain: "copperleaf.example", text: "interview booked with Sam" },
 ];
 
 export const VISIBLE_EVENTS = 3;

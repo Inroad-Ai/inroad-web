@@ -37,7 +37,7 @@ export function PersonCard({ state, still = false }: { state: ChapterState; stil
           </p>
           <p className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-sans-bold text-signal-teal">
             <CheckIcon className="h-3.5 w-3.5" />
-            <span className="break-all">priya@ledgerline.com verified</span>
+            <span className="break-all">priya@ledgerline.example verified</span>
           </p>
         </div>
       </div>
