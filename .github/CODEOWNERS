@@ -1,4 +1,5 @@
 # Changes to the malware defences, CI and install/start hooks need the owner's review.
+# Some paths below may not exist yet. They are listed so that adding them later also needs review.
 /.github/ @Abdul-Moiz31
 /scripts/malware-scan.sh @Abdul-Moiz31
 /scripts/detect-malware.py @Abdul-Moiz31

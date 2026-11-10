@@ -27,7 +27,7 @@ CI also rejects any pull request into `main` that does not come from `staging`.
 
 ## Getting set up
 
-You need Node 18.17 or newer and pnpm 11. The README has the full steps for
+You need Node 22 (what CI uses) and pnpm 11. The README has the full steps for
 running the backend and this app locally.
 
 ```bash
