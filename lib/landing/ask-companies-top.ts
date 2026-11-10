@@ -6,7 +6,7 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
   {
     id: "ledgerline",
     name: "Ledgerline",
-    domain: "ledgerline.com",
+    domain: "ledgerline.example",
     fit: 92,
     tagline: "Accounting APIs for platforms that move money",
     whyNow:
@@ -26,24 +26,24 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
         "https://jobs.ashbyhq.com/ledgerline",
       ),
       funding: source(
-        "ledgerline.com",
+        "ledgerline.example",
         "“...today we're announcing our $42M Series B, led by Northzone...”",
-        "https://ledgerline.com/blog/series-b",
+        "https://ledgerline.example/blog/series-b",
       ),
       team: source(
-        "ledgerline.com",
+        "ledgerline.example",
         "“The new money goes first into a ledger platform team...”",
-        "https://ledgerline.com/blog/series-b",
+        "https://ledgerline.example/blog/series-b",
       ),
       tech: source(
-        "ledgerline.com",
+        "ledgerline.example",
         "“...moving the write path from Elixir to Go cut p99 latency by 70%...”",
-        "https://ledgerline.com/engineering/go-write-path",
+        "https://ledgerline.example/engineering/go-write-path",
       ),
       home: source(
-        "ledgerline.com",
+        "ledgerline.example",
         "“Ledgerline gives marketplaces and fintech platforms a double-entry ledger as an API.”",
-        "https://ledgerline.com",
+        "https://ledgerline.example",
       ),
     },
     signals: [
@@ -74,7 +74,7 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
   {
     id: "tessellate",
     name: "Tessellate",
-    domain: "tessellate.dev",
+    domain: "tessellate.example",
     fit: 88,
     tagline: "Infrastructure as code that teams review like product code",
     whyNow: "Their CTO posted last week that they are hiring people who have been paged at 3am",
@@ -98,9 +98,9 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
         "https://linkedin.com/posts/tessellate-cto-hiring",
       ),
       home: source(
-        "tessellate.dev",
+        "tessellate.example",
         "“A collaborative editor and review layer for Terraform and Pulumi.”",
-        "https://tessellate.dev",
+        "https://tessellate.example",
       ),
     },
     signals: [
@@ -131,7 +131,7 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
   {
     id: "orrery",
     name: "Orrery Robotics",
-    domain: "orrery.ai",
+    domain: "orrery.example",
     fit: 81,
     tagline: "Fleet software for warehouse robots",
     whyNow: "Orrery signed a pilot with a top-3 logistics company in August",
@@ -155,9 +155,9 @@ export const TOP_FIT_COMPANIES: readonly DemoCompany[] = [
         "https://reuters.com/technology/orrery-lands-logistics-pilot",
       ),
       home: source(
-        "orrery.ai",
+        "orrery.example",
         "“Orchestration software that lets warehouses run mixed fleets of robots.”",
-        "https://orrery.ai",
+        "https://orrery.example",
       ),
     },
     signals: [],

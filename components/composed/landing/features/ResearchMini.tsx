@@ -7,7 +7,7 @@ import { SpinnerIcon } from "@/components/ui/Icons";
 
 import { useVisibleLoop } from "./useVisibleLoop";
 
-const DOMAINS = ["gridlight.energy", "parcelwise.io", "atlasfold.com"] as const;
+const DOMAINS = ["gridlight.example", "parcelwise.example", "atlasfold.example"] as const;
 const SOURCES = ["Homepage", "News", "Hiring"] as const;
 const CYCLE_MS = 4200;
 

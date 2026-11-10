@@ -5,7 +5,7 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
   {
     id: "gridlight",
     name: "Gridlight",
-    domain: "gridlight.energy",
+    domain: "gridlight.example",
     fit: 79,
     tagline: "Trading software for grid batteries",
     whyNow: "Gridlight signed 1.2 GW of new battery capacity this year",
@@ -29,9 +29,9 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
         "https://handelsblatt.com/technik/gridlight-series-a",
       ),
       home: source(
-        "gridlight.energy",
+        "gridlight.example",
         "“Optimizes when grid-scale batteries buy and sell power on European markets.”",
-        "https://gridlight.energy",
+        "https://gridlight.example",
       ),
     },
     signals: [
@@ -53,7 +53,7 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
   {
     id: "fernway",
     name: "Fernway",
-    domain: "fernway.co",
+    domain: "fernway.example",
     fit: 77,
     tagline: "Carbon accounting for mid-size manufacturers",
     whyNow: "CSRD deadlines are driving a 4x jump in inbound demand",
@@ -67,14 +67,14 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
     },
     sources: {
       hiring: source(
-        "fernway.co",
+        "fernway.example",
         "“Hiring our first data platform engineer” · careers page",
-        "https://fernway.co/careers",
+        "https://fernway.example/careers",
       ),
       home: source(
-        "fernway.co",
+        "fernway.example",
         "“Software that turns invoices and energy bills into an auditable carbon footprint.”",
-        "https://fernway.co",
+        "https://fernway.example",
       ),
     },
     signals: [
@@ -84,7 +84,7 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
         source: source(
           "Careers page",
           "“Hiring our first data platform engineer” · Oct 11, 2026",
-          "https://fernway.co/careers",
+          "https://fernway.example/careers",
         ),
       },
     ],
@@ -96,7 +96,7 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
   {
     id: "wrenly",
     name: "Wrenly",
-    domain: "wrenly.app",
+    domain: "wrenly.example",
     fit: 72,
     tagline: "Onboarding paperwork and payroll setup for small companies",
     whyNow: "Wrenly just announced a DATEV integration",
@@ -110,14 +110,14 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
     },
     sources: {
       launch: source(
-        "wrenly.app",
+        "wrenly.example",
         "“DATEV integration announced” · Oct 7, 2026",
-        "https://wrenly.app/blog/datev",
+        "https://wrenly.example/blog/datev",
       ),
       home: source(
-        "wrenly.app",
+        "wrenly.example",
         "“Paperwork, payroll setup and equipment for new hires at companies under 200 people.”",
-        "https://wrenly.app",
+        "https://wrenly.example",
       ),
     },
     signals: [],
@@ -129,7 +129,7 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
   {
     id: "atlasfold",
     name: "Atlasfold",
-    domain: "atlasfold.com",
+    domain: "atlasfold.example",
     fit: 68,
     tagline: "Maps and geocoding API for logistics apps",
     whyNow: "Atlasfold just launched EU data residency",
@@ -143,14 +143,14 @@ export const MORE_COMPANIES: readonly DemoCompany[] = [
     },
     sources: {
       launch: source(
-        "atlasfold.com",
+        "atlasfold.example",
         "“Launched EU data residency” · Oct 15, 2026",
-        "https://atlasfold.com/blog/eu-data-residency",
+        "https://atlasfold.example/blog/eu-data-residency",
       ),
       home: source(
-        "atlasfold.com",
+        "atlasfold.example",
         "“Geocoding and routing APIs priced per request, built on open map data.”",
-        "https://atlasfold.com",
+        "https://atlasfold.example",
       ),
     },
     signals: [],

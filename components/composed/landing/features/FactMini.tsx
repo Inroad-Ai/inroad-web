@@ -29,7 +29,7 @@ export function FactMini() {
       </p>
       <span className="flex items-center gap-2 text-xs font-sans-semibold text-signal-teal">
         <ExternalLinkIcon className="h-3.5 w-3.5" />
-        ledgerline.com/blog/series-b
+        ledgerline.example/blog/series-b
       </span>
     </div>
   );
