@@ -76,6 +76,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/companies/recently-funded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recently Funded
+         * @description Companies that raised money in the last year and have an open role
+         *     that fits the caller, newest money first.
+         */
+        get: operations["recently_funded_api_companies_recently_funded_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies/overview": {
         parameters: {
             query?: never;
@@ -1065,6 +1086,16 @@ export interface components {
          * @enum {string}
          */
         ApplyUrlState: "verified" | "board" | "fallback" | "unverified";
+        /**
+         * BackerOut
+         * @description An investor whose own portfolio page lists the company.
+         */
+        BackerOut: {
+            /** Name */
+            name: string;
+            /** Portfolio Url */
+            portfolio_url: string;
+        };
         /** Body_parse_resume_api_resume_parse_post */
         Body_parse_resume_api_resume_parse_post: {
             /** File */
@@ -1385,6 +1416,8 @@ export interface components {
             match?: components["schemas"]["CompanyMatchOut"] | null;
             /** Ratings */
             ratings?: components["schemas"]["RatingOut"][];
+            /** Backed By */
+            backed_by?: components["schemas"]["BackerOut"][];
         };
         /** CompanyDossier */
         CompanyDossier: {
@@ -1695,6 +1728,53 @@ export interface components {
              */
             email: string;
         };
+        /** FundedCompanyOut */
+        FundedCompanyOut: {
+            /** Domain */
+            domain: string;
+            /** Company Name */
+            company_name: string | null;
+            /** Stage */
+            stage: string | null;
+            /** Amount Usd */
+            amount_usd: number | null;
+            /**
+             * Announced On
+             * Format: date
+             */
+            announced_on: string;
+            /** Sources */
+            sources: components["schemas"]["FundingSourceOut"][];
+            best_role: components["schemas"]["FundedRoleOut"];
+            /** Fitting Roles */
+            fitting_roles: number;
+            /** Backed By */
+            backed_by?: string[];
+            /** Company Id */
+            company_id?: string | null;
+        };
+        /** FundedRoleOut */
+        FundedRoleOut: {
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Fit Reason */
+            fit_reason: string;
+            match: components["schemas"]["RoleMatchOut"];
+        };
+        /**
+         * FundingSourceOut
+         * @description A public report of the round: the company's own page, a filing, news.
+         */
+        FundingSourceOut: {
+            /** Provider */
+            provider: string;
+            /** Url */
+            url: string;
+            /** Title */
+            title: string;
+        };
         /** GmailDraftOut */
         GmailDraftOut: {
             /** Draft Id */
@@ -1878,6 +1958,16 @@ export interface components {
              */
             updating: boolean;
         };
+        /**
+         * LeftOut
+         * @description Openings a scan checked and did not keep, by why, in plain words.
+         */
+        LeftOut: {
+            /** Reason */
+            reason: string;
+            /** Count */
+            count: number;
+        };
         /** LinkedInCompanyResult */
         LinkedInCompanyResult: {
             /** Url */
@@ -1934,6 +2024,13 @@ export interface components {
             matched_company_ids?: string[];
             /** Researched Company Ids */
             researched_company_ids?: string[];
+            /**
+             * Checked
+             * @default 0
+             */
+            checked: number;
+            /** Left Out */
+            left_out?: components["schemas"]["LeftOut"][];
         };
         /** MessageResponse */
         MessageResponse: {
@@ -2041,6 +2138,24 @@ export interface components {
             /** @description What the user did with the notification. */
             action: components["schemas"]["NotificationAction"];
         };
+        /**
+         * NotificationEvidence
+         * @description A public signal about the company: a hiring post, a funding round,
+         *     an expansion, a launch.
+         */
+        NotificationEvidence: {
+            /** Signal Type */
+            signal_type: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /**
+             * Happened On
+             * Format: date
+             */
+            happened_on: string;
+        };
         /** NotificationOut */
         NotificationOut: {
             /**
@@ -2066,6 +2181,10 @@ export interface components {
             event_start: string | null;
             /** Reasons */
             reasons: string[];
+            /** Intent */
+            intent?: number | null;
+            /** Evidence */
+            evidence?: components["schemas"]["NotificationEvidence"][];
             /**
              * Created At
              * Format: date-time
@@ -2682,6 +2801,16 @@ export interface components {
          * @enum {string}
          */
         RatingVerdict: "up" | "down";
+        /** RecentlyFundedOut */
+        RecentlyFundedOut: {
+            /** Items */
+            items?: components["schemas"]["FundedCompanyOut"][];
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -2856,6 +2985,16 @@ export interface components {
             contacts?: components["schemas"]["PostingContact"][];
             /** Skills */
             skills?: string[];
+            /**
+             * Visa Sponsorship
+             * @default not_stated
+             */
+            visa_sponsorship: string;
+            /**
+             * Relocation Support
+             * @default not_stated
+             */
+            relocation_support: string;
         };
         /** RoleTeamOut */
         RoleTeamOut: {
@@ -3205,6 +3344,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OverviewInsights"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recently_funded_api_companies_recently_funded_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentlyFundedOut"];
                 };
             };
             /** @description Validation Error */

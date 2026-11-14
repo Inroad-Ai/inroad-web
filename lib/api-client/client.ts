@@ -26,6 +26,8 @@ export type TokenPair = components["schemas"]["TokenPair"];
 export type CurrentUser = components["schemas"]["CurrentUser"];
 export type NextStep = components["schemas"]["NextStep"];
 export type OverviewInsights = components["schemas"]["OverviewInsights"];
+export type RecentlyFunded = components["schemas"]["RecentlyFundedOut"];
+export type FundedCompany = components["schemas"]["FundedCompanyOut"];
 export type HiringPoint = components["schemas"]["HiringPoint"];
 export type SkillDemand = components["schemas"]["SkillDemand"];
 export type Profile = components["schemas"]["ProfileOut"];
@@ -486,6 +488,20 @@ export async function fetchOverviewInsights(
   signal?: AbortSignal,
 ): Promise<OverviewInsights> {
   const result = await client.GET("/api/companies/insights", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, COMPANIES_UNREACHABLE);
+}
+
+/** Companies that raised money in the last year with an open role that fits
+ * the user, newest money first. */
+export async function fetchRecentlyFunded(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<RecentlyFunded> {
+  const result = await client.GET("/api/companies/recently-funded", {
     headers: authHeaders(accessToken),
     signal,
   });
