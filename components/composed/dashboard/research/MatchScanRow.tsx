@@ -27,7 +27,11 @@ function scanDescription(run: MatchRun, inFlight: boolean): string {
   if (inFlight) return "Using your profile and current hiring signals";
   if (run.timedOut) return "The worker may still be processing this scan.";
   if (run.status === "failed") return "No changes were made to your profile.";
-  return "Based on your saved preferences";
+  if (run.checked === 0) return "Based on your saved preferences";
+  // Why nothing (or little) was kept: an empty scan with no reason reads as broken.
+  const reasons = run.leftOut.map((item) => `${item.count} ${item.reason}`).join(", ");
+  const checked = `Checked ${plural(run.checked, "opening", "openings")}`;
+  return reasons ? `${checked}: ${reasons}.` : `${checked}.`;
 }
 
 export function MatchScanRow({

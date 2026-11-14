@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
 import { StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
+import { TextLink } from "@/components/ui/TextLink";
 
 import { StageMenu } from "../companies/StageMenu";
 import { MatchDetails } from "../match/MatchDetails";
@@ -110,6 +111,21 @@ export function IdentityHeader({
             {rerunning ? "Checking again..." : "Run research again"}
           </Button>
         </div>
+
+        {detail.backed_by && detail.backed_by.length > 0 ? (
+          <p className="text-sm text-ink-muted">
+            Backed by{" "}
+            {detail.backed_by.map((backer, index) => (
+              <span key={backer.portfolio_url}>
+                {index > 0 ? ", " : null}
+                <TextLink href={backer.portfolio_url} external>
+                  {backer.name}
+                </TextLink>
+              </span>
+            ))}
+            <span className="text-ink-faint"> (listed on their portfolio page)</span>
+          </p>
+        ) : null}
 
         <div className="flex flex-col gap-4 border-t border-line pt-4 sm:flex-row sm:items-start sm:justify-between">
           {detail.match ? (
