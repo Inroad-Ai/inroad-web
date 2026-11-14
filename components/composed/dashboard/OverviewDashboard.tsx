@@ -8,6 +8,7 @@ import { deriveOverviewMetrics } from "./overview/overview-metrics";
 import { OverviewEmpty } from "./overview/OverviewEmpty";
 import { OverviewSkeleton } from "./overview/OverviewSkeleton";
 import { PipelineChart } from "./overview/PipelineChart";
+import { RecentlyFundedSection } from "./overview/RecentlyFundedSection";
 import { RecentActivity } from "./overview/RecentActivity";
 import { SkillsDemandChart } from "./overview/SkillsDemandChart";
 import { StatTiles } from "./overview/StatTiles";
@@ -23,7 +24,15 @@ export function OverviewDashboard() {
   if (state === "error") {
     return <PageNotice isError>{message}</PageNotice>;
   }
-  if (state === "empty") return <OverviewEmpty />;
+  if (state === "empty") {
+    // A new user has no companies yet; funded companies that fit are where to start.
+    return (
+      <div className="space-y-5">
+        <OverviewEmpty />
+        <RecentlyFundedSection />
+      </div>
+    );
+  }
   if (!stats) return null;
 
   const metrics = deriveOverviewMetrics(stats);
@@ -39,6 +48,7 @@ export function OverviewDashboard() {
           <PipelineChart funnel={metrics.funnel} total={stats.total_companies} />
         </div>
       </div>
+      <RecentlyFundedSection />
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <ActivityChart
           weekly={metrics.weekly}

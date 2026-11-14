@@ -14,6 +14,9 @@ export interface MatchRun {
   error: string | null;
   matchedCompanyIds: string[];
   timedOut: boolean;
+  /** Openings the scan checked, and why it left the rest out. */
+  checked: number;
+  leftOut: { reason: string; count: number }[];
 }
 
 function failedRun(error: string): MatchRun {
@@ -24,6 +27,8 @@ function failedRun(error: string): MatchRun {
     error,
     matchedCompanyIds: [],
     timedOut: false,
+    checked: 0,
+    leftOut: [],
   };
 }
 
@@ -32,6 +37,8 @@ function fromResult(result: MatchRunResult): Partial<MatchRun> {
     status: result.status,
     error: result.error,
     matchedCompanyIds: result.matched_company_ids,
+    checked: result.checked ?? 0,
+    leftOut: result.left_out ?? [],
   };
 }
 
@@ -95,6 +102,8 @@ export function useMatchScans() {
           error: initial.error,
           matchedCompanyIds: [],
           timedOut: false,
+          checked: 0,
+          leftOut: [],
         },
         ...previous,
       ]);

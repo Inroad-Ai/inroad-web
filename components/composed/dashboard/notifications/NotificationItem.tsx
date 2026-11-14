@@ -6,10 +6,23 @@ import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { ExternalLinkIcon, SearchIcon } from "@/components/ui/Icons";
 import { TextLink } from "@/components/ui/TextLink";
 import type { Notification } from "@/lib/api-client/client";
-import { formatMonth, formatRelativeDays } from "@/lib/format";
+import { formatDay, formatMonth, formatRelativeDays } from "@/lib/format";
 import { safeHref } from "@/lib/safe-href";
 
 const HN_PROVIDER = "hn_hiring";
+
+const MAX_EVIDENCE_SHOWN = 4;
+
+const EVIDENCE_LABELS: Record<string, string> = {
+  hiring_announcement: "Hiring",
+  funding: "Funding",
+  expansion: "Expansion",
+  product_launch: "Launch",
+  layoff: "Layoffs",
+  acquisition: "Acquisition",
+  leadership_change: "Leadership",
+  partnership: "Partnership",
+};
 
 const KIND_LABELS: Record<string, string> = {
   followed_company: "Saved company",
@@ -33,6 +46,10 @@ export function NotificationItem({
     notification.excerpt && notification.excerpt !== notification.title
       ? notification.excerpt
       : null;
+  // The alert's own post is its title; the rest is why the company is worth a look now.
+  const evidence = (notification.evidence ?? [])
+    .filter((item) => item.title !== notification.title)
+    .slice(0, MAX_EVIDENCE_SHOWN);
 
   return (
     <li className="flex gap-4 border-t border-line py-5 first:border-0 first:pt-0">
@@ -69,6 +86,33 @@ export function NotificationItem({
               </li>
             ))}
           </ul>
+        ) : null}
+        {evidence.length > 0 ? (
+          <div className="mt-3">
+            <p className="text-xs font-sans-semibold text-ink-muted">Also from this company</p>
+            <ul aria-label="Recent public evidence" className="mt-1.5 space-y-1">
+              {evidence.map((item) => {
+                const itemHref = safeHref(item.url);
+                return (
+                  <li key={`${item.url}-${item.happened_on}`} className="flex gap-2 text-sm">
+                    <Badge>{EVIDENCE_LABELS[item.signal_type] ?? item.signal_type}</Badge>
+                    <span className="min-w-0 flex-1 truncate text-ink">
+                      {itemHref ? (
+                        <TextLink href={itemHref} external>
+                          {item.title}
+                        </TextLink>
+                      ) : (
+                        item.title
+                      )}
+                    </span>
+                    <span className="shrink-0 text-xs text-ink-muted">
+                      {formatDay(item.happened_on)}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         ) : null}
         {isHackerNews ? (
           <p className="mt-2 text-xs text-ink-faint">

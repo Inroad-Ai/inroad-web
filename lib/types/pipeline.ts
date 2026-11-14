@@ -26,6 +26,9 @@ export interface PipelineRunOut {
 export interface MatchRunResult extends PipelineRunOut {
   matched_company_ids: string[];
   researched_company_ids: string[];
+  /** Openings checked, and why the rest were left out, most common first. */
+  checked?: number;
+  left_out?: { reason: string; count: number }[];
 }
 
 /** GET /api/people/{person_id}/outreach/runs/{run_id}. Empty drafts until
