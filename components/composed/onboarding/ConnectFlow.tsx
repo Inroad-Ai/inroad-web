@@ -7,13 +7,7 @@ import { useOAuthRedirectNotice } from "@/components/composed/dashboard/integrat
 import { Notice } from "@/components/ui/Notice";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useConnections } from "@/hooks/useConnections";
-import {
-  setLlmAssignment,
-  type Connection,
-  type LlmAssignmentProvider,
-} from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { LLM_PROVIDER_LABELS } from "@/lib/llm-purposes";
+import type { Connection } from "@/lib/api-client/client";
 
 import { CONNECT_STEPS, connectStepFor } from "./connect-steps";
 import { ConnectStep } from "./ConnectStep";
@@ -33,12 +27,8 @@ interface StepNotice {
   isError: boolean;
 }
 
-function isLlmProvider(provider: string): provider is LlmAssignmentProvider {
-  return provider in LLM_PROVIDER_LABELS;
-}
-
-/** The last part of setup, after the profile is saved: Gmail, an optional
- * AI key, then contact data, each skippable, then the first match scan. */
+/** The last part of setup, after the profile is saved: Gmail, then contact
+ * data, each skippable, then the first match scan. */
 export function ConnectFlow({ role, city }: { role: string; city: string }) {
   const searchParams = useSearchParams();
   const redirectNotice = useOAuthRedirectNotice();
@@ -64,33 +54,11 @@ export function ConnectFlow({ role, city }: { role: string; city: string }) {
     setStepIndex((index) => Math.max(index + towards, 0));
   }
 
-  // A key added during setup is one the user wants used, so point outreach
-  // drafts at it straight away rather than sending them to a second screen.
-  async function assignToOutreach(provider: LlmAssignmentProvider) {
-    const label = LLM_PROVIDER_LABELS[provider];
-    try {
-      const token = await ensureValidAccessToken();
-      if (!token) throw new Error("Your session expired. Sign in again to finish setup.");
-      await setLlmAssignment("outreach_draft", provider, null, token);
-      setNotice({ text: `Outreach drafts will use your ${label} key.`, isError: false });
-    } catch (caught) {
-      setNotice({
-        text: `${label} key saved, but it isn't in use yet: ${
-          caught instanceof Error ? caught.message : "something went wrong"
-        }. Pick it under Integrations, AI models.`,
-        isError: true,
-      });
-    }
-  }
-
   function handleConnected(connection: Connection) {
     setConnections([
       ...connections.filter((existing) => existing.provider !== connection.provider),
       connection,
     ]);
-    if (connection.status === "connected" && isLlmProvider(connection.provider)) {
-      void assignToOutreach(connection.provider);
-    }
   }
 
   function handleDisconnected(provider: string) {
