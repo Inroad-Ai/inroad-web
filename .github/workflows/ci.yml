@@ -24,7 +24,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - run: python3 scripts/detect-malware.py
@@ -32,7 +32,7 @@ jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
       - name: Scan for committed secrets
@@ -46,7 +46,7 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:8000
       JWT_SECRET: ci-test-secret-not-a-real-key
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - uses: pnpm/action-setup@v6
 
