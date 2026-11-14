@@ -30,7 +30,8 @@ export function useOnboardingDraft() {
 
         const draft = loadDraft(user.id);
         if (draft) {
-          setForm(draft.form);
+          // A draft saved before a field existed has no value for it.
+          setForm({ ...INITIAL_FORM, ...draft.form });
           setStepIndex(draft.stepIndex);
           // An interrupted upload has no file left to resume, only a spinner
           // with nothing behind it: only "done" or "error" come back.

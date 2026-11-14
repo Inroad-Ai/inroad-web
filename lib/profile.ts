@@ -41,9 +41,3 @@ export const EXCLUDED_REGION_OPTIONS: { value: string; label: string }[] = [
   { value: "latin_america", label: "Latin America" },
   { value: "north_america", label: "North America" },
 ];
-
-/** Resume parsing is wired up; the career-arc document is not yet. Files are
- * parsed in process and discarded either way, so there is never a document to
- * show here, only whether a parse exists. */
-export const CAREER_ARC_PARSING_UNAVAILABLE =
-  "Career arc parsing isn't wired up yet. You can finish without one and add it later.";
