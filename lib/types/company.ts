@@ -314,6 +314,8 @@ export interface CompanyDetail extends Company {
   match: CompanyMatch | null;
   /** The user's good fit / not for me verdicts here, newest first. */
   ratings: MatchRating[];
+  /** Investors whose own portfolio page lists the company: a label only. */
+  backed_by?: { name: string; portfolio_url: string }[];
 }
 
 export interface SkillMatch {
