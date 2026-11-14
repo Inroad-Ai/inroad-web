@@ -58,7 +58,7 @@ export function SentVisual({ state, still = false }: MarkProps) {
         <CheckIcon className="h-9 w-9" />
       </span>
       <div className="rounded-full bg-surface px-5 py-3 text-sm font-sans-semibold text-ink shadow-card">
-        Sent from jordan.reyes@hey.com
+        Sent from jordan.reyes@example.com
         <small className="block text-xs font-sans-medium text-ink-muted">
           via Gmail · Tuesday 09:41
         </small>

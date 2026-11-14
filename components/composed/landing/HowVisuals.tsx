@@ -5,11 +5,11 @@ import { DEMO_COMPANIES } from "@/lib/landing/ask-companies";
 const FACTS = [
   {
     quote: "“...moving the write path from Elixir to Go cut p99 latency by 70%...”",
-    url: "ledgerline.com/engineering/go-write-path",
+    url: "ledgerline.example/engineering/go-write-path",
   },
   {
     quote: "“The new money goes first into a ledger platform team...”",
-    url: "ledgerline.com/blog/series-b",
+    url: "ledgerline.example/blog/series-b",
   },
 ] as const;
 

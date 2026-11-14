@@ -7,7 +7,7 @@ import { TintBand } from "@/components/ui/TintBand";
 
 import { CARD_VARIANTS, ITEM_VARIANTS, type ChapterState } from "./story-motion";
 
-const DOMAIN = "ledgerline.com";
+const DOMAIN = "ledgerline.example";
 const FIT = 92;
 const RING_RADIUS = 24;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
@@ -39,7 +39,9 @@ export function DossierCard({ state, still = false }: { state: ChapterState; sti
         <CompanyLogo logoUrl={null} seed={DOMAIN} size="lg" className="ring-1 ring-chalk/30" />
         <div>
           <h3 className="text-2xl font-sans-semibold leading-none tracking-heading">Ledgerline</h3>
-          <p className="mt-1 text-xs font-sans-semibold opacity-85">ledgerline.com · Series B</p>
+          <p className="mt-1 text-xs font-sans-semibold opacity-85">
+            ledgerline.example · Series B
+          </p>
         </div>
         <div className="relative ml-auto h-14 w-14 shrink-0" aria-label={`Fit ${FIT}`}>
           <svg viewBox="0 0 56 56" className="h-full w-full -rotate-90" aria-hidden>
@@ -92,7 +94,7 @@ export function DossierCard({ state, still = false }: { state: ChapterState; sti
             The new money goes first into a ledger platform team...
           </q>
           <small className="mt-1 block text-xs font-sans-medium text-ink-muted">
-            ledgerline.com/blog/series-b
+            ledgerline.example/blog/series-b
           </small>
         </Row>
       </div>
