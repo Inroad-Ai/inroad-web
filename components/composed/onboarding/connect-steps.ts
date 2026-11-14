@@ -22,18 +22,6 @@ export const CONNECT_STEPS: Record<ConnectStepId, ConnectStepContent> = {
       "any time from Integrations in the sidebar.",
     providers: ["gmail"],
   },
-  aiKey: {
-    title: "Use your own AI key",
-    why:
-      "Inroad writes your outreach drafts with its own model, so there's nothing to set up. " +
-      "Add a key if you'd rather drafts run on your own OpenAI, Gemini, Groq or ModelScope " +
-      "account: you choose the model and pay that provider directly. Resume parsing and " +
-      "company research always use Inroad's model.",
-    later:
-      "Most people skip this. You can add, change or remove a key any time under " +
-      "Integrations, AI models.",
-    providers: ["openai", "gemini", "groq", "modelscope"],
-  },
   contactData: {
     title: "Find verified emails",
     why:

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { saveProfile } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 
+import { CareerArcScreen } from "./CareerArcScreen";
 import { ContactDetailsScreen } from "./ContactDetailsScreen";
 import { EmailScreen } from "./EmailScreen";
 import { LinksScreen } from "./LinksScreen";
@@ -240,6 +241,18 @@ export function OnboardingFlow() {
             />
           ) : null}
 
+          {step === "careerArc" ? (
+            <CareerArcScreen
+              careerArc={form.careerArc}
+              warnings={form.careerArcWarnings}
+              onChange={(careerArc, careerArcWarnings) =>
+                setForm((prev) => ({ ...prev, careerArc, careerArcWarnings }))
+              }
+              onNext={next}
+              onBack={onBack}
+            />
+          ) : null}
+
           {step === "summary" ? (
             <SummaryScreen
               firstName={form.firstName}
@@ -254,6 +267,7 @@ export function OnboardingFlow() {
               resumeFileName={resume.state === "done" ? resume.fileName : null}
               workPreference={form.workPreference}
               targetRoles={form.targetRoles}
+              careerArc={form.careerArc}
               fieldSource={form.fieldSource}
               onEditName={() => editFromSummary("name")}
               onEditEmail={() => editFromSummary("email")}
@@ -263,6 +277,7 @@ export function OnboardingFlow() {
               onEditResume={() => editFromSummary("resume")}
               onEditWorkPreference={() => editFromSummary("workPreference")}
               onEditTargetRole={() => editFromSummary("targetRole")}
+              onEditCareerArc={() => editFromSummary("careerArc")}
               onSubmit={handleSubmit}
               onBack={onBack}
               submitting={submitting}

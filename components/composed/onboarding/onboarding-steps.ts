@@ -9,6 +9,7 @@ export const STEP_IDS = [
   "links",
   "workPreference",
   "targetRole",
+  "careerArc",
   "summary",
 ] as const;
 
@@ -16,7 +17,7 @@ export type StepId = (typeof STEP_IDS)[number];
 
 // Run on their own page after the profile is saved, so an OAuth round trip
 // can land back on them (see connect-steps.ts).
-export const CONNECT_STEP_IDS = ["gmail", "aiKey", "contactData"] as const;
+export const CONNECT_STEP_IDS = ["gmail", "contactData"] as const;
 
 export type ConnectStepId = (typeof CONNECT_STEP_IDS)[number];
 
@@ -37,6 +38,7 @@ export const STEP_PHASE_INDEX: Record<StepId, number> = {
   links: 1,
   workPreference: 2,
   targetRole: 2,
+  careerArc: 3,
   summary: 3,
 };
 

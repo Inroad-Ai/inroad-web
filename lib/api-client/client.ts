@@ -69,6 +69,14 @@ export type EducationEntry = components["schemas"]["EducationEntry"];
 export type ProjectEntry = components["schemas"]["ProjectEntry"];
 export type CertificateEntry = components["schemas"]["CertificateEntry"];
 export type LanguageEntry = components["schemas"]["LanguageEntry"];
+export type CareerArcDocument = components["schemas"]["CareerArcDocument"];
+export type CareerArcRole = components["schemas"]["CareerArcRole"];
+export type CareerArcStory = components["schemas"]["CareerArcStory"];
+export type CareerArcStrength = components["schemas"]["CareerArcStrength"];
+export type CareerArcRecognition = components["schemas"]["CareerArcRecognition"];
+export type CareerArcParseRun = components["schemas"]["CareerArcParseRun"];
+export type CareerArcParseResult = components["schemas"]["CareerArcParseResult"];
+export type CareerArcWarning = components["schemas"]["ParseWarning"];
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -142,6 +150,7 @@ const COMPANIES_UNREACHABLE =
 const AUTH_UNREACHABLE = "Could not reach the auth service.";
 const PROFILE_UNREACHABLE = "Could not reach the profile service.";
 const RESUME_UNREACHABLE = "Could not reach the resume service.";
+const CAREER_ARC_UNREACHABLE = "Could not reach the career arc service.";
 
 function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
@@ -1020,6 +1029,72 @@ export async function saveProfile(
   });
 
   return unwrap(result, PROFILE_UNREACHABLE);
+}
+
+// --- career arc ---
+
+/** Starts reading a file. The read runs in the background: poll the run id
+ * with fetchCareerArcParseRun. */
+export async function parseCareerArc(
+  file: File,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const result = await client.POST("/api/career-arc/parse", {
+    // Same multipart workaround as parseResume.
+    body: { file: file as unknown as string },
+    bodySerializer(body: { file: unknown }) {
+      const form = new FormData();
+      form.append("file", body.file as Blob);
+      return form;
+    },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CAREER_ARC_UNREACHABLE).run_id;
+}
+
+export async function fetchCareerArcParseRun(
+  runId: string,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CareerArcParseRun> {
+  const result = await client.GET("/api/career-arc/parse/{run_id}", {
+    params: { path: { run_id: runId } },
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CAREER_ARC_UNREACHABLE);
+}
+
+/** Null when the user has a profile but no career arc yet. */
+export async function fetchCareerArc(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CareerArcDocument | null> {
+  const result = await client.GET("/api/career-arc", {
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CAREER_ARC_UNREACHABLE);
+}
+
+/** Replaces the whole saved document. */
+export async function saveCareerArc(
+  document: CareerArcDocument,
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<CareerArcDocument> {
+  const result = await client.PUT("/api/career-arc", {
+    body: document,
+    headers: authHeaders(accessToken),
+    signal,
+  });
+
+  return unwrap(result, CAREER_ARC_UNREACHABLE);
 }
 
 // --- connections ---

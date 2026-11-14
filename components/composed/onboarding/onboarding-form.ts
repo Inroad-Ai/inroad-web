@@ -1,4 +1,6 @@
 import type {
+  CareerArcDocument,
+  CareerArcWarning,
   CertificateEntry,
   EducationEntry,
   LanguageEntry,
@@ -6,6 +8,7 @@ import type {
   ProjectEntry,
   WorkHistoryEntry,
 } from "@/lib/api-client/client";
+import { hasContent } from "@/lib/career-arc";
 import {
   RESUME_FILLABLE_FIELDS,
   type UploadState,
@@ -36,6 +39,8 @@ export interface FormState {
   workPreference: WorkPreferenceOption[];
   regions: RegionOption[];
   targetRoles: string[];
+  careerArc: CareerArcDocument | null;
+  careerArcWarnings: CareerArcWarning[];
   fieldSource: FieldSourceMap;
 }
 
@@ -59,6 +64,8 @@ export const INITIAL_FORM: FormState = {
   workPreference: [],
   regions: [],
   targetRoles: [],
+  careerArc: null,
+  careerArcWarnings: [],
   fieldSource: {},
 };
 
@@ -144,5 +151,7 @@ export function toProfileUpsert(form: FormState): ProfileUpsert {
     work_preference: form.workPreference,
     regions: regionsToSave(form.workPreference, form.regions),
     target_roles: form.targetRoles,
+    // Omitted when skipped, so the API leaves any saved arc alone.
+    ...(hasContent(form.careerArc) ? { career_arc: form.careerArc } : {}),
   };
 }

@@ -106,6 +106,7 @@ const config: Config = {
       maxWidth: {
         bubble: "var(--size-bubble)",
         drawer: "var(--size-drawer)",
+        panel: "var(--size-panel)",
         page: "var(--size-page)",
         popover: "var(--size-popover)",
       },
@@ -182,6 +183,10 @@ const config: Config = {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "slide-in-right": {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
         // Eyebrow's live dot: an amber ring that breathes out and fades.
         "ring-pulse": {
           "0%, 100%": { boxShadow: "0 0 0 4px rgb(var(--color-signal-amber) / 0.14)" },
@@ -205,6 +210,8 @@ const config: Config = {
         "pop-in": "pop-in var(--motion-duration-fast) var(--motion-ease-emphasized) both",
         "slide-in-left":
           "slide-in-left var(--motion-duration-base) var(--motion-ease-emphasized) both",
+        "slide-in-right":
+          "slide-in-right var(--motion-duration-base) var(--motion-ease-emphasized) both",
         "ring-pulse": "ring-pulse 1.6s ease-in-out infinite",
         shimmer: "shimmer 1.6s ease-in-out infinite",
         indeterminate: "indeterminate 1.2s ease-in-out infinite",
