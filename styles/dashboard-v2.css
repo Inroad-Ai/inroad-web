@@ -653,7 +653,8 @@
     0 18px 48px -12px rgb(var(--color-scrim) / 0.7);
   z-index: 20;
 }
-.v2 a {
+
+:where(.v2) a {
   color: inherit;
   text-decoration: none;
 }
@@ -704,7 +705,8 @@
 .v2 .tablewrap {
   overflow-x: auto;
 }
-.v2 button {
+
+:where(.v2) button {
   font: inherit;
   color: inherit;
   background: none;

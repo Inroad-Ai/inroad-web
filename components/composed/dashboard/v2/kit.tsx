@@ -154,6 +154,8 @@ export interface ViewItem {
   on?: boolean;
   icon?: string;
   href?: string;
+  /** Makes the tab a button that switches a view in place. */
+  onSelect?: () => void;
 }
 
 export function Views({ items, className = "" }: { items: ViewItem[]; className?: string }) {
@@ -167,17 +169,34 @@ export function Views({ items, className = "" }: { items: ViewItem[]; className?
             {v.n != null ? <span className="n">{v.n}</span> : null}
           </>
         );
-        return v.href ? (
-          <Link
-            key={v.l}
-            href={v.href}
-            className={v.on ? "on" : ""}
-            role="tab"
-            aria-selected={!!v.on}
-          >
-            {inner}
-          </Link>
-        ) : (
+        if (v.href) {
+          return (
+            <Link
+              key={v.l}
+              href={v.href}
+              className={v.on ? "on" : ""}
+              role="tab"
+              aria-selected={!!v.on}
+            >
+              {inner}
+            </Link>
+          );
+        }
+        if (v.onSelect) {
+          return (
+            <button
+              key={v.l}
+              type="button"
+              className={v.on ? "on" : ""}
+              role="tab"
+              aria-selected={!!v.on}
+              onClick={v.onSelect}
+            >
+              {inner}
+            </button>
+          );
+        }
+        return (
           <div key={v.l} className={v.on ? "on" : ""} role="tab" aria-selected={!!v.on}>
             {inner}
           </div>

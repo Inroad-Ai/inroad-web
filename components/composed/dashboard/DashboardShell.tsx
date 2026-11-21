@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import { useProfile } from "@/hooks/useProfile";
 import { useSignOut } from "@/hooks/useSignOut";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 import { ResearchRunsProvider } from "@/lib/research-runs";
 
 import { CommandPalette } from "./command-palette/CommandPalette";
@@ -35,7 +37,6 @@ const NAV: { group: string | null; items: NavEntry[] }[] = [
         icon: "radar",
         label: "Opportunities",
         href: "/opportunities",
-        badge: "24",
         match: (p) => p.startsWith("/opportunities"),
       },
     ],
@@ -47,14 +48,12 @@ const NAV: { group: string | null; items: NavEntry[] }[] = [
         icon: "building",
         label: "Companies",
         href: "/companies",
-        badge: "42",
         match: (p) => p.startsWith("/companies") && !p.startsWith("/companies/pipeline"),
       },
       {
         icon: "users",
         label: "People",
         href: "/contacts",
-        badge: "86",
         match: (p) => p.startsWith("/contacts"),
       },
       {
@@ -73,7 +72,6 @@ const NAV: { group: string | null; items: NavEntry[] }[] = [
         icon: "spark",
         label: "Coach",
         href: "/coach",
-        badge: "dot",
         match: (p) => p.startsWith("/coach"),
       },
     ],
@@ -109,14 +107,21 @@ function crumbFor(path: string): ReactNode {
   if (/^\/companies\/.+/.test(path)) {
     return (
       <>
-        Companies / <b>Ledgerline</b>
+        Companies / <b>Company</b>
       </>
     );
   }
   if (/^\/contacts\/.+/.test(path)) {
     return (
       <>
-        People / Priya Nair / <b>Outreach</b>
+        People / <b>Contact</b>
+      </>
+    );
+  }
+  if (path.startsWith("/profile/authority")) {
+    return (
+      <>
+        Profile / <b>Authority</b>
       </>
     );
   }
@@ -124,13 +129,6 @@ function crumbFor(path: string): ReactNode {
     return (
       <>
         Profile / <b>Projects</b>
-      </>
-    );
-  }
-  if (path.startsWith("/settings")) {
-    return (
-      <>
-        Settings / <b>Notifications</b>
       </>
     );
   }
@@ -145,10 +143,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const palette = useCommandPalette();
   const { signOut, signingOut } = useSignOut();
   const [navOpen, setNavOpen] = useState(false);
+  const { profile } = useProfile();
+  const unread = useUnreadNotifications();
+  const fullName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : "";
+  const initials = fullName
+    ? fullName
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
 
   return (
     <ResearchRunsProvider>
-      <div className="v2">
+      <div className="v2 ui-quiet">
         <div className="shell">
           {navOpen ? (
             <button
@@ -202,9 +211,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               ))}
             </nav>
             <div className="me">
-              <Av i="JR" c={2} size="xs" />
+              <Av i={initials} c={2} size="xs" />
               <Link href="/profile" className="sm m">
-                Jordan Reyes
+                {fullName || "Your profile"}
               </Link>
               <span className="sp" />
               <button
@@ -232,9 +241,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               <div className="crumb">{crumbFor(path)}</div>
               <span className="sp" />
               <ThemeMenu />
-              <Link href="/notifications" className="iconb" aria-label="Notifications, 3 new">
+              <Link
+                href="/notifications"
+                className="iconb"
+                aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+              >
                 <Ic n="bell" />
-                <span className="bd">3</span>
+                {unread > 0 ? <span className="bd">{unread > 99 ? "99+" : unread}</span> : null}
               </Link>
             </header>
             <main className="content">{children}</main>
