@@ -1,13 +1,5 @@
-import { PageShell } from "@/components/composed/dashboard/PageShell";
-import { PipelineBoard } from "@/components/composed/dashboard/PipelineBoard";
+import { StagesPage } from "@/components/composed/dashboard/v2/pages/StagesPage";
 
-export default function PipelinePage() {
-  return (
-    <PageShell
-      title="Pipeline"
-      description="Companies by stage, from first look to offer. Drag a card to a new stage, or use Move."
-    >
-      <PipelineBoard />
-    </PageShell>
-  );
+export default function Page() {
+  return <StagesPage />;
 }

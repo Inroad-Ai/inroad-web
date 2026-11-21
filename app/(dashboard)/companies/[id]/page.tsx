@@ -1,21 +1,5 @@
-import { CompanyReport } from "@/components/composed/dashboard/company-report/CompanyReport";
-import { PageShell } from "@/components/composed/dashboard/PageShell";
-import { Button } from "@/components/ui/Button";
-import { ArrowLeftIcon } from "@/components/ui/Icons";
+import { CompanyPage } from "@/components/composed/dashboard/v2/pages/CompanyPage";
 
-export default async function CompanyReportPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  return (
-    <PageShell
-      title="Company"
-      hideTitle
-      action={
-        <Button href="/companies" variant="ghost" size="sm" icon={<ArrowLeftIcon />}>
-          Back to companies
-        </Button>
-      }
-    >
-      <CompanyReport companyId={id} />
-    </PageShell>
-  );
+export default function Page() {
+  return <CompanyPage />;
 }
