@@ -4,10 +4,10 @@ type Variant = "default" | "nested" | "interactive";
 type Padding = "none" | "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
-  default: "rounded-card bg-surface shadow-card",
+  default: "rounded-card bg-surface shadow-card [.ui-quiet_&]:shadow-none",
   nested: "rounded-nest bg-surface-raised",
   interactive:
-    "rounded-card bg-surface shadow-card transition duration-fast ease-standard hover:-translate-y-0.5 hover:shadow-card-hover focus-within:shadow-card-hover",
+    "rounded-card bg-surface shadow-card transition duration-fast ease-standard hover:-translate-y-0.5 hover:shadow-card-hover focus-within:shadow-card-hover [.ui-quiet_&]:shadow-none [.ui-quiet_&]:hover:translate-y-0 [.ui-quiet_&]:hover:bg-surface-raised [.ui-quiet_&]:hover:shadow-none [.ui-quiet_&]:focus-within:shadow-none",
 };
 
 const PADDINGS: Record<Padding, string> = {
