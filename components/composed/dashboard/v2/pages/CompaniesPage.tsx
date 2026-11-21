@@ -1,30 +1,54 @@
+"use client";
+
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Btn, Ic, Lm, Tag, Views } from "../kit";
+import { fetchCompanies } from "@/lib/api-client/client";
+import { ensureValidAccessToken } from "@/lib/auth-native/browser";
+import { SESSION_EXPIRED, describeHiring } from "@/lib/companies";
+import { companyDisplayName } from "@/lib/company-brief";
+import { formatRelativeDays, plural } from "@/lib/format";
+import type { Company, CompanySort } from "@/lib/types";
+import { CompanyLogo } from "@/components/ui/CompanyLogo";
+import { PIPELINE_STAGES, STAGE_LABEL, type PipelineStage } from "@/components/ui/StatusBadge";
 
-type Tone = "" | "amber" | "green" | "teal";
-type Row = [string, number, number, string, Tone, string, number, string, boolean?];
+import { CompaniesEmpty } from "../../companies/CompaniesEmpty";
+import { MatchProgressNotice } from "../../companies/MatchProgressNotice";
+import { Btn, Ic, Status, Views } from "../kit";
 
-const ROWS: Row[] = [
-  ["Ledgerline", 1, 91, "Contacted", "amber", "$42M B", 6, "Reply to Priya", true],
-  ["Fieldstone AI", 2, 88, "Researched", "", "$18M A", 6, "Find a warm path"],
-  ["Northwind Labs", 3, 84, "Responded", "green", "$60M B", 3, "Book intro call"],
-  ["Stealth fintech", 4, 84, "Researched", "", "Seed", 1, "Message founder"],
-  ["Paperplane", 5, 79, "Researched", "", "$9M A", 2, "Check rate"],
-  ["Quill Health", 6, 77, "Interviewing", "teal", "$120M C", 4, "Prep round 2"],
-  ["Helio Robotics", 1, 72, "Researched", "", "$30M A", 2, "Re-research"],
+const PAGE_SIZE = 25;
+const SEARCH_DEBOUNCE_MS = 300;
+
+const SORT_OPTIONS: { value: CompanySort; label: string }[] = [
+  { value: "updated_desc", label: "Last researched (newest)" },
+  { value: "updated_asc", label: "Last researched (oldest)" },
+  { value: "created_desc", label: "Date saved (newest)" },
+  { value: "created_asc", label: "Date saved (oldest)" },
+  { value: "domain_asc", label: "Domain (A-Z)" },
+  { value: "domain_desc", label: "Domain (Z-A)" },
 ];
 
-const SUGGESTED = ["Hiring manager", "Visa sponsor", "Tech overlap"];
+const STAGE_TONE: Record<PipelineStage, "faint" | "amber" | "teal" | "ochre" | "rose"> = {
+  researched: "faint",
+  contacted: "teal",
+  responded: "amber",
+  interviewing: "teal",
+  closed: "ochre",
+  rejected: "rose",
+};
 
-const GROUPS: [string, string][] = [
-  ["Find", "Funding history, Headcount growth, Tech stack, Open roles"],
-  ["People", "Hiring manager, Verified email, Warm path"],
-  ["Signals", "Open-source hiring, News, Stealth detection"],
-];
+const NEXT_STEP: Record<PipelineStage, string> = {
+  researched: "Reach out",
+  contacted: "Follow up",
+  responded: "Reply",
+  interviewing: "Prepare",
+  closed: "Closed",
+  rejected: "Rejected",
+};
 
-function Th({ icon, children }: { icon: string; children: ReactNode }) {
+type LoadState = "loading" | "error" | "ready";
+
+function Th({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
     <span className="ci">
       <Ic n={icon} size="xs" />
@@ -34,127 +58,254 @@ function Th({ icon, children }: { icon: string; children: ReactNode }) {
 }
 
 export function CompaniesPage() {
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [stage, setStage] = useState<PipelineStage | "all">("all");
+  const [sort, setSort] = useState<CompanySort>("updated_desc");
+  const [page, setPage] = useState(1);
+
+  const [state, setState] = useState<LoadState>("loading");
+  const [data, setData] = useState<{ items: Company[]; total: number } | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  // Bumped as matched companies' research lands; that reload keeps the rows
+  // on screen instead of flashing the loading state.
+  const [refreshKey, setRefreshKey] = useState(0);
+  const quietReload = useRef(false);
+  const refreshQuietly = useCallback(() => {
+    quietReload.current = true;
+    setRefreshKey((key) => key + 1);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, stage, sort]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function load() {
+      if (!quietReload.current) setState("loading");
+      quietReload.current = false;
+      const token = await ensureValidAccessToken();
+      if (!token) {
+        setErrorMessage(SESSION_EXPIRED);
+        setState("error");
+        return;
+      }
+
+      try {
+        const response = await fetchCompanies(
+          {
+            search: search || undefined,
+            stage: stage === "all" ? undefined : stage,
+            sort,
+            page,
+            pageSize: PAGE_SIZE,
+          },
+          token,
+          controller.signal,
+        );
+        setData({ items: response.items, total: response.total });
+        setState("ready");
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setErrorMessage(err instanceof Error ? err.message : "Could not load companies.");
+        setState("error");
+      }
+    }
+
+    load();
+    return () => controller.abort();
+  }, [search, stage, sort, page, refreshKey]);
+
+  function clearFilters() {
+    setSearchInput("");
+    setSearch("");
+    setStage("all");
+  }
+
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  const hasFilters = search !== "" || stage !== "all";
+  const items = data?.items ?? [];
+  const loading = state === "loading";
+
   return (
-    <div style={{ position: "relative" }}>
+    <div>
       <div className="row head">
         <div>
           <h1 className="t">Companies</h1>
-          <div className="sub">42 companies you researched or saved.</div>
+          <div className="sub">
+            {data && !hasFilters
+              ? `${plural(data.total, "company", "companies")} you researched or saved.`
+              : "Every company you've looked into, in one place."}
+          </div>
         </div>
         <span className="sp" />
-        <Btn icon="up">Import</Btn>
         <Btn kind="p" icon="plus" href="/research">
-          New company
+          Research a company
         </Btn>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <MatchProgressNotice onResearched={refreshQuietly} />
       </div>
 
       <div style={{ marginTop: 22 }}>
         <Views
           items={[
-            { l: "All", n: 42, on: true },
-            { l: "Shortlist", n: 8 },
-            { l: "Funded", n: 12 },
-            { l: "Hiring now", n: 15 },
-            { l: "Stealth", n: 3 },
-            { l: "+ New view" },
+            { l: "All", on: stage === "all", onSelect: () => setStage("all") },
+            ...PIPELINE_STAGES.map((value) => ({
+              l: STAGE_LABEL[value],
+              on: stage === value,
+              onSelect: () => setStage(value),
+            })),
           ]}
         />
       </div>
-      <div className="row" style={{ gap: 18, margin: "12px 0 4px" }}>
-        <span className="sm muted">
-          <Ic n="filter" size="xs" /> Filter
-        </span>
-        <span className="sm muted">Sort: Fit</span>
-        <span className="sm muted">Group: None</span>
+
+      <div className="row wrap" style={{ gap: 14, margin: "12px 0 4px" }}>
+        <label className="field" style={{ height: 34, width: 280, maxWidth: "100%" }}>
+          <Ic n="search" size="xs" />
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search by domain"
+            aria-label="Search companies by domain"
+            style={{
+              background: "none",
+              border: 0,
+              outline: 0,
+              color: "inherit",
+              font: "inherit",
+              width: "100%",
+            }}
+          />
+        </label>
         <span className="sp" />
-        <span className="sm faint">7 of 42</span>
-      </div>
-
-      <div className="tablewrap">
-        <table className="t">
-          <thead>
-            <tr>
-              <th style={{ width: 240 }}>
-                <Th icon="building">Company</Th>
-              </th>
-              <th>
-                <Th icon="target">Fit</Th>
-              </th>
-              <th>
-                <Th icon="kanban">Stage</Th>
-              </th>
-              <th>
-                <Th icon="dollar">Funding</Th>
-              </th>
-              <th>
-                <Th icon="briefcase">Roles</Th>
-              </th>
-              <th>
-                <Th icon="arrow">Next step</Th>
-              </th>
-              <th style={{ width: 36 }}>
-                <Ic n="plus" size="s" />
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {ROWS.map(([name, c, fit, stage, tone, funding, roles, next, sel]) => (
-              <tr key={name} className={sel ? "sel" : ""}>
-                <td>
-                  <Link href="/companies/ledgerline" className="row">
-                    <Lm i={name[0]} c={c} size="xs" />
-                    <span className="m">{name}</span>
-                  </Link>
-                </td>
-                <td className="num">
-                  <b className={fit > 85 ? "green" : ""}>{fit}</b>
-                </td>
-                <td>
-                  <Tag tone={tone}>{stage}</Tag>
-                </td>
-                <td>{funding}</td>
-                <td className="num">{roles}</td>
-                <td className={sel ? "amber m" : "muted"}>{next}</td>
-                <td />
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="pop addcol" style={{ right: 20, top: 250, width: 420, padding: "18px 20px" }}>
-        <div className="row" style={{ marginBottom: 12 }}>
-          <b>Add a column</b>
-          <span className="sp" />
-          <span className="field" style={{ height: 30, width: 150, fontSize: 13 }}>
-            <Ic n="search" size="xs" />
-            Search
-          </span>
-        </div>
-        <div className="note teal" style={{ marginBottom: 14, display: "block" }}>
-          <div className="xs" style={{ opacity: 0.8, marginBottom: 6 }}>
-            Suggested for this table
-          </div>
-          <div className="row wrap" style={{ gap: 8 }}>
-            {SUGGESTED.map((t) => (
-              <Tag key={t} tone="teal" icon="spark">
-                {t}
-              </Tag>
-            ))}
-          </div>
-        </div>
-        {GROUPS.map(([group, items]) => (
-          <div
-            key={group}
-            style={{ padding: "8px 0", borderTop: "1px solid rgb(var(--color-line))" }}
+        <label className="sm muted">
+          Sort{" "}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as CompanySort)}
+            aria-label="Sort companies"
+            style={{
+              background: "transparent",
+              color: "rgb(var(--color-ink))",
+              border: 0,
+              font: "inherit",
+            }}
           >
-            <div className="xs faint" style={{ marginBottom: 3 }}>
-              {group}
-            </div>
-            <div className="sm">{items}</div>
-          </div>
-        ))}
+            {SORT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value} style={{ color: "initial" }}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
+
+      <div aria-busy={loading}>
+        {state === "error" ? (
+          <CompaniesEmpty kind="error" errorMessage={errorMessage} onClearFilters={clearFilters} />
+        ) : !loading && items.length === 0 ? (
+          <CompaniesEmpty kind={hasFilters ? "filtered" : "none"} onClearFilters={clearFilters} />
+        ) : (
+          <div className="tablewrap">
+            <table className="t">
+              <thead>
+                <tr>
+                  <th style={{ width: 280 }}>
+                    <Th icon="building">Company</Th>
+                  </th>
+                  <th>
+                    <Th icon="kanban">Stage</Th>
+                  </th>
+                  <th>
+                    <Th icon="briefcase">Hiring</Th>
+                  </th>
+                  <th>
+                    <Th icon="clock">Last researched</Th>
+                  </th>
+                  <th>
+                    <Th icon="arrow">Next step</Th>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i}>
+                        <td colSpan={5} className="faint">
+                          Loading...
+                        </td>
+                      </tr>
+                    ))
+                  : items.map((company) => {
+                      const hiring = describeHiring(company);
+                      return (
+                        <tr key={company.id}>
+                          <td>
+                            <Link href={`/companies/${company.id}`} className="row">
+                              <CompanyLogo
+                                logoUrl={company.logo_url}
+                                seed={company.domain}
+                                size="sm"
+                              />
+                              <div>
+                                <span className="m">{companyDisplayName(company)}</span>{" "}
+                                <span className="faint xs">{company.domain}</span>
+                              </div>
+                            </Link>
+                          </td>
+                          <td>
+                            <Status tone={STAGE_TONE[company.stage]}>
+                              {STAGE_LABEL[company.stage]}
+                            </Status>
+                          </td>
+                          <td className={hiring.muted ? "muted" : "m"}>{hiring.label}</td>
+                          <td className="muted">{formatRelativeDays(company.updated_at)}</td>
+                          <td className={company.stage === "responded" ? "amber m" : "muted"}>
+                            {NEXT_STEP[company.stage]}
+                          </td>
+                        </tr>
+                      );
+                    })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {state === "ready" && data && data.items.length > 0 ? (
+        <div className="row wrap" style={{ gap: 12, marginTop: 16 }}>
+          <span className="sm faint">
+            {plural(data.total, "company", "companies")}, page {page} of {totalPages}
+          </span>
+          <span className="sp" />
+          <button
+            type="button"
+            className="btn sm"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            className="btn sm"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Next
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
