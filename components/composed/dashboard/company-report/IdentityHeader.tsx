@@ -9,7 +9,6 @@ import { useResearchRuns } from "@/lib/research-runs";
 import type { CompanyBrief } from "@/lib/company-brief";
 import type { Company, CompanyDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
 import { StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
 import { TextLink } from "@/components/ui/TextLink";
@@ -90,10 +89,10 @@ export function IdentityHeader({
   const errors = [stageError, rerunError].filter(Boolean);
 
   return (
-    <Card as="section" padding="none" className="overflow-hidden" aria-label={detail.domain}>
+    <section aria-label={detail.domain} className="flex flex-col gap-5">
       <HeroBand detail={detail} brief={brief} />
 
-      <div className="flex flex-col gap-4 px-6 py-5 sm:px-8">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <StatusBadge stage={detail.stage} />
           <StageMenu
@@ -149,6 +148,6 @@ export function IdentityHeader({
           <Notice key={message}>{message}</Notice>
         ))}
       </div>
-    </Card>
+    </section>
   );
 }
