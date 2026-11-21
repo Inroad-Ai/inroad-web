@@ -80,7 +80,7 @@ export function TodayPage() {
         </Section>
 
         {funded.length > 0 ? (
-          <Section title="New for you" right={<Link href="/research?mode=match">Find more</Link>}>
+          <Section title="New for you" right={<Link href="/research">Find more</Link>}>
             <div className="list">
               {funded.slice(0, FUNDED_SHOWN).map((company) => {
                 const companyName = company.company_name ?? company.domain;
