@@ -1,13 +1,5 @@
-import { PageShell } from "@/components/composed/dashboard/PageShell";
-import { NotificationsPanel } from "@/components/composed/dashboard/notifications/NotificationsPanel";
+import { NotificationsPage } from "@/components/composed/dashboard/v2/pages/NotificationsPage";
 
-export default function NotificationsPage() {
-  return (
-    <PageShell
-      title="Notifications"
-      description="Hiring posts that fit your target roles, and news from companies you saved."
-    >
-      <NotificationsPanel />
-    </PageShell>
-  );
+export default function Page() {
+  return <NotificationsPage />;
 }
