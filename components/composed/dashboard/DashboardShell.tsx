@@ -24,11 +24,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <ResearchRunsProvider>
-      <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -right-1/4 -top-1/3 h-2/3 w-2/3 bg-glow-teal blur-3xl" />
-        <div className="absolute -bottom-1/3 left-0 h-1/2 w-1/2 bg-glow-ember blur-3xl" />
-      </div>
-      <div className="relative flex min-h-screen">
+      <div className="ui-quiet relative flex min-h-screen">
         <Sidebar
           collapsed={collapsed}
           onToggle={toggle}

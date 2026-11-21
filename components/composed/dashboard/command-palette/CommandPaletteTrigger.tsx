@@ -24,7 +24,7 @@ export function CommandPaletteTrigger({ onOpen }: { onOpen: () => void }) {
       onClick={onOpen}
       aria-label="Search and jump to"
       aria-keyshortcuts="Meta+K Control+K"
-      className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2.5 rounded-full border border-ink/15 bg-ink/5 text-sm font-sans-semibold text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink md:w-56 md:justify-start md:pl-4 md:pr-2"
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center gap-2.5 rounded-full bg-ink/5 text-sm font-sans-medium text-ink-muted transition-colors duration-fast hover:bg-ink/10 hover:text-ink md:w-56 md:justify-start md:pl-4 md:pr-2"
     >
       <SearchIcon />
       <span className="hidden truncate md:inline">Search or jump to...</span>

@@ -6,7 +6,7 @@ import { AccountMenu } from "@/components/composed/dashboard/AccountMenu";
 import { NotificationBell } from "@/components/composed/dashboard/NotificationBell";
 import { ResearchStatusPill } from "@/components/composed/dashboard/ResearchStatusPill";
 import { ThemeMenu } from "@/components/composed/dashboard/ThemeMenu";
-import { ChevronIcon, MenuIcon } from "@/components/ui/Icons";
+import { MenuIcon } from "@/components/ui/Icons";
 import { IconButton } from "@/components/ui/IconButton";
 import type { Profile } from "@/lib/api-client/client";
 
@@ -29,13 +29,7 @@ export function DashboardHeader({
       <IconButton label="Open navigation" onClick={onOpenNav} className="lg:hidden">
         <MenuIcon />
       </IconButton>
-      <p className="flex min-w-0 flex-1 items-center gap-2 text-sm font-sans-semibold">
-        <span className="hidden text-ink-muted sm:inline">Inroad</span>
-        <span aria-hidden className="hidden text-ink-faint sm:inline">
-          <ChevronIcon isFlipped />
-        </span>
-        <span className="truncate text-ink">{title}</span>
-      </p>
+      <p className="min-w-0 flex-1 truncate text-sm font-sans-medium text-ink">{title}</p>
       <div className="flex shrink-0 items-center gap-2">
         <ResearchStatusPill />
         <CommandPaletteTrigger onOpen={onOpenPalette} />

@@ -31,7 +31,7 @@ export function SidebarProfileCard({
       onClick={onNavigate}
       title={collapsed ? label : undefined}
       aria-label={collapsed ? label : undefined}
-      className={`flex items-center gap-3 rounded-card bg-surface shadow-card transition duration-fast ease-standard hover:-translate-y-0.5 hover:shadow-card-hover ${
+      className={`flex items-center gap-3 rounded-card bg-ink/5 transition-colors duration-fast ease-standard hover:bg-ink/10 ${
         collapsed ? "justify-center" : "p-2.5"
       }`}
     >
