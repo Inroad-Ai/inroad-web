@@ -1,15 +1,13 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { useConnections } from "@/hooks/useConnections";
 import type { Connection } from "@/lib/api-client/client";
+import { DashboardPanel } from "../DashboardPanel";
 import { PageNotice } from "../PageNotice";
 import { AiModelsSection } from "./AiModelsSection";
 import { ConnectorCard } from "./ConnectorCard";
 import { IntegrationsSkeleton } from "./IntegrationsSkeleton";
-import { IntegrationsSummary } from "./IntegrationsSummary";
 import { CATEGORY_DESCRIPTIONS, KNOWN_PROVIDERS, providersByCategory } from "./providers";
 import { useOAuthRedirectNotice } from "./useOAuthRedirectNotice";
 
@@ -38,58 +36,51 @@ export function IntegrationsBoard() {
   ).length;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {redirectNotice ? (
         <Notice tone={redirectNotice.isError ? "error" : "success"} boxed>
           {redirectNotice.text}
         </Notice>
       ) : null}
 
-      <IntegrationsSummary connected={connectedCount} total={KNOWN_PROVIDERS.length} />
+      <p className="text-sm text-ink-muted">
+        <span className="font-sans-semibold text-ink">
+          {connectedCount} of {KNOWN_PROVIDERS.length}
+        </span>{" "}
+        connected. Each connection is optional, private to your account, and used only when you
+        start research or draft outreach.
+      </p>
 
-      {providersByCategory().map(([category, providers]) => {
-        const headingId = `integrations-${category.toLowerCase().replace(/\s+/g, "-")}`;
-        return (
-          <section key={category} aria-labelledby={headingId}>
-            <div className="mb-5">
-              <Eyebrow as="h2" dot="static">
-                <span id={headingId}>{category}</span>
-              </Eyebrow>
-              <p className="mt-2 text-sm text-ink-muted">{CATEGORY_DESCRIPTIONS[category] ?? ""}</p>
-            </div>
+      {providersByCategory().map(([category, providers]) => (
+        <DashboardPanel
+          key={category}
+          id={`integrations-${category.toLowerCase().replace(/\s+/g, "-")}`}
+          title={category}
+          description={CATEGORY_DESCRIPTIONS[category] ?? ""}
+        >
+          <ul className="divide-y divide-line border-y border-line">
+            {providers.map((entry) => (
+              <ConnectorCard
+                key={entry.provider}
+                provider={entry.provider}
+                label={entry.label}
+                eyebrow={entry.eyebrow}
+                description={entry.description}
+                logoSrc={entry.logoSrc}
+                authMode={entry.authMode}
+                keyNote={entry.keyNote}
+                connection={
+                  connections.find((connection) => connection.provider === entry.provider) ?? null
+                }
+                onConnected={handleConnected}
+                onDisconnected={handleDisconnected}
+              />
+            ))}
+          </ul>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {providers.map((entry) => (
-                <ConnectorCard
-                  key={entry.provider}
-                  provider={entry.provider}
-                  label={entry.label}
-                  eyebrow={entry.eyebrow}
-                  description={entry.description}
-                  logoSrc={entry.logoSrc}
-                  authMode={entry.authMode}
-                  keyNote={entry.keyNote}
-                  connection={
-                    connections.find((connection) => connection.provider === entry.provider) ?? null
-                  }
-                  onConnected={handleConnected}
-                  onDisconnected={handleDisconnected}
-                />
-              ))}
-            </div>
-
-            {category === "AI models" ? <AiModelsSection connections={connections} /> : null}
-          </section>
-        );
-      })}
-
-      <Card variant="nested" padding="sm">
-        <p className="text-sm text-ink-muted">
-          <span className="font-sans-semibold text-ink">Tip:</span> Connections are private to your
-          account. Inroad accesses them only during research or when you draft outreach, never in
-          the background.
-        </p>
-      </Card>
+          {category === "AI models" ? <AiModelsSection connections={connections} /> : null}
+        </DashboardPanel>
+      ))}
     </div>
   );
 }
