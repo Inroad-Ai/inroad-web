@@ -6,7 +6,7 @@ export default function SettingsPage() {
     <PageShell
       title="Settings"
       description="Calm by default. Your account and how Inroad follows up. Profile details live on Profile."
-      maxWidth={820}
+      maxWidth={1000}
     >
       <SettingsPanel />
     </PageShell>

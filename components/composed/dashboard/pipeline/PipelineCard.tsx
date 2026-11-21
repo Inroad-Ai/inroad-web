@@ -65,7 +65,7 @@ export function PipelineCard({
         onKeyDown={(e) => {
           if (e.key === "Enter") onOpen();
         }}
-        className={`flex cursor-grab flex-col gap-3 p-3.5 active:cursor-grabbing ${
+        className={`flex cursor-grab flex-col gap-3 p-3.5 ring-1 ring-inset ring-line active:cursor-grabbing ${
           dragging ? "opacity-40" : moving ? "opacity-70" : ""
         }`}
       >

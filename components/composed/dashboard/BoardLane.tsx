@@ -44,8 +44,8 @@ export function BoardLane<T>({
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      className={`flex min-h-96 w-72 shrink-0 snap-start flex-col gap-2.5 rounded-card p-3 transition duration-fast ease-standard ${
-        isOver ? "bg-signal-amber-subtle ring-2 ring-inset ring-signal-amber" : "bg-lane"
+      className={`flex min-h-96 w-64 shrink-0 snap-start flex-col gap-2.5 rounded-card p-1 transition duration-fast ease-standard ${
+        isOver ? "bg-signal-amber-subtle ring-2 ring-inset ring-signal-amber" : ""
       }`}
     >
       <header className="flex items-center justify-between gap-2 px-1.5 pb-1 pt-1">

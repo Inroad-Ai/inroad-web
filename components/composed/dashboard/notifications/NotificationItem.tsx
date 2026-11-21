@@ -53,15 +53,23 @@ export function NotificationItem({
 
   return (
     <li className="flex gap-4 border-t border-line py-5 first:border-0 first:pt-0">
+      <span aria-hidden style={{ width: 8, paddingTop: 12 }}>
+        {notification.unread ? (
+          <span
+            style={{
+              display: "block",
+              width: 7,
+              height: 7,
+              borderRadius: "50%",
+              background: "rgb(var(--color-signal-amber))",
+            }}
+          />
+        ) : null}
+      </span>
       <CompanyLogo logoUrl={null} seed={notification.domain} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-sans-semibold text-ink">{notification.domain}</p>
-          {notification.unread ? (
-            <Badge tone="amber" dot>
-              New
-            </Badge>
-          ) : null}
           <Badge tone={notification.kind === "followed_company" ? "amber" : "teal"}>
             {KIND_LABELS[notification.kind] ?? notification.kind}
           </Badge>
