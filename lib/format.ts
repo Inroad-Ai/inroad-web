@@ -52,3 +52,13 @@ export function formatRelativeDays(iso: string): string {
 export function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;
 }
+
+/** "$42M", "$1.5B": a funding amount short enough for one line. */
+export function formatAmountUsd(amount: number | null | undefined): string | null {
+  if (!amount) return null;
+  const trim = (value: number) =>
+    value >= 100 ? value.toFixed(0) : value.toFixed(1).replace(/\.0$/, "");
+  if (amount >= 1_000_000_000) return `$${trim(amount / 1_000_000_000)}B`;
+  if (amount >= 1_000_000) return `$${trim(amount / 1_000_000)}M`;
+  return `$${trim(amount / 1_000)}K`;
+}

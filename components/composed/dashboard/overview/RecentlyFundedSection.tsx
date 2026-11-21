@@ -1,11 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-import { fetchRecentlyFunded, type RecentlyFunded } from "@/lib/api-client/client";
-import { ensureValidAccessToken } from "@/lib/auth-native/browser";
-import { formatDay } from "@/lib/format";
+import { formatAmountUsd, formatDay } from "@/lib/format";
 import { safeHref } from "@/lib/safe-href";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -14,34 +11,14 @@ import { TextLink } from "@/components/ui/TextLink";
 
 import { DashboardPanel } from "../DashboardPanel";
 import { MatchBadge } from "../match/MatchBadge";
-
-type LoadState = "loading" | "ready" | "unavailable";
+import { useRecentlyFunded } from "./useRecentlyFunded";
 
 /** Companies with new money and an open role that fits: the ones most likely
  * to answer now. Loaded on its own, so it never holds up the rest of the
  * Overview, and hidden while there is nothing to show. */
 export function RecentlyFundedSection() {
-  const [state, setState] = useState<LoadState>("loading");
-  const [data, setData] = useState<RecentlyFunded | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const token = await ensureValidAccessToken();
-        if (!token) return;
-        const result = await fetchRecentlyFunded(token, controller.signal);
-        setData(result);
-        setState(result.available ? "ready" : "unavailable");
-      } catch {
-        if (!controller.signal.aborted) setState("unavailable");
-      }
-    })();
-    return () => controller.abort();
-  }, []);
-
-  const items = data?.items ?? [];
-  if (state !== "ready" || items.length === 0) return null;
+  const items = useRecentlyFunded();
+  if (items.length === 0) return null;
 
   return (
     <DashboardPanel
@@ -76,8 +53,9 @@ export function RecentlyFundedSection() {
                     <p className="truncate text-sm font-sans-semibold text-ink">{name}</p>
                   )}
                   <p className="text-sm text-ink-muted">
-                    {[company.stage, formatAmount(company.amount_usd)].filter(Boolean).join(", ") ||
-                      "Raised funding"}
+                    {[company.stage, formatAmountUsd(company.amount_usd)]
+                      .filter(Boolean)
+                      .join(", ") || "Raised funding"}
                     {" · "}
                     {formatDay(company.announced_on)}
                   </p>
@@ -119,15 +97,4 @@ export function RecentlyFundedSection() {
       </ul>
     </DashboardPanel>
   );
-}
-
-function formatAmount(amount: number | null | undefined): string | null {
-  if (!amount) return null;
-  if (amount >= 1_000_000_000) return `$${trim(amount / 1_000_000_000)}B`;
-  if (amount >= 1_000_000) return `$${trim(amount / 1_000_000)}M`;
-  return `$${trim(amount / 1_000)}K`;
-}
-
-function trim(value: number): string {
-  return value >= 100 ? value.toFixed(0) : value.toFixed(1).replace(/\.0$/, "");
 }
