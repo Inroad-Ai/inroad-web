@@ -82,7 +82,7 @@ export function OutreachDrafts({
 
   return (
     <div className="flex flex-col gap-5">
-      <Tabs items={tabs} activeId={activeTab} onChange={setActiveTab} />
+      <Tabs variant="underline" items={tabs} activeId={activeTab} onChange={setActiveTab} />
 
       {activeDrafts.length > 0 ? (
         CHANNEL_ORDER.map((channel) => {

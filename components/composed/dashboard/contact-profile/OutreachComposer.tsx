@@ -1,8 +1,5 @@
 import type { PersonDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Eyebrow } from "@/components/ui/Eyebrow";
-import { MessageIcon } from "@/components/ui/Icons";
 import { Notice } from "@/components/ui/Notice";
 import type { UseOutreachDraftsResult } from "@/hooks/useOutreachDrafts";
 import { OutreachDrafts } from "./OutreachDrafts";
@@ -25,14 +22,10 @@ export function OutreachComposer({
   };
 
   return (
-    <Card as="section" aria-label="Outreach" padding="none">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
-        <Eyebrow as="span" dot="static">
-          Outreach
-        </Eyebrow>
-      </header>
+    <section aria-label="Outreach">
+      <h2 className="mb-4 text-base font-sans-semibold tracking-heading text-ink">Outreach</h2>
 
-      <div className="p-5 sm:p-6">
+      <div>
         {outreach.error ? <Notice className="mb-4">{outreach.error}</Notice> : null}
 
         {isClosed ? (
@@ -48,11 +41,8 @@ export function OutreachComposer({
             ) : null}
           </>
         ) : outreach.drafts.length === 0 ? (
-          <Card variant="nested" className="flex flex-col items-start">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-signal-amber-subtle text-signal-amber">
-              <MessageIcon />
-            </span>
-            <p className="mt-4 font-display text-xl font-sans-semibold tracking-heading text-ink">
+          <div className="flex flex-col items-start border-y border-line py-6">
+            <p className="font-display text-xl font-sans-semibold tracking-heading text-ink">
               Ready to start a conversation
             </p>
             <p className="mt-2 max-w-xl text-sm leading-6 text-ink-muted">
@@ -69,7 +59,7 @@ export function OutreachComposer({
             >
               {outreach.drafting ? "Drafting..." : "Draft outreach"}
             </Button>
-          </Card>
+          </div>
         ) : (
           <>
             <p className="max-w-3xl text-sm leading-6 text-ink-muted">
@@ -81,6 +71,6 @@ export function OutreachComposer({
           </>
         )}
       </div>
-    </Card>
+    </section>
   );
 }

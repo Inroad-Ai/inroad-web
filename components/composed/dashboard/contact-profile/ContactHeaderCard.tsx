@@ -3,7 +3,6 @@ import { PERSON_ROLE_LABEL, type PersonDetail, type PersonStage } from "@/lib/ty
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
 import { SearchIcon } from "@/components/ui/Icons";
 import { PersonStageBadge } from "@/components/ui/PersonStageBadge";
@@ -31,7 +30,7 @@ export function ContactHeaderCard({
   const hasAllContactInfo = Boolean(detail.email) && Boolean(detail.linkedin_url);
 
   return (
-    <Card as="section" aria-label="Contact" className="flex flex-col gap-6">
+    <section aria-label="Contact" className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-3">
         <Avatar name={detail.name} size="xl" />
         <PersonStageMenu
@@ -87,6 +86,6 @@ export function ContactHeaderCard({
           </p>
         ) : null}
       </div>
-    </Card>
+    </section>
   );
 }
