@@ -166,7 +166,7 @@ export function OpportunitiesPage() {
             </div>
           ))}
           <div className="row" style={{ marginTop: 14 }}>
-            <Btn kind="p" icon="arrow" end href="/contacts/priya-nair">
+            <Btn kind="p" icon="arrow" end href="/contacts">
               Start outreach plan
             </Btn>
             <Btn kind="t">Save</Btn>

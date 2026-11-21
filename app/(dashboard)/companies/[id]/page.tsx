@@ -1,5 +1,6 @@
-import { CompanyPage } from "@/components/composed/dashboard/v2/pages/CompanyPage";
+import { CompanyReport } from "@/components/composed/dashboard/company-report/CompanyReport";
 
-export default function Page() {
-  return <CompanyPage />;
+export default async function CompanyReportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <CompanyReport companyId={id} />;
 }

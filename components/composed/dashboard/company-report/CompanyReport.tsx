@@ -86,7 +86,7 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex max-w-3xl flex-col gap-8">
       <IdentityHeader
         detail={detail}
         brief={brief}
@@ -95,37 +95,25 @@ export function CompanyReport({ companyId }: { companyId: string }) {
         ratings={ratings}
       />
       <YouAndThemCard detail={detail} brief={brief} />
-
-      <div className="grid items-start gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <AboutSection brief={brief} />
-          <FittingRolesSection detail={detail} ratings={ratings} />
-          <OpenRolesSection brief={brief} />
-          <ProductsSection brief={brief} />
-          <HighlightsSection brief={brief} />
-          <NewsSection brief={brief} />
-        </div>
-
-        {/* Stays beside the brief while it scrolls: who to contact is the next step. */}
-        <aside
-          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-20"
-          aria-label="Who to contact and notes"
-        >
-          <WhoToContactSection
-            detail={detail}
-            companyName={brief.name}
-            accessToken={accessToken}
-            onDetailChange={replaceDetail}
-          />
-          <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
-          <PeopleSection
-            key={peopleVersion}
-            detail={detail}
-            accessToken={accessToken}
-            onCompanyChange={mergeCompany}
-          />
-        </aside>
-      </div>
+      <FittingRolesSection detail={detail} ratings={ratings} />
+      <WhoToContactSection
+        detail={detail}
+        companyName={brief.name}
+        accessToken={accessToken}
+        onDetailChange={replaceDetail}
+      />
+      <PeopleSection
+        key={peopleVersion}
+        detail={detail}
+        accessToken={accessToken}
+        onCompanyChange={mergeCompany}
+      />
+      <AboutSection brief={brief} />
+      <OpenRolesSection brief={brief} />
+      <ProductsSection brief={brief} />
+      <HighlightsSection brief={brief} />
+      <NewsSection brief={brief} />
+      <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
     </div>
   );
 }

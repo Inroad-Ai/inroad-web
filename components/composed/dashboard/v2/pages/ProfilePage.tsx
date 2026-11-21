@@ -1,36 +1,56 @@
+"use client";
+
+import { useProfile } from "@/hooks/useProfile";
 import type { ReactNode } from "react";
 
 import { Av, Bar, Btn, Ic, Lm, Section, Spark, Tag, Views } from "../kit";
 
+export function ProfileTabs({ tab }: { tab: "details" | "authority" | "projects" }) {
+  return (
+    <Views
+      items={[
+        { l: "Profile", on: tab === "details", href: "/profile" },
+        { l: "Authority", on: tab === "authority", href: "/profile/authority" },
+        { l: "Projects", on: tab === "projects", href: "/profile/projects" },
+      ]}
+    />
+  );
+}
+
 function ProfileHead({ tab }: { tab: "authority" | "projects" }) {
+  const { profile } = useProfile();
+  const name = profile ? `${profile.first_name} ${profile.last_name}`.trim() : "";
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const subtitle = profile
+    ? [profile.target_roles.join(", "), profile.location].filter(Boolean).join(" · ")
+    : "";
+
   return (
     <>
       <div className="row wrap" style={{ gap: 18 }}>
-        <Av i="JR" c={2} size="xl" />
+        <Av i={initials} c={2} size="xl" />
         <div>
           <h1 className="t" style={{ fontSize: 30 }}>
-            Jordan Reyes
+            {name || "Your profile"}
           </h1>
-          <div className="sm muted" style={{ marginTop: 4 }}>
-            Senior Backend Engineer · Lisbon, open to relocate · 6 years
-          </div>
+          {subtitle ? (
+            <div className="sm muted" style={{ marginTop: 4 }}>
+              {subtitle}
+            </div>
+          ) : null}
         </div>
         <span className="sp" />
-        <Btn icon="eye">View as a recruiter</Btn>
-        <Btn kind="p" icon="link">
-          Share
+        <Btn kind="p" icon="user" href="/profile">
+          Edit profile
         </Btn>
       </div>
       <div style={{ marginTop: 22 }}>
-        <Views
-          items={[
-            { l: "Authority", on: tab === "authority", href: "/profile" },
-            { l: "Story and experience" },
-            { l: "Projects", n: 6, on: tab === "projects", href: "/profile/projects" },
-            { l: "Search preferences" },
-            { l: "Documents" },
-          ]}
-        />
+        <ProfileTabs tab={tab} />
       </div>
     </>
   );
