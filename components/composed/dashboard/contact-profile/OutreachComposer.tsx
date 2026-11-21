@@ -4,6 +4,11 @@ import { Notice } from "@/components/ui/Notice";
 import type { UseOutreachDraftsResult } from "@/hooks/useOutreachDrafts";
 import { OutreachDrafts } from "./OutreachDrafts";
 
+function outreachTitle(name: string, hasDrafts: boolean): string {
+  const first = name.split(" ")[0];
+  return hasDrafts ? `Outreach to ${first}` : `Start a conversation with ${first}`;
+}
+
 export function OutreachComposer({
   detail,
   outreach,
@@ -23,7 +28,21 @@ export function OutreachComposer({
 
   return (
     <section aria-label="Outreach">
-      <h2 className="mb-4 text-base font-sans-semibold tracking-heading text-ink">Outreach</h2>
+      <div className="sm faint" style={{ marginBottom: 8 }}>
+        People / {detail.name}
+      </div>
+      <h1 className="t" style={{ fontSize: 30, marginBottom: 6 }}>
+        {outreachTitle(detail.name, outreach.drafts.length > 0)}
+      </h1>
+      <div className="row wrap" style={{ gap: 12, margin: "16px 0 4px" }}>
+        <span className="faint sm" style={{ width: 56 }}>
+          To
+        </span>
+        <span className="row" style={{ gap: 8 }}>
+          <span>{detail.name}</span>
+          <span className="faint">{detail.email ?? "No email found yet"}</span>
+        </span>
+      </div>
 
       <div>
         {outreach.error ? <Notice className="mb-4">{outreach.error}</Notice> : null}

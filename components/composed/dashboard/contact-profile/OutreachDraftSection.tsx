@@ -5,12 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { saveOutreachDraft, type OutreachDraft } from "@/lib/api-client/client";
 import { requireAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 import { LinkedinIcon, MailIcon } from "@/components/ui/Icons";
-import { Input } from "@/components/ui/Input";
 import { Notice } from "@/components/ui/Notice";
-import { Textarea } from "@/components/ui/Textarea";
 import { GmailDraftButton } from "./GmailDraftButton";
 import { SendOutreachButton } from "./SendOutreachButton";
 
@@ -107,60 +103,91 @@ export function OutreachDraftSection({
   }
 
   return (
-    <Card as="section" variant="nested" aria-label={title} padding="none">
-      <header className="flex items-start justify-between gap-3 px-5 pt-4">
-        <div className="min-w-0">
-          <Eyebrow as="h3">
-            {draft.channel === "email" ? (
-              <MailIcon className="h-3.5 w-3.5" />
-            ) : (
-              <LinkedinIcon className="h-3.5 w-3.5" />
-            )}
-            {title}
-          </Eyebrow>
-          <p className="mt-1.5 text-xs text-ink-muted">{hint}</p>
-        </div>
+    <section aria-label={title} style={{ marginTop: 26 }}>
+      <div
+        className="row"
+        style={{ paddingBottom: 10, borderBottom: "1px solid rgb(var(--color-line))" }}
+      >
+        <span className="muted">{draft.channel === "email" ? <MailIcon /> : <LinkedinIcon />}</span>
+        <h3 className="m">{title}</h3>
+        <span className="xs faint" style={{ minWidth: 0 }}>
+          {hint}
+        </span>
+        <span className="sp" />
         <Button variant="ghost" size="sm" type="button" onClick={copy}>
           Copy
         </Button>
-      </header>
+      </div>
 
-      <div className="space-y-4 px-5 py-4">
-        {draft.channel === "email" ? (
-          <label className="block">
-            <span className="utility-label text-ink-muted">Subject</span>
-            <Input
-              className="mt-2"
-              value={subject}
-              onChange={(event) => setSubject(event.target.value)}
-              readOnly={readOnly}
-            />
-          </label>
-        ) : null}
-
-        <label className="block">
-          <span className="utility-label text-ink-muted">Message</span>
-          <Textarea
-            className="mt-2 leading-relaxed"
-            rows={BODY_ROWS}
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
+      {draft.channel === "email" ? (
+        <label
+          className="row"
+          style={{ gap: 12, padding: "12px 0", borderBottom: "1px solid rgb(var(--color-line))" }}
+        >
+          <span className="faint sm" style={{ width: 56 }}>
+            Subject
+          </span>
+          <input
+            className="m"
+            value={subject}
+            onChange={(event) => setSubject(event.target.value)}
             readOnly={readOnly}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "none",
+              border: 0,
+              outline: 0,
+              color: "inherit",
+              font: "inherit",
+            }}
           />
         </label>
+      ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="font-mono text-xs text-ink-faint">{body.length} characters</span>
-          {status ? (
-            <Notice tone={status.isError ? "error" : "neutral"} size="xs">
-              {status.text}
-            </Notice>
-          ) : null}
-        </div>
+      <label className="block">
+        <span className="sr-only">Message</span>
+        <textarea
+          rows={BODY_ROWS}
+          value={body}
+          onChange={(event) => setBody(event.target.value)}
+          readOnly={readOnly}
+          style={{
+            width: "100%",
+            minHeight: 260,
+            marginTop: 16,
+            background: "none",
+            border: 0,
+            outline: 0,
+            resize: "vertical",
+            color: "inherit",
+            font: "inherit",
+            fontSize: 16.5,
+            lineHeight: 1.85,
+          }}
+        />
+      </label>
+
+      <div className="row wrap" style={{ gap: 10, margin: "4px 0 14px" }}>
+        <span className="xs faint">{body.length} characters</span>
+        {status ? (
+          <Notice tone={status.isError ? "error" : "neutral"} size="xs">
+            {status.text}
+          </Notice>
+        ) : null}
       </div>
 
       {readOnly ? null : (
-        <footer className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line px-5 py-4">
+        <div className="row wrap" style={{ gap: 12 }}>
+          {draft.channel === "email" ? (
+            <SendOutreachButton
+              personId={personId}
+              draft={draft}
+              recipientEmail={recipientEmail}
+              subject={subject}
+              onEnsureSaved={persist}
+            />
+          ) : null}
           <Button
             variant="quiet"
             size="sm"
@@ -171,24 +198,17 @@ export function OutreachDraftSection({
             {saving ? "Saving..." : "Save"}
           </Button>
           {draft.channel === "email" ? (
-            <>
-              <GmailDraftButton
-                personId={personId}
-                sequenceIndex={draft.sequence_index}
-                recipientEmail={recipientEmail}
-                onEnsureSaved={persist}
-              />
-              <SendOutreachButton
-                personId={personId}
-                draft={draft}
-                recipientEmail={recipientEmail}
-                subject={subject}
-                onEnsureSaved={persist}
-              />
-            </>
+            <GmailDraftButton
+              personId={personId}
+              sequenceIndex={draft.sequence_index}
+              recipientEmail={recipientEmail}
+              onEnsureSaved={persist}
+            />
           ) : null}
-        </footer>
+          <span className="sp" />
+          <span className="xs faint">Nothing sends without you.</span>
+        </div>
       )}
-    </Card>
+    </section>
   );
 }
