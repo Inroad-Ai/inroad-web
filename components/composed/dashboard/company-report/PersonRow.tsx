@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { PERSON_ROLE_LABEL } from "@/lib/types";
 import type { Person } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import { Av, Tag } from "../v2/kit";
 import { Button } from "@/components/ui/Button";
 import { PersonStageBadge, type PersonStage } from "@/components/ui/PersonStageBadge";
 import { TextLink } from "@/components/ui/TextLink";
@@ -27,46 +27,56 @@ export function PersonRow({
   onStageChange: (stage: PersonStage) => void;
   onToggleContact: () => void;
 }) {
+  const initials = person.name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <li className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/contacts/${person.id}`}
-            className="text-sm font-sans-semibold text-ink underline-offset-4 hover:underline"
-          >
+    <tr>
+      <td>
+        <div className="row">
+          <Av i={initials} c={(person.name.length % 6) + 1} size="xs" />
+          <Link href={`/contacts/${person.id}`} className="m">
             {person.name}
           </Link>
-          <Badge tone={HIGHLIGHTED_ROLES.has(person.role_category) ? "teal" : "neutral"}>
-            {PERSON_ROLE_LABEL[person.role_category]}
-          </Badge>
-          {isPrimary ? <Badge tone="amber">Primary contact</Badge> : null}
+          {isPrimary ? <Tag tone="amber">Primary</Tag> : null}
         </div>
-        <p className="mt-1 text-sm text-ink-muted">
-          {person.title ?? <span className="text-ink-faint">No title listed</span>}
-        </p>
-        {person.linkedin_url || person.email ? (
-          <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-            {person.linkedin_url ? (
-              <ExternalLink href={person.linkedin_url}>LinkedIn</ExternalLink>
-            ) : null}
-            {person.email ? (
-              <TextLink href={`mailto:${person.email}`} className="break-all">
-                {person.email}
-              </TextLink>
-            ) : null}
-          </div>
+      </td>
+      <td className="muted">
+        {person.title ?? <span className="faint">No title listed</span>}{" "}
+        <Tag tone={HIGHLIGHTED_ROLES.has(person.role_category) ? "teal" : ""}>
+          {PERSON_ROLE_LABEL[person.role_category]}
+        </Tag>
+      </td>
+      <td>
+        {person.email ? (
+          <TextLink href={`mailto:${person.email}`}>{person.email}</TextLink>
+        ) : (
+          <span className="faint">No email</span>
+        )}
+        {person.linkedin_url ? (
+          <>
+            {" "}
+            <span className="faint xs">·</span>{" "}
+            <ExternalLink href={person.linkedin_url}>LinkedIn</ExternalLink>
+          </>
         ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <PersonStageBadge stage={person.stage} />
-        <PersonStageMenu
-          name={person.name}
-          stage={person.stage}
-          disabled={pending}
-          onMove={onStageChange}
-        />
+      </td>
+      <td>
+        <span className="row" style={{ gap: 10 }}>
+          <PersonStageBadge stage={person.stage} />
+          <PersonStageMenu
+            name={person.name}
+            stage={person.stage}
+            disabled={pending}
+            onMove={onStageChange}
+          />
+        </span>
+      </td>
+      <td style={{ textAlign: "right" }}>
         <Button
           variant={isPrimary ? "ghost" : "quiet"}
           size="sm"
@@ -75,7 +85,7 @@ export function PersonRow({
         >
           {isPrimary ? "Unset contact" : "Set as contact"}
         </Button>
-      </div>
-    </li>
+      </td>
+    </tr>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { fetchCompany } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -19,8 +19,21 @@ import { NotesSection } from "./NotesSection";
 import { OpenRolesSection } from "./OpenRolesSection";
 import { PeopleSection } from "./PeopleSection";
 import { ProductsSection } from "./ProductsSection";
+import { Ic } from "../v2/kit";
 import { WhoToContactSection } from "./WhoToContactSection";
 import { YouAndThemCard } from "./YouAndThemCard";
+
+function More({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="more">
+      <summary>
+        <Ic n="chev" size="s" />
+        <span className="m">{title}</span>
+      </summary>
+      <div className="more-body">{children}</div>
+    </details>
+  );
+}
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -86,7 +99,7 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   }
 
   return (
-    <div className="flex max-w-3xl flex-col gap-8">
+    <div className="flex max-w-4xl flex-col gap-8">
       <IdentityHeader
         detail={detail}
         brief={brief}
@@ -108,11 +121,26 @@ export function CompanyReport({ companyId }: { companyId: string }) {
         accessToken={accessToken}
         onCompanyChange={mergeCompany}
       />
-      <AboutSection brief={brief} />
-      <OpenRolesSection brief={brief} />
-      <ProductsSection brief={brief} />
-      <HighlightsSection brief={brief} />
-      <NewsSection brief={brief} />
+      <section>
+        <h2 className="sec-title" style={{ marginBottom: 6 }}>
+          More
+        </h2>
+        <More title="About">
+          <AboutSection brief={brief} />
+        </More>
+        <More title="Open roles">
+          <OpenRolesSection brief={brief} />
+        </More>
+        <More title="Products">
+          <ProductsSection brief={brief} />
+        </More>
+        <More title="Highlights">
+          <HighlightsSection brief={brief} />
+        </More>
+        <More title="News">
+          <NewsSection brief={brief} />
+        </More>
+      </section>
       <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
     </div>
   );

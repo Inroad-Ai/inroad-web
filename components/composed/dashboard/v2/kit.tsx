@@ -71,12 +71,16 @@ export function Btn({
   icon,
   end = false,
   href,
+  onClick,
+  disabled,
   children,
 }: {
   kind?: string;
   icon?: string;
   end?: boolean;
   href?: string;
+  onClick?: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   const inner = (
@@ -94,7 +98,7 @@ export function Btn({
     );
   }
   return (
-    <button type="button" className={`btn ${kind}`}>
+    <button type="button" className={`btn ${kind}`} onClick={onClick} disabled={disabled}>
       {inner}
     </button>
   );

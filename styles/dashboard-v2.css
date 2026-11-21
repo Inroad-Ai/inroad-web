@@ -552,19 +552,19 @@
 .v2 table.t td.num {
   font-variant-numeric: tabular-nums;
 }
-.v2 .list > div {
+.v2 .list > * {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 11px 0;
   border-bottom: 1px solid rgb(var(--color-line) / 0.7);
 }
-.v2 .list > div:last-child {
+.v2 .list > *:last-child {
   border-bottom: 0;
 }
 .v2 .props {
   display: grid;
-  grid-template-columns: 130px 1fr;
+  grid-template-columns: 150px 1fr;
   row-gap: 10px;
   align-items: center;
   font-size: 14px;
@@ -759,7 +759,7 @@
     flex: none;
   }
 }
-.v2 .list > div > div {
+.v2 .list > * > div {
   min-width: 0;
 }
 .v2 svg.i {
@@ -773,4 +773,41 @@
 .v2 .ni > svg.i,
 .v2 .field > svg.i {
   vertical-align: baseline;
+}
+
+.v2 details.more {
+  border-top: 1px solid rgb(var(--color-line));
+}
+.v2 details.more > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.v2 details.more > summary::-webkit-details-marker {
+  display: none;
+}
+.v2 details.more > summary svg {
+  transition: transform 0.15s;
+  color: rgb(var(--color-ink-faint));
+}
+.v2 details.more[open] > summary svg {
+  transform: rotate(90deg);
+}
+.v2 .more-body {
+  padding: 0 0 14px 25px;
+}
+.v2 .more-body > section > header {
+  display: none;
+}
+.v2 .more-body > section {
+  border: 0;
+  padding: 0;
+}
+.v2 .sec-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
