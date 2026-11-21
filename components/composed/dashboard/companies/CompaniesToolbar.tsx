@@ -2,7 +2,6 @@ import type { CompanySort } from "@/lib/types";
 import { GridIcon, ListIcon, SearchIcon } from "@/components/ui/Icons";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { SelectableCard } from "@/components/ui/SelectableCard";
 import { PIPELINE_STAGES, STAGE_LABEL, type PipelineStage } from "@/components/ui/StatusBadge";
 import { Tabs, type TabItem } from "@/components/ui/Tabs";
 
@@ -84,19 +83,12 @@ export function CompaniesToolbar({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by stage">
-        {STAGE_FILTERS.map((filter) => (
-          <div key={filter.value}>
-            <SelectableCard
-              compact
-              selected={stage === filter.value}
-              onClick={() => onStage(filter.value)}
-            >
-              {filter.label}
-            </SelectableCard>
-          </div>
-        ))}
-      </div>
+      <Tabs
+        variant="underline"
+        items={STAGE_FILTERS.map((filter) => ({ id: filter.value, label: filter.label }))}
+        activeId={stage}
+        onChange={(id) => onStage(id as PipelineStage | "all")}
+      />
     </div>
   );
 }
