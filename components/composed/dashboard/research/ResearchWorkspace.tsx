@@ -24,7 +24,7 @@ export function ResearchWorkspace() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Tabs items={MODES} activeId={mode} onChange={setMode} />
+      <Tabs variant="underline" items={MODES} activeId={mode} onChange={setMode} />
       {mode === "company" ? <CompanyResearchTab /> : <MatchScanTab scans={scans} />}
     </div>
   );
