@@ -118,20 +118,6 @@ function crumbFor(path: string): ReactNode {
       </>
     );
   }
-  if (path.startsWith("/profile/authority")) {
-    return (
-      <>
-        Profile / <b>Authority</b>
-      </>
-    );
-  }
-  if (path.startsWith("/profile/projects")) {
-    return (
-      <>
-        Profile / <b>Projects</b>
-      </>
-    );
-  }
   const entry = NAV.flatMap((g) => g.items).find((item) => item.match(path));
   if (entry) return <b>{entry.label}</b>;
   if (path.startsWith("/notifications")) return <b>Notifications</b>;

@@ -1,60 +1,6 @@
-"use client";
-
-import { useProfile } from "@/hooks/useProfile";
 import type { ReactNode } from "react";
 
 import { Av, Bar, Btn, Ic, Lm, Section, Spark, Tag, Views } from "../kit";
-
-export function ProfileTabs({ tab }: { tab: "details" | "authority" | "projects" }) {
-  return (
-    <Views
-      items={[
-        { l: "Profile", on: tab === "details", href: "/profile" },
-        { l: "Authority", on: tab === "authority", href: "/profile/authority" },
-        { l: "Projects", on: tab === "projects", href: "/profile/projects" },
-      ]}
-    />
-  );
-}
-
-function ProfileHead({ tab }: { tab: "authority" | "projects" }) {
-  const { profile } = useProfile();
-  const name = profile ? `${profile.first_name} ${profile.last_name}`.trim() : "";
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  const subtitle = profile
-    ? [profile.target_roles.join(", "), profile.location].filter(Boolean).join(" · ")
-    : "";
-
-  return (
-    <>
-      <div className="row wrap" style={{ gap: 18 }}>
-        <Av i={initials} c={2} size="xl" />
-        <div>
-          <h1 className="t" style={{ fontSize: 30 }}>
-            {name || "Your profile"}
-          </h1>
-          {subtitle ? (
-            <div className="sm muted" style={{ marginTop: 4 }}>
-              {subtitle}
-            </div>
-          ) : null}
-        </div>
-        <span className="sp" />
-        <Btn kind="p" icon="user" href="/profile">
-          Edit profile
-        </Btn>
-      </div>
-      <div style={{ marginTop: 22 }}>
-        <ProfileTabs tab={tab} />
-      </div>
-    </>
-  );
-}
 
 function Part({
   label,
@@ -107,11 +53,9 @@ function Lever({ points, title, meta }: { points: number; title: string; meta: s
 
 const STRONG = { color: "rgb(var(--color-ink))" } as const;
 
-export function ProfileAuthorityPage() {
+export function AuthorityTab() {
   return (
-    <div style={{ maxWidth: 1000 }}>
-      <ProfileHead tab="authority" />
-
+    <div>
       <div className="row wrap" style={{ gap: 40, alignItems: "flex-end", margin: "22px 0 0" }}>
         <div>
           <div className="sm faint">Authority score</div>
@@ -181,13 +125,6 @@ export function ProfileAuthorityPage() {
   );
 }
 
-const PROJECTS: [string, number, number, string, string][] = [
-  ["Ledgerkit", 1, 92, "+8 add benchmarks", "Open source, 340 stars"],
-  ["Pay-reconcile", 3, 61, "+3 add a demo", "Private repo"],
-  ["Rate-limiter service", 5, 54, "+2 rewrite in Go", "Side project"],
-  ["Resume parser", 4, 38, "+1 low demand", "Course project"],
-];
-
 const NEXT: [string, string, string, string, number][] = [
   [
     "Kafka-backed event-sourcing demo",
@@ -222,52 +159,9 @@ const SKILLS: [string, number, boolean][] = [
   ["Rust", 31, false],
 ];
 
-export function ProfileProjectsPage() {
+export function ProjectInsights() {
   return (
-    <div style={{ maxWidth: 1040 }}>
-      <ProfileHead tab="projects" />
-
-      <Section
-        title="Your projects, valued by today's market"
-        right="Demand data from 14,200 roles"
-        style={{ marginTop: 26 }}
-      >
-        <div className="tablewrap">
-          <table className="t">
-            <thead>
-              <tr>
-                <th style={{ width: 260 }}>Project</th>
-                <th>Market match</th>
-                <th>Authority impact</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {PROJECTS.map(([name, c, match, impact, status]) => (
-                <tr key={name}>
-                  <td>
-                    <div className="row">
-                      <Lm i={name[0]} c={c} size="xs" />
-                      <span className="m">{name}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="row" style={{ gap: 10 }}>
-                      <span style={{ width: 22 }}>{match}</span>
-                      <div style={{ width: 80 }}>
-                        <Bar v={match} tone={match > 80 ? "green" : ""} />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="muted">{impact}</td>
-                  <td className="faint">{status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-
+    <div>
       <div className="split" style={{ display: "flex", gap: 56 }}>
         <div style={{ flex: 1.2, minWidth: 0 }}>
           <Section title="Build next, ranked for you">

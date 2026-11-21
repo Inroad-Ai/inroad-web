@@ -11,6 +11,11 @@ import { IntegrationsSkeleton } from "./IntegrationsSkeleton";
 import { CATEGORY_DESCRIPTIONS, KNOWN_PROVIDERS, providersByCategory } from "./providers";
 import { useOAuthRedirectNotice } from "./useOAuthRedirectNotice";
 
+const CATEGORY_TITLES: Record<string, string> = {
+  Outreach: "Your accounts",
+  "Contact data": "Contact email: sources",
+};
+
 export function IntegrationsBoard() {
   const { connections, setConnections, loading, error } = useConnections();
   const redirectNotice = useOAuthRedirectNotice();
@@ -55,7 +60,7 @@ export function IntegrationsBoard() {
         <DashboardPanel
           key={category}
           id={`integrations-${category.toLowerCase().replace(/\s+/g, "-")}`}
-          title={category}
+          title={CATEGORY_TITLES[category] ?? category}
           description={CATEGORY_DESCRIPTIONS[category] ?? ""}
         >
           <ul className="divide-y divide-line border-y border-line">

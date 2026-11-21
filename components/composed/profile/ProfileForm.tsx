@@ -1,7 +1,13 @@
 "use client";
 
+import { useState } from "react";
+
 import { PageNotice, SetupNotice } from "@/components/composed/dashboard/PageNotice";
-import { Card } from "@/components/ui/Card";
+import {
+  AuthorityTab,
+  ProjectInsights,
+} from "@/components/composed/dashboard/v2/pages/ProfilePage";
+import { Av, Bar, Views } from "@/components/composed/dashboard/v2/kit";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { plural } from "@/lib/format";
 import { CareerArcStatus } from "./CareerArcStatus";
@@ -11,15 +17,13 @@ import { LanguagesEditor } from "./LanguagesEditor";
 import { OnlinePresenceFields } from "./OnlinePresenceFields";
 import { PersonalDetailsFields } from "./PersonalDetailsFields";
 import { ProfessionalStoryFields } from "./ProfessionalStoryFields";
-import { ProfileHeader } from "./ProfileHeader";
 import { ProfileSaveBar } from "./ProfileSaveBar";
 import { ProfileSection } from "./ProfileSection";
-import { ProfileSectionNav } from "./ProfileSectionNav";
 import { ProjectsEditor } from "./ProjectsEditor";
 import { ResumeManager } from "./ResumeManager";
 import { SearchPreferencesFields } from "./SearchPreferencesFields";
 import { WorkHistoryEditor } from "./WorkHistoryEditor";
-import { hasResumeData } from "./profile-form-state";
+import { completionPercent, hasResumeData } from "./profile-form-state";
 import { useProfileForm } from "./useProfileForm";
 
 const SECTIONS = {
@@ -36,24 +40,25 @@ const SECTIONS = {
   languages: { id: "profile-languages", label: "Languages" },
 } as const;
 
+type Tab = "authority" | "story" | "projects" | "search" | "documents";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "authority", label: "Authority" },
+  { id: "story", label: "Story and experience" },
+  { id: "projects", label: "Projects" },
+  { id: "search", label: "Search preferences" },
+  { id: "documents", label: "Documents" },
+];
+
 export function ProfileForm() {
   const controller = useProfileForm();
   const { profile, form, validationErrors: errors, update } = controller;
+  const [tab, setTab] = useState<Tab>("story");
 
   if (controller.loading) {
     return (
       <div role="status" className="space-y-6" aria-label="Loading your profile">
-        <Card>
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-16 w-16" />
-            <div className="flex-1 space-y-3">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-7 w-56" />
-              <Skeleton className="h-3 w-40" />
-            </div>
-          </div>
-        </Card>
-        <Skeleton className="h-80 rounded-card" />
+        <Skeleton className="h-16 w-72" />
         <Skeleton className="h-80 rounded-card" />
       </div>
     );
@@ -67,36 +72,126 @@ export function ProfileForm() {
     return <SetupNotice subject="profile" />;
   }
 
+  const name = `${form.firstName} ${form.lastName}`.trim();
+  const initials = name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const subtitle = [form.targetRoles.join(", "), form.location].filter(Boolean).join(" · ");
+  const completion = completionPercent(form);
+  const editing = tab !== "authority";
+
   return (
-    <div className="space-y-6">
-      <ProfileHeader form={form} />
+    <div style={{ maxWidth: 1000 }}>
+      <div className="row wrap" style={{ gap: 18 }}>
+        <Av i={initials} c={2} size="xl" />
+        <div style={{ minWidth: 0 }}>
+          <h1 className="t" style={{ fontSize: 30 }}>
+            {name || "Your profile"}
+          </h1>
+          {subtitle ? (
+            <div className="sm muted" style={{ marginTop: 4 }}>
+              {subtitle}
+            </div>
+          ) : null}
+        </div>
+        <span className="sp" />
+        <div style={{ width: 200 }}>
+          <div className="xs faint" style={{ marginBottom: 6, textAlign: "right" }}>
+            {completion}% complete
+          </div>
+          <Bar v={completion} tone={completion > 65 ? "green" : ""} />
+        </div>
+      </div>
 
-      <div className="flex gap-8">
-        <ProfileSectionNav items={Object.values(SECTIONS)} />
+      <div style={{ marginTop: 22 }}>
+        <Views
+          items={TABS.map((item) => ({
+            l: item.label,
+            n: item.id === "projects" ? form.projects.length : undefined,
+            on: tab === item.id,
+            onSelect: () => setTab(item.id),
+          }))}
+        />
+      </div>
 
-        <div className="min-w-0 flex-1 space-y-6">
-          <ProfileSection section={SECTIONS.personal} meta="Required">
-            <PersonalDetailsFields form={form} errors={errors} update={update} />
-          </ProfileSection>
+      <div style={{ marginTop: 24 }} className="space-y-6">
+        {tab === "authority" ? <AuthorityTab /> : null}
 
-          <ProfileSection section={SECTIONS.online} meta="Optional">
-            <OnlinePresenceFields form={form} errors={errors} update={update} />
-          </ProfileSection>
+        {tab === "story" ? (
+          <>
+            <ProfileSection section={SECTIONS.personal} meta="Required">
+              <PersonalDetailsFields form={form} errors={errors} update={update} />
+            </ProfileSection>
 
-          <ProfileSection section={SECTIONS.resume} meta="PDF or DOCX">
-            <ResumeManager
-              hasResume={hasResumeData(form)}
-              roleCount={form.workHistory.length}
-              skillCount={form.skills.length}
-              onParsed={controller.applyParsedResume}
-              onDeleted={controller.applyDeletedResume}
-            />
-          </ProfileSection>
+            <ProfileSection section={SECTIONS.online} meta="Optional">
+              <OnlinePresenceFields form={form} errors={errors} update={update} />
+            </ProfileSection>
 
-          <ProfileSection section={SECTIONS.careerArc} meta="Optional">
-            <CareerArcStatus isParsed={Boolean(profile.career_arc_parsed_json)} />
-          </ProfileSection>
+            <ProfileSection section={SECTIONS.story} meta="Used for outreach">
+              <ProfessionalStoryFields form={form} update={update} />
+            </ProfileSection>
 
+            <ProfileSection
+              section={SECTIONS.experience}
+              meta={plural(form.workHistory.length, "role", "roles")}
+            >
+              <WorkHistoryEditor
+                entries={form.workHistory}
+                onChange={(workHistory) => update("workHistory", workHistory)}
+              />
+            </ProfileSection>
+
+            <ProfileSection
+              section={SECTIONS.education}
+              meta={plural(form.education.length, "entry", "entries")}
+            >
+              <EducationEditor
+                entries={form.education}
+                onChange={(education) => update("education", education)}
+              />
+            </ProfileSection>
+
+            <ProfileSection
+              section={SECTIONS.certificates}
+              meta={plural(form.certificates.length, "certificate", "certificates")}
+            >
+              <CertificatesEditor
+                entries={form.certificates}
+                onChange={(certificates) => update("certificates", certificates)}
+              />
+            </ProfileSection>
+
+            <ProfileSection
+              section={SECTIONS.languages}
+              meta={plural(form.languages.length, "language", "languages")}
+            >
+              <LanguagesEditor
+                entries={form.languages}
+                onChange={(languages) => update("languages", languages)}
+              />
+            </ProfileSection>
+          </>
+        ) : null}
+
+        {tab === "projects" ? (
+          <>
+            <ProfileSection
+              section={SECTIONS.projects}
+              meta={plural(form.projects.length, "project", "projects")}
+            >
+              <ProjectsEditor
+                entries={form.projects}
+                onChange={(projects) => update("projects", projects)}
+              />
+            </ProfileSection>
+            <ProjectInsights />
+          </>
+        ) : null}
+
+        {tab === "search" ? (
           <ProfileSection section={SECTIONS.search} meta="Used for matching">
             <SearchPreferencesFields
               form={form}
@@ -105,61 +200,27 @@ export function ProfileForm() {
               onToggleWorkPreference={controller.toggleWorkPreference}
             />
           </ProfileSection>
+        ) : null}
 
-          <ProfileSection section={SECTIONS.story} meta="Used for outreach">
-            <ProfessionalStoryFields form={form} update={update} />
-          </ProfileSection>
+        {tab === "documents" ? (
+          <>
+            <ProfileSection section={SECTIONS.resume} meta="PDF or DOCX">
+              <ResumeManager
+                hasResume={hasResumeData(form)}
+                roleCount={form.workHistory.length}
+                skillCount={form.skills.length}
+                onParsed={controller.applyParsedResume}
+                onDeleted={controller.applyDeletedResume}
+              />
+            </ProfileSection>
 
-          <ProfileSection
-            section={SECTIONS.experience}
-            meta={plural(form.workHistory.length, "role", "roles")}
-          >
-            <WorkHistoryEditor
-              entries={form.workHistory}
-              onChange={(workHistory) => update("workHistory", workHistory)}
-            />
-          </ProfileSection>
+            <ProfileSection section={SECTIONS.careerArc} meta="Optional">
+              <CareerArcStatus isParsed={Boolean(profile.career_arc_parsed_json)} />
+            </ProfileSection>
+          </>
+        ) : null}
 
-          <ProfileSection
-            section={SECTIONS.projects}
-            meta={plural(form.projects.length, "project", "projects")}
-          >
-            <ProjectsEditor
-              entries={form.projects}
-              onChange={(projects) => update("projects", projects)}
-            />
-          </ProfileSection>
-
-          <ProfileSection
-            section={SECTIONS.education}
-            meta={plural(form.education.length, "entry", "entries")}
-          >
-            <EducationEditor
-              entries={form.education}
-              onChange={(education) => update("education", education)}
-            />
-          </ProfileSection>
-
-          <ProfileSection
-            section={SECTIONS.certificates}
-            meta={plural(form.certificates.length, "certificate", "certificates")}
-          >
-            <CertificatesEditor
-              entries={form.certificates}
-              onChange={(certificates) => update("certificates", certificates)}
-            />
-          </ProfileSection>
-
-          <ProfileSection
-            section={SECTIONS.languages}
-            meta={plural(form.languages.length, "language", "languages")}
-          >
-            <LanguagesEditor
-              entries={form.languages}
-              onChange={(languages) => update("languages", languages)}
-            />
-          </ProfileSection>
-
+        {editing ? (
           <ProfileSaveBar
             isDirty={controller.isDirty}
             saving={controller.saving}
@@ -167,7 +228,7 @@ export function ProfileForm() {
             saveError={controller.saveError}
             onSave={controller.save}
           />
-        </div>
+        ) : null}
       </div>
     </div>
   );

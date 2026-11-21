@@ -20,6 +20,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { KeyIcon, LockIcon } from "@/components/ui/Icons";
 import { MONOGRAM_FACE, monogramFill } from "@/components/ui/monogram";
+import { Status } from "../v2/kit";
 import { ApiKeyModal } from "./ApiKeyModal";
 
 interface ConnectorCardProps {
@@ -153,18 +154,25 @@ export function ConnectorCard({
     </span>
   );
 
-  const status =
-    connection?.status === "invalid" ? (
-      <Badge tone="rose" dot>
-        Key rejected
-      </Badge>
-    ) : connection ? (
-      <Badge tone="teal" dot>
-        Connected
-      </Badge>
-    ) : (
-      <Badge tone="neutral">Not connected</Badge>
-    );
+  const status = !nested ? (
+    <Status tone={connection?.status === "invalid" ? "rose" : connection ? "" : "amber"}>
+      {connection?.status === "invalid"
+        ? "Key rejected"
+        : connection
+          ? "Connected"
+          : "Not connected"}
+    </Status>
+  ) : connection?.status === "invalid" ? (
+    <Badge tone="rose" dot>
+      Key rejected
+    </Badge>
+  ) : connection ? (
+    <Badge tone="teal" dot>
+      Connected
+    </Badge>
+  ) : (
+    <Badge tone="neutral">Not connected</Badge>
+  );
 
   const actions =
     connection?.status === "invalid" ? (
@@ -190,7 +198,7 @@ export function ConnectorCard({
     ) : (
       <Button
         size="sm"
-        variant={nested ? "primary" : "quiet"}
+        variant="primary"
         type="button"
         onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
         loading={busy}
