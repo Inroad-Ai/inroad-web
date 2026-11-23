@@ -7,6 +7,7 @@ import { requireAccessToken } from "@/lib/auth-native/browser";
 import { Button } from "@/components/ui/Button";
 import { LinkedinIcon, MailIcon } from "@/components/ui/Icons";
 import { Notice } from "@/components/ui/Notice";
+import { Ic } from "../v2/kit";
 import { GmailDraftButton } from "./GmailDraftButton";
 import { SendOutreachButton } from "./SendOutreachButton";
 
@@ -32,6 +33,8 @@ export function OutreachDraftSection({
   const [subject, setSubject] = useState(draft.subject ?? "");
   const [body, setBody] = useState(draft.body);
   const [saving, setSaving] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
+  const [slot, setSlot] = useState("Thursday 09:10");
   const [status, setStatus] = useState<{ text: string; isError: boolean } | null>(null);
 
   // A save is the other reason this row changes, and it must not wipe the
@@ -177,6 +180,37 @@ export function OutreachDraftSection({
         ) : null}
       </div>
 
+      {scheduling ? (
+        <div
+          className="note"
+          style={{ margin: "0 0 12px", alignItems: "center", flexWrap: "wrap" }}
+        >
+          <Ic n="clock" size="s" />
+          <span>Send at</span>
+          <select
+            value={slot}
+            onChange={(event) => setSlot(event.target.value)}
+            aria-label="Send time"
+            style={{
+              background: "transparent",
+              color: "inherit",
+              border: 0,
+              font: "inherit",
+              fontWeight: 600,
+            }}
+          >
+            {["Thursday 09:10", "Thursday 14:00", "Friday 09:10", "Monday 09:10"].map((option) => (
+              <option key={option} value={option} style={{ color: "initial" }}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <span className="faint">
+            Preview only: nothing is queued, so send or save a Gmail draft yourself.
+          </span>
+        </div>
+      ) : null}
+
       {readOnly ? null : (
         <div className="row wrap" style={{ gap: 12 }}>
           {draft.channel === "email" ? (
@@ -205,6 +239,15 @@ export function OutreachDraftSection({
               onEnsureSaved={persist}
             />
           ) : null}
+          <Button
+            variant="ghost"
+            size="sm"
+            type="button"
+            icon={<Ic n="clock" size="s" />}
+            onClick={() => setScheduling((open) => !open)}
+          >
+            Schedule
+          </Button>
           <span className="sp" />
           <span className="xs faint">Nothing sends without you.</span>
         </div>

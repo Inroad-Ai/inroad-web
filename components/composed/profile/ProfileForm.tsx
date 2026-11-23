@@ -7,7 +7,7 @@ import {
   AuthorityTab,
   ProjectInsights,
 } from "@/components/composed/dashboard/v2/pages/ProfilePage";
-import { Av, Bar, Views } from "@/components/composed/dashboard/v2/kit";
+import { Av, Bar, Btn, Views } from "@/components/composed/dashboard/v2/kit";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { plural } from "@/lib/format";
 import { CareerArcManager } from "./CareerArcManager";
@@ -18,6 +18,7 @@ import { OnlinePresenceFields } from "./OnlinePresenceFields";
 import { PersonalDetailsFields } from "./PersonalDetailsFields";
 import { ProfessionalStoryFields } from "./ProfessionalStoryFields";
 import { ProfileSaveBar } from "./ProfileSaveBar";
+import { RecruiterView, summaryText } from "./RecruiterView";
 import { ProfileSection } from "./ProfileSection";
 import { ProjectsEditor } from "./ProjectsEditor";
 import { ResumeManager } from "./ResumeManager";
@@ -68,6 +69,8 @@ export function ProfileForm() {
   const controller = useProfileForm();
   const { profile, form, validationErrors: errors, update } = controller;
   const [tab, setTab] = useState<Tab>("story");
+  const [recruiter, setRecruiter] = useState(false);
+  const [shared, setShared] = useState(false);
 
   // Links like /profile#profile-career-arc land on the tab that holds that section.
   useEffect(() => {
@@ -101,7 +104,18 @@ export function ProfileForm() {
     .toUpperCase();
   const subtitle = [form.targetRoles.join(", "), form.location].filter(Boolean).join(" · ");
   const completion = completionPercent(form);
-  const editing = tab !== "authority";
+  const editing = tab !== "authority" && !recruiter;
+
+  async function shareSummary() {
+    if (!form) return;
+    try {
+      await navigator.clipboard.writeText(summaryText(form));
+      setShared(true);
+      setTimeout(() => setShared(false), 1800);
+    } catch {
+      // Clipboard access can be refused; there is nothing else to fall back to.
+    }
+  }
 
   return (
     <div style={{ maxWidth: 1000 }}>
@@ -118,6 +132,12 @@ export function ProfileForm() {
           ) : null}
         </div>
         <span className="sp" />
+        <Btn icon="eye" onClick={() => setRecruiter((on) => !on)}>
+          {recruiter ? "Back to editing" : "View as a recruiter"}
+        </Btn>
+        <Btn kind="p" icon="link" onClick={shareSummary}>
+          {shared ? "Copied" : "Share"}
+        </Btn>
         <div style={{ width: 200 }}>
           <div className="xs faint" style={{ marginBottom: 6, textAlign: "right" }}>
             {completion}% complete
@@ -126,130 +146,138 @@ export function ProfileForm() {
         </div>
       </div>
 
-      <div style={{ marginTop: 22 }}>
-        <Views
-          items={TABS.map((item) => ({
-            l: item.label,
-            n: item.id === "projects" ? form.projects.length : undefined,
-            on: tab === item.id,
-            onSelect: () => setTab(item.id),
-          }))}
-        />
-      </div>
-
-      <div style={{ marginTop: 24 }} className="space-y-6">
-        {tab === "authority" ? <AuthorityTab /> : null}
-
-        {tab === "story" ? (
-          <>
-            <ProfileSection section={SECTIONS.personal} meta="Required">
-              <PersonalDetailsFields form={form} errors={errors} update={update} />
-            </ProfileSection>
-
-            <ProfileSection section={SECTIONS.online} meta="Optional">
-              <OnlinePresenceFields form={form} errors={errors} update={update} />
-            </ProfileSection>
-
-            <ProfileSection section={SECTIONS.story} meta="Used for outreach">
-              <ProfessionalStoryFields form={form} update={update} />
-            </ProfileSection>
-
-            <ProfileSection
-              section={SECTIONS.experience}
-              meta={plural(form.workHistory.length, "role", "roles")}
-            >
-              <WorkHistoryEditor
-                entries={form.workHistory}
-                onChange={(workHistory) => update("workHistory", workHistory)}
-              />
-            </ProfileSection>
-
-            <ProfileSection
-              section={SECTIONS.education}
-              meta={plural(form.education.length, "entry", "entries")}
-            >
-              <EducationEditor
-                entries={form.education}
-                onChange={(education) => update("education", education)}
-              />
-            </ProfileSection>
-
-            <ProfileSection
-              section={SECTIONS.certificates}
-              meta={plural(form.certificates.length, "certificate", "certificates")}
-            >
-              <CertificatesEditor
-                entries={form.certificates}
-                onChange={(certificates) => update("certificates", certificates)}
-              />
-            </ProfileSection>
-
-            <ProfileSection
-              section={SECTIONS.languages}
-              meta={plural(form.languages.length, "language", "languages")}
-            >
-              <LanguagesEditor
-                entries={form.languages}
-                onChange={(languages) => update("languages", languages)}
-              />
-            </ProfileSection>
-          </>
-        ) : null}
-
-        {tab === "projects" ? (
-          <>
-            <ProfileSection
-              section={SECTIONS.projects}
-              meta={plural(form.projects.length, "project", "projects")}
-            >
-              <ProjectsEditor
-                entries={form.projects}
-                onChange={(projects) => update("projects", projects)}
-              />
-            </ProfileSection>
-            <ProjectInsights />
-          </>
-        ) : null}
-
-        {tab === "search" ? (
-          <ProfileSection section={SECTIONS.search} meta="Used for matching">
-            <SearchPreferencesFields
-              form={form}
-              errors={errors}
-              update={update}
-              onToggleWorkPreference={controller.toggleWorkPreference}
+      {recruiter ? (
+        <div style={{ marginTop: 24 }}>
+          <RecruiterView form={form} />
+        </div>
+      ) : (
+        <>
+          <div style={{ marginTop: 22 }}>
+            <Views
+              items={TABS.map((item) => ({
+                l: item.label,
+                n: item.id === "projects" ? form.projects.length : undefined,
+                on: tab === item.id,
+                onSelect: () => setTab(item.id),
+              }))}
             />
-          </ProfileSection>
-        ) : null}
+          </div>
 
-        {tab === "documents" ? (
-          <>
-            <ProfileSection section={SECTIONS.resume} meta="PDF or DOCX">
-              <ResumeManager
-                hasResume={hasResumeData(form)}
-                roleCount={form.workHistory.length}
-                skillCount={form.skills.length}
-                onParsed={controller.applyParsedResume}
-                onDeleted={controller.applyDeletedResume}
+          <div style={{ marginTop: 24 }} className="space-y-6">
+            {tab === "authority" ? <AuthorityTab /> : null}
+
+            {tab === "story" ? (
+              <>
+                <ProfileSection section={SECTIONS.personal} meta="Required">
+                  <PersonalDetailsFields form={form} errors={errors} update={update} />
+                </ProfileSection>
+
+                <ProfileSection section={SECTIONS.online} meta="Optional">
+                  <OnlinePresenceFields form={form} errors={errors} update={update} />
+                </ProfileSection>
+
+                <ProfileSection section={SECTIONS.story} meta="Used for outreach">
+                  <ProfessionalStoryFields form={form} update={update} />
+                </ProfileSection>
+
+                <ProfileSection
+                  section={SECTIONS.experience}
+                  meta={plural(form.workHistory.length, "role", "roles")}
+                >
+                  <WorkHistoryEditor
+                    entries={form.workHistory}
+                    onChange={(workHistory) => update("workHistory", workHistory)}
+                  />
+                </ProfileSection>
+
+                <ProfileSection
+                  section={SECTIONS.education}
+                  meta={plural(form.education.length, "entry", "entries")}
+                >
+                  <EducationEditor
+                    entries={form.education}
+                    onChange={(education) => update("education", education)}
+                  />
+                </ProfileSection>
+
+                <ProfileSection
+                  section={SECTIONS.certificates}
+                  meta={plural(form.certificates.length, "certificate", "certificates")}
+                >
+                  <CertificatesEditor
+                    entries={form.certificates}
+                    onChange={(certificates) => update("certificates", certificates)}
+                  />
+                </ProfileSection>
+
+                <ProfileSection
+                  section={SECTIONS.languages}
+                  meta={plural(form.languages.length, "language", "languages")}
+                >
+                  <LanguagesEditor
+                    entries={form.languages}
+                    onChange={(languages) => update("languages", languages)}
+                  />
+                </ProfileSection>
+              </>
+            ) : null}
+
+            {tab === "projects" ? (
+              <>
+                <ProfileSection
+                  section={SECTIONS.projects}
+                  meta={plural(form.projects.length, "project", "projects")}
+                >
+                  <ProjectsEditor
+                    entries={form.projects}
+                    onChange={(projects) => update("projects", projects)}
+                  />
+                </ProfileSection>
+                <ProjectInsights />
+              </>
+            ) : null}
+
+            {tab === "search" ? (
+              <ProfileSection section={SECTIONS.search} meta="Used for matching">
+                <SearchPreferencesFields
+                  form={form}
+                  errors={errors}
+                  update={update}
+                  onToggleWorkPreference={controller.toggleWorkPreference}
+                />
+              </ProfileSection>
+            ) : null}
+
+            {tab === "documents" ? (
+              <>
+                <ProfileSection section={SECTIONS.resume} meta="PDF or DOCX">
+                  <ResumeManager
+                    hasResume={hasResumeData(form)}
+                    roleCount={form.workHistory.length}
+                    skillCount={form.skills.length}
+                    onParsed={controller.applyParsedResume}
+                    onDeleted={controller.applyDeletedResume}
+                  />
+                </ProfileSection>
+
+                <ProfileSection section={SECTIONS.careerArc} meta="Optional">
+                  <CareerArcManager initial={profile.career_arc ?? null} />
+                </ProfileSection>
+              </>
+            ) : null}
+
+            {editing ? (
+              <ProfileSaveBar
+                isDirty={controller.isDirty}
+                saving={controller.saving}
+                saved={controller.saved}
+                saveError={controller.saveError}
+                onSave={controller.save}
               />
-            </ProfileSection>
-
-            <ProfileSection section={SECTIONS.careerArc} meta="Optional">
-              <CareerArcManager initial={profile.career_arc ?? null} />
-            </ProfileSection>
-          </>
-        ) : null}
-
-        {editing ? (
-          <ProfileSaveBar
-            isDirty={controller.isDirty}
-            saving={controller.saving}
-            saved={controller.saved}
-            saveError={controller.saveError}
-            onSave={controller.save}
-          />
-        ) : null}
-      </div>
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   );
 }

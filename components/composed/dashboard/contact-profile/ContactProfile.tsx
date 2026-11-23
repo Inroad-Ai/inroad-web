@@ -6,6 +6,7 @@ import { PageNotice } from "../PageNotice";
 import { ContactHeaderCard } from "./ContactHeaderCard";
 import { EngagementHistory } from "./EngagementHistory";
 import { OutreachComposer } from "./OutreachComposer";
+import { OutreachSequence } from "./OutreachSequence";
 import { useContactPerson } from "./useContactPerson";
 
 const LAYOUT = "grid items-start gap-6 lg:grid-cols-3";
@@ -48,6 +49,7 @@ export function ContactProfile({ personId }: { personId: string }) {
           marginTop: 6,
         }}
       >
+        <OutreachSequence detail={detail} drafts={outreach.drafts} />
         <ContactHeaderCard
           detail={detail}
           moving={contact.moving}

@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { DashboardPanel } from "../DashboardPanel";
 import { PageNotice, SetupNotice } from "../PageNotice";
 import { CadenceOptions } from "./CadenceOptions";
+import { NotificationMatrix } from "./NotificationMatrix";
 import { LearningSection } from "./LearningSection";
 import { OpportunityAlertsToggle } from "./OpportunityAlertsToggle";
 import { PasswordForm } from "./PasswordForm";
@@ -16,6 +17,7 @@ import { SettingRow } from "./SettingRow";
 const SKELETON_SECTIONS = 3;
 
 const SECTIONS: [string, string][] = [
+  ["notifications", "Notifications"],
   ["account", "Account"],
   ["password", "Password"],
   ["appearance", "Appearance"],
@@ -63,6 +65,14 @@ export function SettingsPanel() {
         </div>
       </nav>
       <div style={{ flex: 1, minWidth: 0, maxWidth: 760 }} className="space-y-6">
+        <DashboardPanel
+          id="notifications"
+          title="Notifications"
+          description="Calm by default. You decide what is allowed to interrupt you. These choices are kept in this browser for now."
+        >
+          <NotificationMatrix />
+        </DashboardPanel>
+
         <DashboardPanel id="account" title="Account">
           <SettingRow
             label="Email"

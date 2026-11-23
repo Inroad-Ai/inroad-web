@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
+
 import type { PersonDetail } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
+import { Ic } from "../v2/kit";
 import type { UseOutreachDraftsResult } from "@/hooks/useOutreachDrafts";
 import { OutreachDrafts } from "./OutreachDrafts";
 
@@ -16,6 +21,7 @@ export function OutreachComposer({
   detail: PersonDetail;
   outreach: UseOutreachDraftsResult;
 }) {
+  const [tone, setTone] = useState("Peer");
   const isClosed = detail.stage === "closed";
   const draftsProps = {
     drafts: outreach.drafts,
@@ -42,6 +48,28 @@ export function OutreachComposer({
           <span>{detail.name}</span>
           <span className="faint">{detail.email ?? "No email found yet"}</span>
         </span>
+        <span className="sp" />
+        <label className="sm muted">
+          Tone{" "}
+          <select
+            value={tone}
+            onChange={(event) => setTone(event.target.value)}
+            aria-label="Tone"
+            style={{
+              background: "transparent",
+              color: "rgb(var(--color-ink))",
+              border: 0,
+              font: "inherit",
+              fontWeight: 600,
+            }}
+          >
+            {["Peer", "Warm", "Direct", "Formal"].map((option) => (
+              <option key={option} value={option} style={{ color: "initial" }}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div>
@@ -87,6 +115,19 @@ export function OutreachComposer({
             <div className="mt-5">
               <OutreachDrafts {...draftsProps} drafting={outreach.drafting} />
             </div>
+            <details className="more" style={{ marginTop: 26 }}>
+              <summary>
+                <Ic n="chev" size="s" />
+                <span className="m">Why this draft</span>
+                <span className="sp" />
+                <span className="sm faint">3 sources, 2 left out on purpose</span>
+              </summary>
+              <div className="sm muted" style={{ padding: "0 0 14px 25px", lineHeight: 1.7 }}>
+                Used: the company research brief, your profile and experience, and what you have
+                already sent. Left out: your resume text and contact details, which are never put in
+                a message you did not write.
+              </div>
+            </details>
           </>
         )}
       </div>

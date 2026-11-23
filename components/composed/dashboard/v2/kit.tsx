@@ -273,7 +273,27 @@ export function Props({ rows }: { rows: [string, ReactNode, string?][] }) {
   );
 }
 
-export function Toggle({ on = false, label }: { on?: boolean; label: string }) {
+export function Toggle({
+  on = false,
+  label,
+  onChange,
+}: {
+  on?: boolean;
+  label: string;
+  onChange?: (next: boolean) => void;
+}) {
+  if (onChange) {
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        className={`toggle ${on ? "on" : ""}`}
+        onClick={() => onChange(!on)}
+      />
+    );
+  }
   return (
     <span
       role="switch"
