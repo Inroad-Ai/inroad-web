@@ -1,6 +1,7 @@
 import { IntegrationsBoard } from "@/components/composed/dashboard/integrations/IntegrationsBoard";
 import { PageShell } from "@/components/composed/dashboard/PageShell";
 import { JobSources } from "@/components/composed/dashboard/v2/pages/JobSources";
+import { SourceExtras } from "@/components/composed/dashboard/v2/pages/SourceExtras";
 
 export default function IntegrationsPage() {
   return (
@@ -10,6 +11,7 @@ export default function IntegrationsPage() {
       maxWidth={960}
     >
       <IntegrationsBoard />
+      <SourceExtras />
       <JobSources />
     </PageShell>
   );

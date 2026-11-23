@@ -185,7 +185,10 @@ export function DiscoverPage() {
           </Notice>
         ) : (
           <div className="sm faint">
-            Usually 20 to 40 seconds. You can leave this page; it keeps going.
+            Usually 20 to 40 seconds. You can leave this page; it keeps going.{" "}
+            <Link href="/research/results" className="amber m">
+              See an example search result
+            </Link>
           </div>
         )}
       </div>

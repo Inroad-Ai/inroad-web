@@ -1,4 +1,8 @@
-import { Btn, Ic, Pill, Section } from "../kit";
+"use client";
+
+import { useState } from "react";
+
+import { Btn, Ic, Section } from "../kit";
 
 const STEPS: [string, "done" | "now" | ""][] = [
   ["Profile imported", "done"],
@@ -36,11 +40,55 @@ const QUESTION = {
   marginBottom: 14,
 } as const;
 
-export function TodayFirstRunPage() {
+function Choices({
+  options,
+  picked,
+  onToggle,
+}: {
+  options: [string, boolean][];
+  picked: ReadonlySet<string>;
+  onToggle: (label: string) => void;
+}) {
+  return (
+    <>
+      {options.map(([label]) => {
+        const on = picked.has(label);
+        return (
+          <button
+            key={label}
+            type="button"
+            className={`pill ${on ? "on" : ""}`}
+            aria-pressed={on}
+            onClick={() => onToggle(label)}
+          >
+            {on ? <Ic n="check" size="xs" /> : null}
+            {label}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
+function toggled(set: ReadonlySet<string>, label: string): ReadonlySet<string> {
+  const next = new Set(set);
+  if (next.has(label)) next.delete(label);
+  else next.add(label);
+  return next;
+}
+
+export function TodayFirstRunPage({ name }: { name?: string | null }) {
+  const [goals, setGoals] = useState<ReadonlySet<string>>(
+    new Set(GOALS.filter(([, on]) => on).map(([label]) => label)),
+  );
+  const [places, setPlaces] = useState<ReadonlySet<string>>(
+    new Set(PLACES.filter(([, on]) => on).map(([label]) => label)),
+  );
+
   return (
     <div style={{ maxWidth: 760 }}>
       <div className="muted sm" style={{ marginBottom: 10 }}>
-        Welcome, Jordan
+        {name ? `Welcome, ${name}` : "Welcome"}
       </div>
       <h1 className="t" style={{ fontSize: 40 }}>
         Let&apos;s find your first inroad.
@@ -107,19 +155,19 @@ export function TodayFirstRunPage() {
 
       <div style={QUESTION}>What&apos;s your main goal for the next 6 months?</div>
       <div className="row wrap" style={{ gap: 10, marginBottom: 34 }}>
-        {GOALS.map(([t, on]) => (
-          <Pill key={t} on={on}>
-            {t}
-          </Pill>
-        ))}
+        <Choices
+          options={GOALS}
+          picked={goals}
+          onToggle={(label) => setGoals((c) => toggled(c, label))}
+        />
       </div>
       <div style={QUESTION}>Where could you work?</div>
       <div className="row wrap" style={{ gap: 10 }}>
-        {PLACES.map(([t, on]) => (
-          <Pill key={t} on={on}>
-            {t}
-          </Pill>
-        ))}
+        <Choices
+          options={PLACES}
+          picked={places}
+          onToggle={(label) => setPlaces((c) => toggled(c, label))}
+        />
       </div>
 
       <div className="row wrap" style={{ gap: 16, marginTop: 36 }}>

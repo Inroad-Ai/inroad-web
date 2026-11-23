@@ -9,7 +9,7 @@ import { PageNotice } from "../../PageNotice";
 import { deriveOverviewMetrics } from "../../overview/overview-metrics";
 import { useOverviewData } from "../../overview/useOverviewData";
 import { useRecentlyFunded } from "../../overview/useRecentlyFunded";
-import { TodayFirstRun } from "../../today/TodayFirstRun";
+import { TodayFirstRunPage } from "./TodayFirstRunPage";
 import { TodaySkeleton } from "../../today/TodaySkeleton";
 import { formatToday, greetingFor } from "../../today/today-greeting";
 import { deriveMoves } from "../../today/today-moves";
@@ -25,7 +25,7 @@ export function TodayPage() {
 
   if (state === "loading") return <TodaySkeleton />;
   if (state === "error") return <PageNotice isError>{message}</PageNotice>;
-  if (state === "empty") return <TodayFirstRun profile={profile} funded={funded} />;
+  if (state === "empty") return <TodayFirstRunPage name={profile?.first_name} />;
   if (!stats) return null;
 
   const metrics = deriveOverviewMetrics(stats);
