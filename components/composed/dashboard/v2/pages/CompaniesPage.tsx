@@ -46,7 +46,10 @@ const NEXT_STEP: Record<PipelineStage, string> = {
   rejected: "Rejected",
 };
 
-type LoadState = "loading" | "error" | "ready";
+interface Result {
+  items: Company[];
+  total: number;
+}
 
 function Th({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
@@ -64,21 +67,19 @@ export function CompaniesPage() {
   const [sort, setSort] = useState<CompanySort>("updated_desc");
   const [page, setPage] = useState(1);
 
-  const [state, setState] = useState<LoadState>("loading");
-  const [data, setData] = useState<{ items: Company[]; total: number } | null>(null);
+  // Results by query. A tab you have already opened shows instantly while a
+  // fresh copy loads behind it.
+  const cache = useRef(new Map<string, Result>());
+  const [lastShown, setLastShown] = useState<Result | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
-  // Bumped as matched companies' research lands; that reload keeps the rows
-  // on screen instead of flashing the loading state.
   const [refreshKey, setRefreshKey] = useState(0);
-  const quietReload = useRef(false);
-  const refreshQuietly = useCallback(() => {
-    quietReload.current = true;
-    setRefreshKey((key) => key + 1);
-  }, []);
+  const refreshQuietly = useCallback(() => setRefreshKey((key) => key + 1), []);
 
-  // Page resets happen with the change itself, so a filter change is one
-  // request, not one for the old page and a second for page 1.
+  const key = `${stage}|${search}|${sort}|${page}`;
+  const cached = cache.current.get(key) ?? null;
+  // Until this query answers, keep showing whatever was last on screen.
+  const shown = cached ?? lastShown;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const next = searchInput.trim();
@@ -89,31 +90,15 @@ export function CompaniesPage() {
     return () => clearTimeout(timer);
   }, [searchInput, search]);
 
-  function changeStage(next: PipelineStage | "all") {
-    if (next === stage) return;
-    setStage(next);
-    setPage(1);
-  }
-
-  function changeSort(next: CompanySort) {
-    setSort(next);
-    setPage(1);
-  }
-
   useEffect(() => {
     const controller = new AbortController();
 
     async function load() {
-      quietReload.current = false;
-      setRefreshing(true);
       const token = await ensureValidAccessToken();
       if (!token) {
         setErrorMessage(SESSION_EXPIRED);
-        setState("error");
-        setRefreshing(false);
         return;
       }
-
       try {
         const response = await fetchCompanies(
           {
@@ -126,31 +111,77 @@ export function CompaniesPage() {
           token,
           controller.signal,
         );
-        setData({ items: response.items, total: response.total });
-        setState("ready");
-        setRefreshing(false);
+        const result = { items: response.items, total: response.total };
+        cache.current.set(key, result);
+        setLastShown(result);
+        setErrorMessage("");
       } catch (err) {
         if (controller.signal.aborted) return;
         setErrorMessage(err instanceof Error ? err.message : "Could not load companies.");
-        setState("error");
-        setRefreshing(false);
       }
     }
 
-    load();
+    void load();
     return () => controller.abort();
-  }, [search, stage, sort, page, refreshKey]);
+  }, [key, search, stage, sort, page, refreshKey]);
+
+  // Warm every stage tab so switching between them is instant.
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      const token = await ensureValidAccessToken();
+      if (!token) return;
+      await Promise.all(
+        ["all", ...PIPELINE_STAGES].map(async (value) => {
+          const warmKey = `${value}||${sort}|1`;
+          try {
+            const response = await fetchCompanies(
+              {
+                stage: value === "all" ? undefined : (value as PipelineStage),
+                sort,
+                page: 1,
+                pageSize: PAGE_SIZE,
+              },
+              token,
+              controller.signal,
+            );
+            cache.current.set(warmKey, { items: response.items, total: response.total });
+          } catch {
+            // A tab that fails to warm just loads when opened.
+          }
+        }),
+      );
+    })();
+    return () => controller.abort();
+  }, [sort, refreshKey]);
+
+  function changeStage(next: PipelineStage | "all") {
+    if (next === stage) return;
+    setStage(next);
+    setPage(1);
+  }
+
+  function changeSort(next: CompanySort) {
+    setSort(next);
+    setPage(1);
+  }
 
   function clearFilters() {
     setSearchInput("");
     setSearch("");
     setStage("all");
+    setPage(1);
   }
 
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
+  const items = shown?.items ?? [];
+  const total = shown?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFilters = search !== "" || stage !== "all";
-  const items = data?.items ?? [];
-  const loading = data === null && state !== "error";
+  const firstLoad = shown === null && !errorMessage;
+  // The rows on screen belong to another query until this one answers.
+  const stale = cached === null && shown !== null;
+  const failed = shown === null && Boolean(errorMessage);
+  const nothingAtAll = shown !== null && total === 0 && !hasFilters;
 
   return (
     <div>
@@ -158,8 +189,8 @@ export function CompaniesPage() {
         <div>
           <h1 className="t">Companies</h1>
           <div className="sub">
-            {data && !hasFilters
-              ? `${plural(data.total, "company", "companies")} you researched or saved.`
+            {shown && !hasFilters
+              ? `${plural(total, "company", "companies")} you researched or saved.`
               : "Every company you've looked into, in one place."}
           </div>
         </div>
@@ -228,89 +259,100 @@ export function CompaniesPage() {
         </label>
       </div>
 
-      <div
-        aria-busy={loading || refreshing}
-        style={{
-          minHeight: 420,
-          opacity: refreshing && !loading ? 0.55 : 1,
-          transition: "opacity 120ms ease",
-        }}
-      >
-        {state === "error" ? (
-          <CompaniesEmpty kind="error" errorMessage={errorMessage} onClearFilters={clearFilters} />
-        ) : !loading && !refreshing && items.length === 0 ? (
-          <CompaniesEmpty kind={hasFilters ? "filtered" : "none"} onClearFilters={clearFilters} />
-        ) : (
-          <div className="tablewrap">
-            <table className="t">
-              <thead>
+      {failed ? (
+        <CompaniesEmpty kind="error" errorMessage={errorMessage} onClearFilters={clearFilters} />
+      ) : nothingAtAll ? (
+        <CompaniesEmpty kind="none" onClearFilters={clearFilters} />
+      ) : (
+        <div
+          className="tablewrap"
+          aria-busy={firstLoad || stale}
+          style={{
+            // The frame never changes size or unmounts between tabs.
+            minHeight: 320,
+            opacity: stale ? 0.6 : 1,
+            transition: "opacity 150ms ease",
+          }}
+        >
+          <table className="t">
+            <thead>
+              <tr>
+                <th style={{ width: 280 }}>
+                  <Th icon="building">Company</Th>
+                </th>
+                <th>
+                  <Th icon="kanban">Stage</Th>
+                </th>
+                <th>
+                  <Th icon="briefcase">Hiring</Th>
+                </th>
+                <th>
+                  <Th icon="clock">Last researched</Th>
+                </th>
+                <th>
+                  <Th icon="arrow">Next step</Th>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {firstLoad ? (
                 <tr>
-                  <th style={{ width: 280 }}>
-                    <Th icon="building">Company</Th>
-                  </th>
-                  <th>
-                    <Th icon="kanban">Stage</Th>
-                  </th>
-                  <th>
-                    <Th icon="briefcase">Hiring</Th>
-                  </th>
-                  <th>
-                    <Th icon="clock">Last researched</Th>
-                  </th>
-                  <th>
-                    <Th icon="arrow">Next step</Th>
-                  </th>
+                  <td colSpan={5} className="faint">
+                    Loading companies...
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading
-                  ? Array.from({ length: 6 }).map((_, i) => (
-                      <tr key={i}>
-                        <td colSpan={5} className="faint">
-                          Loading...
-                        </td>
-                      </tr>
-                    ))
-                  : items.map((company) => {
-                      const hiring = describeHiring(company);
-                      return (
-                        <tr key={company.id}>
-                          <td>
-                            <Link href={`/companies/${company.id}`} className="row">
-                              <CompanyLogo
-                                logoUrl={company.logo_url}
-                                seed={company.domain}
-                                size="sm"
-                              />
-                              <div>
-                                <span className="m">{companyDisplayName(company)}</span>{" "}
-                                <span className="faint xs">{company.domain}</span>
-                              </div>
-                            </Link>
-                          </td>
-                          <td>
-                            <Status tone={STAGE_TONE[company.stage]}>
-                              {STAGE_LABEL[company.stage]}
-                            </Status>
-                          </td>
-                          <td className={hiring.muted ? "muted" : "m"}>{hiring.label}</td>
-                          <td className="muted">{formatRelativeDays(company.updated_at)}</td>
-                          <td className={company.stage === "responded" ? "amber m" : "muted"}>
-                            {NEXT_STEP[company.stage]}
-                          </td>
-                        </tr>
-                      );
-                    })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ height: 120 }}>
+                    <span className="muted">
+                      {stage === "all"
+                        ? "No companies match that search."
+                        : `Nothing at the ${STAGE_LABEL[stage as PipelineStage]} stage${search ? " for that search" : ""} yet.`}
+                    </span>{" "}
+                    {hasFilters ? (
+                      <button type="button" className="amber m" onClick={clearFilters}>
+                        Clear filters
+                      </button>
+                    ) : null}
+                  </td>
+                </tr>
+              ) : (
+                items.map((company) => {
+                  const hiring = describeHiring(company);
+                  return (
+                    <tr key={company.id}>
+                      <td>
+                        <Link href={`/companies/${company.id}`} className="row">
+                          <CompanyLogo logoUrl={company.logo_url} seed={company.domain} size="sm" />
+                          <div>
+                            <span className="m">{companyDisplayName(company)}</span>{" "}
+                            <span className="faint xs">{company.domain}</span>
+                          </div>
+                        </Link>
+                      </td>
+                      <td>
+                        <Status tone={STAGE_TONE[company.stage]}>
+                          {STAGE_LABEL[company.stage]}
+                        </Status>
+                      </td>
+                      <td className={hiring.muted ? "muted" : "m"}>{hiring.label}</td>
+                      <td className="muted">{formatRelativeDays(company.updated_at)}</td>
+                      <td className={company.stage === "responded" ? "amber m" : "muted"}>
+                        {NEXT_STEP[company.stage]}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {data && data.items.length > 0 ? (
+      {shown && total > 0 ? (
         <div className="row wrap" style={{ gap: 12, marginTop: 16 }}>
           <span className="sm faint">
-            {plural(data.total, "company", "companies")}, page {page} of {totalPages}
+            {plural(total, "company", "companies")}, page {page} of {totalPages}
           </span>
           <span className="sp" />
           <button
