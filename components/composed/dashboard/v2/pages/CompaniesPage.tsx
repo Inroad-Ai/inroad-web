@@ -67,6 +67,7 @@ export function CompaniesPage() {
   const [state, setState] = useState<LoadState>("loading");
   const [data, setData] = useState<{ items: Company[]; total: number } | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   // Bumped as matched companies' research lands; that reload keeps the rows
   // on screen instead of flashing the loading state.
   const [refreshKey, setRefreshKey] = useState(0);
@@ -76,25 +77,40 @@ export function CompaniesPage() {
     setRefreshKey((key) => key + 1);
   }, []);
 
+  // Page resets happen with the change itself, so a filter change is one
+  // request, not one for the old page and a second for page 1.
   useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(() => {
+      const next = searchInput.trim();
+      if (next === search) return;
+      setSearch(next);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [searchInput, search]);
 
-  useEffect(() => {
+  function changeStage(next: PipelineStage | "all") {
+    if (next === stage) return;
+    setStage(next);
     setPage(1);
-  }, [search, stage, sort]);
+  }
+
+  function changeSort(next: CompanySort) {
+    setSort(next);
+    setPage(1);
+  }
 
   useEffect(() => {
     const controller = new AbortController();
 
     async function load() {
-      if (!quietReload.current) setState("loading");
       quietReload.current = false;
+      setRefreshing(true);
       const token = await ensureValidAccessToken();
       if (!token) {
         setErrorMessage(SESSION_EXPIRED);
         setState("error");
+        setRefreshing(false);
         return;
       }
 
@@ -112,10 +128,12 @@ export function CompaniesPage() {
         );
         setData({ items: response.items, total: response.total });
         setState("ready");
+        setRefreshing(false);
       } catch (err) {
         if (controller.signal.aborted) return;
         setErrorMessage(err instanceof Error ? err.message : "Could not load companies.");
         setState("error");
+        setRefreshing(false);
       }
     }
 
@@ -132,7 +150,7 @@ export function CompaniesPage() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
   const hasFilters = search !== "" || stage !== "all";
   const items = data?.items ?? [];
-  const loading = state === "loading";
+  const loading = data === null && state !== "error";
 
   return (
     <div>
@@ -158,11 +176,11 @@ export function CompaniesPage() {
       <div style={{ marginTop: 22 }}>
         <Views
           items={[
-            { l: "All", on: stage === "all", onSelect: () => setStage("all") },
+            { l: "All", on: stage === "all", onSelect: () => changeStage("all") },
             ...PIPELINE_STAGES.map((value) => ({
               l: STAGE_LABEL[value],
               on: stage === value,
-              onSelect: () => setStage(value),
+              onSelect: () => changeStage(value),
             })),
           ]}
         />
@@ -192,7 +210,7 @@ export function CompaniesPage() {
           Sort{" "}
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value as CompanySort)}
+            onChange={(e) => changeSort(e.target.value as CompanySort)}
             aria-label="Sort companies"
             style={{
               background: "transparent",
@@ -210,10 +228,17 @@ export function CompaniesPage() {
         </label>
       </div>
 
-      <div aria-busy={loading}>
+      <div
+        aria-busy={loading || refreshing}
+        style={{
+          minHeight: 420,
+          opacity: refreshing && !loading ? 0.55 : 1,
+          transition: "opacity 120ms ease",
+        }}
+      >
         {state === "error" ? (
           <CompaniesEmpty kind="error" errorMessage={errorMessage} onClearFilters={clearFilters} />
-        ) : !loading && items.length === 0 ? (
+        ) : !loading && !refreshing && items.length === 0 ? (
           <CompaniesEmpty kind={hasFilters ? "filtered" : "none"} onClearFilters={clearFilters} />
         ) : (
           <div className="tablewrap">
@@ -282,7 +307,7 @@ export function CompaniesPage() {
         )}
       </div>
 
-      {state === "ready" && data && data.items.length > 0 ? (
+      {data && data.items.length > 0 ? (
         <div className="row wrap" style={{ gap: 12, marginTop: 16 }}>
           <span className="sm faint">
             {plural(data.total, "company", "companies")}, page {page} of {totalPages}

@@ -185,13 +185,52 @@ const TABS: { id: "all" | Kind; label: string }[] = [
   { id: "leads", label: "Leads" },
 ];
 
+type Sort = "fit" | "newest";
+
+const POSTED_ORDER: Record<string, number> = {
+  "2h": 0,
+  "4h": 1,
+  Today: 2,
+  "1d": 3,
+  "2d": 4,
+  "3d": 5,
+  "5d": 6,
+};
+
+function toggleIn(set: ReadonlySet<string>, id: string): ReadonlySet<string> {
+  const next = new Set(set);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  return next;
+}
+
 export function OpportunitiesPage() {
   const [tab, setTab] = useState<"all" | Kind>("all");
+  const [query, setQuery] = useState("");
+  const [strongOnly, setStrongOnly] = useState(false);
+  const [sort, setSort] = useState<Sort>("fit");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saved, setSaved] = useState<ReadonlySet<string>>(new Set());
+  const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
+  const [doneSteps, setDoneSteps] = useState<ReadonlySet<string>>(new Set());
 
-  const shown = tab === "all" ? OPPORTUNITIES : OPPORTUNITIES.filter((o) => o.kind === tab);
-  const selected = OPPORTUNITIES.find((o) => o.id === selectedId) ?? null;
+  const alive = OPPORTUNITIES.filter((o) => !dismissed.has(o.id));
+  const needle = query.trim().toLowerCase();
+  const shown = alive
+    .filter((o) => tab === "all" || o.kind === tab)
+    .filter((o) => !strongOnly || o.fit >= 80)
+    .filter(
+      (o) =>
+        !needle || `${o.role} ${o.company} ${o.source} ${o.place}`.toLowerCase().includes(needle),
+    )
+    .sort((x, y) =>
+      sort === "fit"
+        ? y.fit - x.fit
+        : (POSTED_ORDER[x.posted] ?? 99) - (POSTED_ORDER[y.posted] ?? 99),
+    );
+  const hiddenCount = alive.length - shown.length;
+  const selected = shown.find((o) => o.id === selectedId) ?? null;
+  const selectedIndex = selected ? shown.findIndex((o) => o.id === selected.id) : -1;
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -201,13 +240,16 @@ export function OpportunitiesPage() {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  function toggleSaved(id: string) {
-    setSaved((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  function move(delta: number) {
+    const target = shown[selectedIndex + delta];
+    if (target) setSelectedId(target.id);
+  }
+
+  function dismiss(id: string) {
+    const index = shown.findIndex((o) => o.id === id);
+    const fallback = shown[index + 1] ?? shown[index - 1] ?? null;
+    setDismissed((current) => new Set(current).add(id));
+    setSelectedId(fallback ? fallback.id : null);
   }
 
   return (
@@ -221,10 +263,7 @@ export function OpportunitiesPage() {
         <Views
           items={TABS.map((t) => ({
             l: t.label,
-            n:
-              t.id === "all"
-                ? OPPORTUNITIES.length
-                : OPPORTUNITIES.filter((o) => o.kind === t.id).length,
+            n: t.id === "all" ? alive.length : alive.filter((o) => o.kind === t.id).length,
             on: tab === t.id,
             onSelect: () => {
               setTab(t.id);
@@ -233,10 +272,64 @@ export function OpportunitiesPage() {
           }))}
         />
       </div>
-      <div className="row" style={{ margin: "14px 0 6px", gap: 18 }}>
-        <span className="sm muted">Sorted by fit</span>
+      <div className="row wrap" style={{ margin: "14px 0 6px", gap: 14 }}>
+        <label className="field" style={{ height: 34, width: 260, maxWidth: "100%" }}>
+          <Ic n="search" size="xs" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search roles, companies, sources"
+            aria-label="Search opportunities"
+            style={{
+              background: "none",
+              border: 0,
+              outline: 0,
+              color: "inherit",
+              font: "inherit",
+              width: "100%",
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          className={`pill ${strongOnly ? "on" : ""}`}
+          style={{ height: 32, fontSize: 13 }}
+          aria-pressed={strongOnly}
+          onClick={() => setStrongOnly((value) => !value)}
+        >
+          Fit 80+
+        </button>
+        <label className="sm muted">
+          Sort{" "}
+          <select
+            value={sort}
+            onChange={(event) => setSort(event.target.value as Sort)}
+            aria-label="Sort opportunities"
+            style={{
+              background: "transparent",
+              color: "rgb(var(--color-ink))",
+              border: 0,
+              font: "inherit",
+            }}
+          >
+            <option value="fit" style={{ color: "initial" }}>
+              Best fit
+            </option>
+            <option value="newest" style={{ color: "initial" }}>
+              Newest
+            </option>
+          </select>
+        </label>
         <span className="sp" />
-        <span className="sm faint">Select a row to see why it fits and what to do next.</span>
+        {dismissed.size > 0 ? (
+          <button type="button" className="sm amber" onClick={() => setDismissed(new Set())}>
+            Restore {dismissed.size} dismissed
+          </button>
+        ) : null}
+        <span className="sm faint">
+          {shown.length} shown{hiddenCount > 0 ? `, ${hiddenCount} filtered out` : ""}
+        </span>
       </div>
 
       <div className="tablewrap">
@@ -285,7 +378,7 @@ export function OpportunitiesPage() {
             {shown.length === 0 ? (
               <tr>
                 <td colSpan={4} className="faint">
-                  Nothing here yet.
+                  Nothing matches. Clear the search or the Fit filter.
                 </td>
               </tr>
             ) : null}
@@ -294,105 +387,158 @@ export function OpportunitiesPage() {
       </div>
 
       {selected ? (
-        <aside className="peek" aria-label={`${selected.role}, ${selected.company}`}>
-          <div className="row" style={{ marginBottom: 18 }}>
-            <button
-              type="button"
-              className="faint row"
-              style={{ gap: 8 }}
-              onClick={() => setSelectedId(null)}
-            >
-              <Ic n="arrow" size="s" />
-              <span className="sm">Opportunities</span>
-            </button>
-            <span className="sp" />
-            <button
-              type="button"
-              className="faint"
-              aria-label="Close"
-              onClick={() => setSelectedId(null)}
-            >
-              <Ic n="x" size="s" />
-            </button>
-          </div>
-          <div className="row" style={{ gap: 16, marginBottom: 6 }}>
-            <Lm i={selected.company[0]} c={selected.c} size="xl" />
-            <div>
-              <h1 className="t" style={{ fontSize: 25 }}>
-                {selected.role}
-              </h1>
-              <div className="sm muted" style={{ marginTop: 3 }}>
-                {selected.company} · {selected.place} · {selected.size}
+        <>
+          <button
+            type="button"
+            aria-label="Close details"
+            tabIndex={-1}
+            onClick={() => setSelectedId(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 25,
+              background: "transparent",
+              cursor: "default",
+            }}
+          />
+          <aside className="peek" aria-label={`${selected.role}, ${selected.company}`}>
+            <div className="row" style={{ marginBottom: 18 }}>
+              <button
+                type="button"
+                className="faint row"
+                style={{ gap: 8 }}
+                onClick={() => setSelectedId(null)}
+              >
+                <Ic n="arrow" size="s" />
+                <span className="sm">Opportunities</span>
+              </button>
+              <span className="sp" />
+              <button
+                type="button"
+                className="faint"
+                aria-label="Previous opportunity"
+                disabled={selectedIndex <= 0}
+                onClick={() => move(-1)}
+                style={{ transform: "rotate(-90deg)" }}
+              >
+                <Ic n="chev" size="s" />
+              </button>
+              <button
+                type="button"
+                className="faint"
+                aria-label="Next opportunity"
+                disabled={selectedIndex >= shown.length - 1}
+                onClick={() => move(1)}
+                style={{ transform: "rotate(90deg)", marginRight: 8 }}
+              >
+                <Ic n="chev" size="s" />
+              </button>
+              <button
+                type="button"
+                className="faint"
+                aria-label="Close"
+                onClick={() => setSelectedId(null)}
+              >
+                <Ic n="x" size="s" />
+              </button>
+            </div>
+            <div className="row" style={{ gap: 16, marginBottom: 6 }}>
+              <Lm i={selected.company[0]} c={selected.c} size="xl" />
+              <div>
+                <h1 className="t" style={{ fontSize: 25 }}>
+                  {selected.role}
+                </h1>
+                <div className="sm muted" style={{ marginTop: 3 }}>
+                  {selected.company} · {selected.place} · {selected.size}
+                </div>
               </div>
             </div>
-          </div>
-          <div style={{ margin: "24px 0 22px" }}>
-            <Props
-              rows={[
-                [
-                  "Fit",
-                  <b key="f" className="green">
-                    {selected.fit}%
-                  </b>,
-                  "target",
-                ],
-                [
-                  "Found via",
-                  <span key="v" className="row wrap" style={{ gap: 6 }}>
-                    {selected.foundVia.map(([label, tone]) => (
-                      <Tag key={label} tone={tone}>
-                        {label}
-                      </Tag>
-                    ))}
-                  </span>,
-                  "eye",
-                ],
-                [
-                  "Status",
-                  <Status key="s" tone={selected.status[1]}>
-                    {selected.status[0]}
-                  </Status>,
-                  "flag",
-                ],
-                ["Warm path", selected.warm, "users"],
-                ["Pay", selected.pay, "dollar"],
-              ]}
-            />
-          </div>
-          <div className="hair" />
-          <div style={{ marginTop: 20 }}>
-            <div className="b" style={{ marginBottom: 10 }}>
-              Why you fit
+            <div style={{ margin: "24px 0 22px" }}>
+              <Props
+                rows={[
+                  [
+                    "Fit",
+                    <b key="f" className="green">
+                      {selected.fit}%
+                    </b>,
+                    "target",
+                  ],
+                  [
+                    "Found via",
+                    <span key="v" className="row wrap" style={{ gap: 6 }}>
+                      {selected.foundVia.map(([label, tone]) => (
+                        <Tag key={label} tone={tone}>
+                          {label}
+                        </Tag>
+                      ))}
+                    </span>,
+                    "eye",
+                  ],
+                  [
+                    "Status",
+                    <Status key="s" tone={selected.status[1]}>
+                      {selected.status[0]}
+                    </Status>,
+                    "flag",
+                  ],
+                  ["Warm path", selected.warm, "users"],
+                  ["Pay", selected.pay, "dollar"],
+                ]}
+              />
             </div>
-            <div className="sm" style={{ lineHeight: 1.7 }}>
-              {selected.why}
-            </div>
-          </div>
-          <div style={{ marginTop: 24 }}>
-            <div className="b" style={{ marginBottom: 10 }}>
-              Your plan
-            </div>
-            {selected.plan.map(([icon, text, meta], k) => (
-              <div key={text} className="row" style={{ padding: "7px 0" }}>
-                <span className={k === 0 ? "green" : "faint"}>
-                  <Ic n={icon} size="s" />
-                </span>
-                <span className="sm" style={{ flex: 1 }}>
-                  {text}
-                </span>
-                <span className="xs faint">{meta}</span>
+            <div className="hair" />
+            <div style={{ marginTop: 20 }}>
+              <div className="b" style={{ marginBottom: 10 }}>
+                Why you fit
               </div>
-            ))}
-            <div className="row" style={{ marginTop: 14 }}>
-              <Btn kind="p" icon="arrow" end href="/contacts">
-                Start outreach plan
-              </Btn>
-              <Btn kind="t" onClick={() => toggleSaved(selected.id)}>
-                {saved.has(selected.id) ? "Saved" : "Save"}
-              </Btn>
+              <div className="sm" style={{ lineHeight: 1.7 }}>
+                {selected.why}
+              </div>
             </div>
-          </div>
-        </aside>
+            <div style={{ marginTop: 24 }}>
+              <div className="b" style={{ marginBottom: 10 }}>
+                Your plan
+              </div>
+              {selected.plan.map(([icon, text, meta], k) => {
+                const key = `${selected.id}:${k}`;
+                const done = k === 0 || doneSteps.has(key);
+                return (
+                  <button
+                    key={text}
+                    type="button"
+                    className="row"
+                    style={{ padding: "7px 0", width: "100%" }}
+                    aria-pressed={done}
+                    disabled={k === 0}
+                    onClick={() => setDoneSteps((current) => toggleIn(current, key))}
+                  >
+                    <span className={done ? "green" : "faint"}>
+                      <Ic n={done ? "check" : icon} size="s" />
+                    </span>
+                    <span
+                      className="sm"
+                      style={{ flex: 1, textDecoration: done && k > 0 ? "line-through" : "none" }}
+                    >
+                      {text}
+                    </span>
+                    <span className="xs faint">{done && k > 0 ? "Done" : meta}</span>
+                  </button>
+                );
+              })}
+              <div className="row" style={{ marginTop: 14 }}>
+                <Btn kind="p" icon="arrow" end href="/contacts">
+                  Start outreach plan
+                </Btn>
+                <Btn kind="t" onClick={() => setSaved((current) => toggleIn(current, selected.id))}>
+                  {saved.has(selected.id) ? "Saved" : "Save"}
+                </Btn>
+                <Btn kind="t" onClick={() => dismiss(selected.id)}>
+                  Not interested
+                </Btn>
+              </div>
+            </div>
+          </aside>
+        </>
       ) : null}
     </>
   );
