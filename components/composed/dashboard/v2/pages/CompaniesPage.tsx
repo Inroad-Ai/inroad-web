@@ -46,6 +46,22 @@ const NEXT_STEP: Record<PipelineStage, string> = {
   rejected: "Rejected",
 };
 
+/** Where the next step happens: the person to write to if one is set,
+ * otherwise the company page where you pick one. */
+function nextStepHref(company: Company): string {
+  if (company.stage === "closed" || company.stage === "rejected") return `/companies/${company.id}`;
+  return company.primary_contact_id
+    ? `/contacts/${company.primary_contact_id}`
+    : `/companies/${company.id}`;
+}
+
+function nextStepHint(company: Company): string {
+  if (company.stage === "closed" || company.stage === "rejected") return "Open the company";
+  return company.primary_contact_id
+    ? "Open the outreach draft for your contact"
+    : "Open the company to pick who to contact";
+}
+
 interface Result {
   items: Company[];
   total: number;
@@ -337,8 +353,16 @@ export function CompaniesPage() {
                       </td>
                       <td className={hiring.muted ? "muted" : "m"}>{hiring.label}</td>
                       <td className="muted">{formatRelativeDays(company.updated_at)}</td>
-                      <td className={company.stage === "responded" ? "amber m" : "muted"}>
-                        {NEXT_STEP[company.stage]}
+                      <td>
+                        <Link
+                          href={nextStepHref(company)}
+                          className={`row ${company.stage === "responded" ? "amber m" : "muted"}`}
+                          style={{ gap: 6 }}
+                          title={nextStepHint(company)}
+                        >
+                          {NEXT_STEP[company.stage]}
+                          <Ic n="arrow" size="xs" />
+                        </Link>
                       </td>
                     </tr>
                   );

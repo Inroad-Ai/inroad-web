@@ -1,12 +1,48 @@
-import { Btn, Hair, Ic, Lm, Pill } from "../kit";
+"use client";
 
-const CHOICES: [string, boolean][] = [
-  ["Technical depth", true],
-  ["Leading a small team", false],
-  ["Equity that can matter", true],
-  ["Shipping to many users", false],
-  ["A mission I believe in", false],
-  ["Calm, stable work", false],
+import { useState } from "react";
+
+import { Btn, Hair, Ic, Lm } from "../kit";
+
+interface Question {
+  about: string;
+  title: string;
+  choices: string[];
+  placeholder: string;
+}
+
+const QUESTIONS: Question[] = [
+  {
+    about: "about your goals",
+    title: "What would make your next role a clear win 18 months from now?",
+    choices: [
+      "Technical depth",
+      "Leading a small team",
+      "Equity that can matter",
+      "Shipping to many users",
+      "A mission I believe in",
+      "Calm, stable work",
+    ],
+    placeholder: "In a sentence or two, what does a clear win look like?",
+  },
+  {
+    about: "about how you work",
+    title: "What kind of team do you do your best work in?",
+    choices: [
+      "Small and senior",
+      "Fast and scrappy",
+      "Structured and calm",
+      "Remote first",
+      "Mentoring-heavy",
+    ],
+    placeholder: "Describe the team around you at your best.",
+  },
+  {
+    about: "about trade-offs",
+    title: "What would you give up for the right role?",
+    choices: ["Some salary", "A longer commute", "A bigger title", "Relocating", "Nothing, really"],
+    placeholder: "Anything you would trade, and anything you would not.",
+  },
 ];
 
 const CHANGES: [string, string, string][] = [
@@ -16,6 +52,42 @@ const CHANGES: [string, string, string][] = [
 ];
 
 export function CoachPage() {
+  const [index, setIndex] = useState(0);
+  const [picked, setPicked] = useState<ReadonlySet<string>>(
+    new Set(["Technical depth", "Equity that can matter"]),
+  );
+  const [text, setText] = useState(
+    "Own the architecture of something that moves real money, with a team that values correctness over speed.",
+  );
+  const [answered, setAnswered] = useState(18);
+  const [note, setNote] = useState("");
+  const question = QUESTIONS[index % QUESTIONS.length];
+
+  function next(message: string) {
+    setIndex((value) => value + 1);
+    setPicked(new Set());
+    setText("");
+    setNote(message);
+  }
+
+  function toggle(choice: string) {
+    setPicked((current) => {
+      const copy = new Set(current);
+      if (copy.has(choice)) copy.delete(choice);
+      else copy.add(choice);
+      return copy;
+    });
+  }
+
+  function save() {
+    if (picked.size === 0 && !text.trim()) {
+      setNote("Pick an option or write a line first.");
+      return;
+    }
+    setAnswered((value) => value + 1);
+    next("Saved. Your matches will use it.");
+  }
+
   return (
     <div className="split" style={{ display: "flex", gap: 56, justifyContent: "space-between" }}>
       <div style={{ flex: 1, maxWidth: 700, marginTop: 28 }}>
@@ -23,7 +95,9 @@ export function CoachPage() {
           <Lm c={3} round>
             <Ic n="spark" size="s" />
           </Lm>
-          <span className="sm muted">Question 3 this week · about your goals · 30 seconds</span>
+          <span className="sm muted">
+            Question {(index % QUESTIONS.length) + 3} this week · {question.about} · 30 seconds
+          </span>
         </div>
         <h1
           style={{
@@ -34,49 +108,79 @@ export function CoachPage() {
             margin: "22px 0 12px",
           }}
         >
-          What would make your next role a clear win 18 months from now?
+          {question.title}
         </h1>
         <div className="sub" style={{ marginTop: 0 }}>
           Your answer changes which companies rank first.
         </div>
 
-        <div className="row wrap" style={{ gap: 10, margin: "26px 0 18px" }}>
-          {CHOICES.map(([t, on]) => (
-            <Pill key={t} on={on}>
-              {t}
-            </Pill>
-          ))}
+        <div
+          className="row wrap"
+          style={{ gap: 10, margin: "26px 0 18px" }}
+          role="group"
+          aria-label="Quick answers"
+        >
+          {question.choices.map((choice) => {
+            const on = picked.has(choice);
+            return (
+              <button
+                key={choice}
+                type="button"
+                className={`pill ${on ? "on" : ""}`}
+                aria-pressed={on}
+                onClick={() => toggle(choice)}
+              >
+                {on ? <Ic n="check" size="xs" /> : null}
+                {choice}
+              </button>
+            );
+          })}
         </div>
 
-        <div
+        <label
           className="field"
           style={{
             height: "auto",
             minHeight: 60,
             padding: 16,
             whiteSpace: "normal",
-            lineHeight: 1.55,
-            color: "rgb(var(--color-ink))",
             alignItems: "flex-start",
-            fontSize: 15.5,
           }}
         >
-          Own the architecture of something that moves real money, with a team that values
-          correctness over speed.
-          <span className="sp" />
-          <span className="faint">
-            <Ic n="mic" />
-          </span>
-        </div>
+          <span className="sr-only">Your answer</span>
+          <textarea
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={question.placeholder}
+            rows={3}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              background: "none",
+              border: 0,
+              outline: 0,
+              resize: "vertical",
+              color: "rgb(var(--color-ink))",
+              font: "inherit",
+              fontSize: 15.5,
+              lineHeight: 1.55,
+            }}
+          />
+        </label>
 
         <div className="row wrap" style={{ gap: 14, marginTop: 22 }}>
-          <Btn kind="p lg" icon="check">
+          <Btn kind="p lg" icon="check" onClick={save}>
             Save answer
           </Btn>
-          <Btn kind="t">Skip</Btn>
-          <Btn kind="t" icon="clock">
+          <Btn kind="t" onClick={() => next("Skipped.")}>
+            Skip
+          </Btn>
+          <Btn kind="t" icon="clock" onClick={() => next("We will ask again tomorrow.")}>
             Ask me later
           </Btn>
+          <span className="sm muted" role="status" aria-live="polite">
+            {note}
+          </span>
         </div>
       </div>
 
@@ -116,7 +220,7 @@ export function CoachPage() {
           <span className="amber">
             <Ic n="flame" size="s" />
           </span>
-          <span className="sm">9 day streak · 18 answered</span>
+          <span className="sm">9 day streak · {answered} answered</span>
         </div>
       </div>
     </div>
