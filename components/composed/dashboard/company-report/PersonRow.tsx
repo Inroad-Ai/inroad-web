@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { PERSON_ROLE_LABEL } from "@/lib/types";
 import type { Person } from "@/lib/types";
-import { Av, Tag } from "../v2/kit";
+import { Av, Tag, Warmth } from "../v2/kit";
+import { sampleWarmth } from "../v2/sample";
 import { Button } from "@/components/ui/Button";
 import { PersonStageBadge, type PersonStage } from "@/components/ui/PersonStageBadge";
 import { TextLink } from "@/components/ui/TextLink";
@@ -50,6 +51,9 @@ export function PersonRow({
         <Tag tone={HIGHLIGHTED_ROLES.has(person.role_category) ? "teal" : ""}>
           {PERSON_ROLE_LABEL[person.role_category]}
         </Tag>
+      </td>
+      <td>
+        <Warmth w={sampleWarmth(person.id)} width={12} />
       </td>
       <td>
         {person.email ? (

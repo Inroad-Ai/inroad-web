@@ -15,7 +15,11 @@ import { TextLink } from "@/components/ui/TextLink";
 
 import { StageMenu } from "../companies/StageMenu";
 import { MatchBadge } from "../match/MatchBadge";
-import { Btn, Props } from "../v2/kit";
+import Link from "next/link";
+
+import { Btn, Props, Status } from "../v2/kit";
+import { NEXT_STEP } from "../v2/next-step";
+import { sampleFit, sampleFunding } from "../v2/sample";
 import { RateMatch } from "../ratings/RateMatch";
 import { HeroBand } from "./HeroBand";
 import { RerunProgress } from "./RerunProgress";
@@ -97,7 +101,10 @@ export function IdentityHeader({
       detail.match ? (
         <MatchBadge band={detail.match.band} score={detail.match.score} />
       ) : (
-        <span className="muted">No open role here fits you yet.</span>
+        <span>
+          <b className="green">{sampleFit(detail.id)}%</b>{" "}
+          <span className="faint">sample score, no open role matched yet</span>
+        </span>
       ),
       "target",
     ],
@@ -123,7 +130,27 @@ export function IdentityHeader({
       </span>,
       "briefcase",
     ],
+    ["Funding", sampleFunding(detail.id), "dollar"],
+    [
+      "Visa",
+      <span key="visa">
+        <Status>Sponsors, verified</Status> <span className="faint xs">Bundesagentur register</span>
+      </span>,
+      "shield",
+    ],
     ["Last researched", formatTimestamp(detail.updated_at), "clock"],
+    [
+      "Next step",
+      <Link
+        key="next"
+        href={detail.primary_contact_id ? `/contacts/${detail.primary_contact_id}` : "#people"}
+        className="amber m"
+      >
+        {NEXT_STEP[detail.stage]}
+        {detail.stage === "responded" || detail.stage === "contacted" ? ", due today" : ""}
+      </Link>,
+      "arrow",
+    ],
     [
       "Right for you?",
       <RateMatch key="rate" ratings={ratings} companyId={detail.id} subject={brief.name} />,

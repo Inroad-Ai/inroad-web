@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 
 import { describeHiring } from "@/lib/companies";
@@ -10,6 +11,9 @@ import type { PipelineStage } from "@/components/ui/StatusBadge";
 import { Notice } from "@/components/ui/Notice";
 
 import { CompanyIdentity } from "../companies/CompanyIdentity";
+import { Ic } from "../v2/kit";
+import { NEXT_STEP, nextStepHint, nextStepHref } from "../v2/next-step";
+import { sampleFit } from "../v2/sample";
 import { StageMenu } from "../companies/StageMenu";
 
 // Seconds; the same as --motion-duration-base.
@@ -69,7 +73,17 @@ export function PipelineCard({
           dragging ? "opacity-40" : moving ? "opacity-70" : ""
         }`}
       >
-        <CompanyIdentity company={company} size="sm" />
+        <div className="row" style={{ alignItems: "flex-start" }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <CompanyIdentity company={company} size="sm" />
+          </div>
+          <span
+            className={`xs m ${sampleFit(company.id) > 85 ? "green" : "faint"}`}
+            title="Sample fit score"
+          >
+            {sampleFit(company.id)}
+          </span>
+        </div>
 
         <div className="flex items-center justify-between gap-2">
           <span
@@ -85,6 +99,18 @@ export function PipelineCard({
             onSelect={onMove}
           />
         </div>
+
+        <Link
+          href={nextStepHref(company)}
+          onClick={(event) => event.stopPropagation()}
+          onDragStart={(event) => event.preventDefault()}
+          className="row xs muted"
+          style={{ gap: 6 }}
+          title={nextStepHint(company)}
+        >
+          {NEXT_STEP[company.stage]}
+          <Ic n="arrow" size="xs" />
+        </Link>
 
         {errorMessage ? <Notice size="xs">{errorMessage}</Notice> : null}
       </Card>

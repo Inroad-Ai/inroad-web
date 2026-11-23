@@ -54,7 +54,11 @@ export function PeopleSection({
   }
 
   return (
-    <Section title="People" right={people.length > 0 ? `${people.length} found` : undefined}>
+    <Section
+      id="people"
+      title="People"
+      right={people.length > 0 ? `${people.length} found` : undefined}
+    >
       {people.length === 0 ? (
         <EmptyState>No named people came back with the last run.</EmptyState>
       ) : (
@@ -64,6 +68,7 @@ export function PeopleSection({
               <tr>
                 <th style={{ width: 230 }}>Name</th>
                 <th>Role</th>
+                <th>Warmth</th>
                 <th>Contact</th>
                 <th>Stage</th>
                 <th />

@@ -16,6 +16,7 @@ import { PIPELINE_STAGES, STAGE_LABEL, type PipelineStage } from "@/components/u
 import { CompaniesEmpty } from "../../companies/CompaniesEmpty";
 import { MatchProgressNotice } from "../../companies/MatchProgressNotice";
 import { Btn, Ic, Status, Tag, Views } from "../kit";
+import { NEXT_STEP, nextStepHint, nextStepHref } from "../next-step";
 import { EXTRA_COLUMNS, sampleExtra, sampleFit, sampleFunding, type ExtraColumn } from "../sample";
 
 const PAGE_SIZE = 25;
@@ -39,15 +40,6 @@ const STAGE_TONE: Record<PipelineStage, "faint" | "amber" | "teal" | "ochre" | "
   rejected: "rose",
 };
 
-const NEXT_STEP: Record<PipelineStage, string> = {
-  researched: "Reach out",
-  contacted: "Follow up",
-  responded: "Reply",
-  interviewing: "Prepare",
-  closed: "Closed",
-  rejected: "Rejected",
-};
-
 type ViewId = "all" | "shortlist" | "funded" | "hiring" | "stealth" | string;
 
 interface SavedView {
@@ -55,22 +47,6 @@ interface SavedView {
   name: string;
   stage: PipelineStage | "all";
   search: string;
-}
-
-/** Where the next step happens: the person to write to if one is set,
- * otherwise the company page where you pick one. */
-function nextStepHref(company: Company): string {
-  if (company.stage === "closed" || company.stage === "rejected") return `/companies/${company.id}`;
-  return company.primary_contact_id
-    ? `/contacts/${company.primary_contact_id}`
-    : `/companies/${company.id}`;
-}
-
-function nextStepHint(company: Company): string {
-  if (company.stage === "closed" || company.stage === "rejected") return "Open the company";
-  return company.primary_contact_id
-    ? "Open the outreach draft for your contact"
-    : "Open the company to pick who to contact";
 }
 
 interface Result {

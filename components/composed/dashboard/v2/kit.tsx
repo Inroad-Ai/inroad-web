@@ -211,12 +211,14 @@ export function Views({ items, className = "" }: { items: ViewItem[]; className?
 }
 
 export function Section({
+  id,
   title,
   right,
   className = "",
   style,
   children,
 }: {
+  id?: string;
   title: string;
   right?: ReactNode;
   className?: string;
@@ -224,7 +226,7 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className={`sec ${className}`} style={style}>
+    <section id={id} className={`sec ${className}`} style={style}>
       <div className="hd">
         <h2>{title}</h2>
         {right ? <span className="link">{right}</span> : null}
