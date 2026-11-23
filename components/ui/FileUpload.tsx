@@ -44,6 +44,10 @@ interface FileUploadProps {
   onRemove?: () => void;
   onRetry?: () => void;
   autoFocus?: boolean;
+  /** What is being uploaded, in the idle prompt: "resume" by default. */
+  subject?: string;
+  formatsHint?: string;
+  phases?: readonly string[];
 }
 
 export function FileUpload({
@@ -56,12 +60,15 @@ export function FileUpload({
   onRemove,
   onRetry,
   autoFocus,
+  subject = "resume",
+  formatsHint = "PDF or DOCX · up to 10MB",
+  phases = PARSE_PHASES,
 }: FileUploadProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const isBusy = state === "uploading";
-  const rotatingPhase = useRotatingPhase(isBusy, PARSE_PHASES);
+  const rotatingPhase = useRotatingPhase(isBusy, phases);
 
   function openPicker() {
     inputRef.current?.click();
@@ -79,7 +86,7 @@ export function FileUpload({
       <div
         role="button"
         tabIndex={0}
-        aria-label="Upload your resume"
+        aria-label={`Upload your ${subject}`}
         autoFocus={autoFocus}
         onClick={openPicker}
         onKeyDown={(event) => {
@@ -117,10 +124,10 @@ export function FileUpload({
           <UploadIcon />
         </span>
         <p className="text-sm font-sans-medium text-ink">
-          Drag your resume here or{" "}
+          Drag your {subject} here or{" "}
           <span className="font-sans-semibold text-signal-teal">browse files</span>
         </p>
-        <p className="utility-label text-ink-faint">PDF or DOCX · up to 10MB</p>
+        <p className="utility-label text-ink-faint">{formatsHint}</p>
       </div>
     );
   }

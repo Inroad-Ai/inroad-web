@@ -4,7 +4,7 @@ import { PageNotice, SetupNotice } from "@/components/composed/dashboard/PageNot
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { plural } from "@/lib/format";
-import { CareerArcStatus } from "./CareerArcStatus";
+import { CareerArcManager } from "./CareerArcManager";
 import { CertificatesEditor } from "./CertificatesEditor";
 import { EducationEditor } from "./EducationEditor";
 import { LanguagesEditor } from "./LanguagesEditor";
@@ -94,7 +94,7 @@ export function ProfileForm() {
           </ProfileSection>
 
           <ProfileSection section={SECTIONS.careerArc} meta="Optional">
-            <CareerArcStatus isParsed={Boolean(profile.career_arc_parsed_json)} />
+            <CareerArcManager initial={profile.career_arc ?? null} />
           </ProfileSection>
 
           <ProfileSection section={SECTIONS.search} meta="Used for matching">

@@ -796,6 +796,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/career-arc/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start Parse */
+        post: operations["start_parse_api_career_arc_parse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career-arc/parse/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Parse Run */
+        get: operations["get_parse_run_api_career_arc_parse__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/career-arc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Career Arc */
+        get: operations["get_career_arc_api_career_arc_get"];
+        /** Put Career Arc */
+        put: operations["put_career_arc_api_career_arc_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/connections": {
         parameters: {
             query?: never;
@@ -1048,6 +1100,225 @@ export interface components {
         Body_parse_resume_api_resume_parse_post: {
             /** File */
             file: string;
+        };
+        /** Body_start_parse_api_career_arc_parse_post */
+        Body_start_parse_api_career_arc_parse_post: {
+            /** File */
+            file: string;
+        };
+        /** CareerArcDocument */
+        CareerArcDocument: {
+            /**
+             * Schema Version
+             * @default 1
+             */
+            schema_version: number;
+            /** Story */
+            story?: string | null;
+            /** Looking For */
+            looking_for?: string | null;
+            /** Themes */
+            themes?: string[];
+            /** Principles */
+            principles?: string[];
+            /** Skills */
+            skills?: string[];
+            /** Not Looking For */
+            not_looking_for?: string | null;
+            working_style?: components["schemas"]["WorkingStyle"];
+            /** Recognition */
+            recognition?: components["schemas"]["CareerArcRecognition"][];
+            /** Strengths */
+            strengths?: components["schemas"]["CareerArcStrength"][];
+            /** Roles */
+            roles?: components["schemas"]["CareerArcRole"][];
+        };
+        /** CareerArcParseResult */
+        CareerArcParseResult: {
+            document: components["schemas"]["CareerArcDocument"];
+            /** Warnings */
+            warnings?: components["schemas"]["ParseWarning"][];
+        };
+        /** CareerArcParseRun */
+        CareerArcParseRun: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            status: components["schemas"]["PipelineRunStatus"];
+            /** Error */
+            error?: string | null;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Started At */
+            started_at?: string | null;
+            /** Finished At */
+            finished_at?: string | null;
+            /** Stage */
+            stage?: string | null;
+            /**
+             * Done
+             * @default 0
+             */
+            done: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            result?: components["schemas"]["CareerArcParseResult"] | null;
+        };
+        /** CareerArcParseStart */
+        CareerArcParseStart: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+        };
+        /** CareerArcRecognition */
+        CareerArcRecognition: {
+            /** Title */
+            title: string;
+            /** Issuer */
+            issuer?: string | null;
+            /** Year */
+            year?: string | null;
+            /** Link */
+            link?: string | null;
+            /**
+             * Kind
+             * @default other
+             * @enum {string}
+             */
+            kind: "award" | "ranking" | "certification" | "talk" | "writing" | "other";
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** CareerArcRole */
+        CareerArcRole: {
+            /** Organization */
+            organization?: string | null;
+            /** Role */
+            role?: string | null;
+            /**
+             * Kind
+             * @default job
+             * @enum {string}
+             */
+            kind: "job" | "project" | "open_source" | "education" | "organization" | "volunteering" | "giving" | "other";
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            /**
+             * Is Current
+             * @default false
+             */
+            is_current: boolean;
+            /** Overview */
+            overview?: string | null;
+            /** Stack */
+            stack?: string[];
+            /** Links */
+            links?: string[];
+            /** Status */
+            status?: ("live" | "shipped" | "in_progress" | "paused" | "retired") | null;
+            /** Ownership */
+            ownership?: ("solo" | "led" | "contributed") | null;
+            /** Team Size */
+            team_size?: number | null;
+            /** Audience */
+            audience?: string | null;
+            /** Cause */
+            cause?: string | null;
+            /** Commitment */
+            commitment?: string | null;
+            /** Reach */
+            reach?: string | null;
+            /** Stories */
+            stories?: components["schemas"]["CareerArcStory"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+        };
+        /** CareerArcStory */
+        CareerArcStory: {
+            /** Title */
+            title: string;
+            /** Situation */
+            situation?: string | null;
+            /** My Role */
+            my_role?: string | null;
+            /** Actions */
+            actions?: string | null;
+            /** Why */
+            why?: string | null;
+            /** Trade Offs */
+            trade_offs?: string | null;
+            /** Outcome */
+            outcome?: string | null;
+            /** Limits */
+            limits?: string | null;
+            /** Lessons */
+            lessons?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Skills */
+            skills?: string[];
+            /** Links */
+            links?: string[];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "uploaded" | "edited" | "drafted";
+            /**
+             * Featured
+             * @default false
+             */
+            featured: boolean;
+            /**
+             * Use In Outreach
+             * @default true
+             */
+            use_in_outreach: boolean;
+        };
+        /** CareerArcStrength */
+        CareerArcStrength: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Skill */
+            skill: string;
+            /** How It Shows */
+            how_it_shows?: string | null;
+            /** Evidence */
+            evidence?: string[];
+            /**
+             * Source
+             * @default written
+             * @enum {string}
+             */
+            source: "written" | "suggested" | "accepted";
         };
         /** CertificateEntry */
         CertificateEntry: {
@@ -2076,6 +2347,20 @@ export interface components {
             /** Companies By Week */
             companies_by_week: components["schemas"]["WeeklyCompanyCount"][];
         };
+        /** ParseWarning */
+        ParseWarning: {
+            /** Item Id */
+            item_id?: string | null;
+            /** Field */
+            field?: string | null;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "number_not_in_source" | "trimmed" | "roles_dropped" | "stories_dropped" | "section_failed" | "strengths_dropped";
+            /** Value */
+            value?: string | null;
+        };
         /** PeopleResult */
         PeopleResult: {
             /** People */
@@ -2352,6 +2637,7 @@ export interface components {
             career_arc_parsed_json: {
                 [key: string]: unknown;
             } | null;
+            career_arc?: components["schemas"]["CareerArcDocument"] | null;
             /** Work Preference */
             work_preference: components["schemas"]["WorkPreferenceOption"][];
             /** Regions */
@@ -2444,6 +2730,8 @@ export interface components {
              * @description Stored inside resume_parsed_json. Omit the field to leave the saved summary untouched; send null or an empty string to clear it.
              */
             summary?: string | null;
+            /** @description Stored in career_arc_parsed_json. Omit to leave the saved career arc untouched; send null to clear it. */
+            career_arc?: components["schemas"]["CareerArcDocument"] | null;
         };
         /** ProjectEntry */
         ProjectEntry: {
@@ -2927,6 +3215,19 @@ export interface components {
          * @enum {string}
          */
         WorkPreferenceOption: "remote" | "hybrid" | "onsite" | "relocation";
+        /** WorkingStyle */
+        WorkingStyle: {
+            /** Feedback */
+            feedback?: string | null;
+            /** Communication */
+            communication?: string | null;
+            /** Decisions */
+            decisions?: string | null;
+            /** Energizes */
+            energizes?: string | null;
+            /** Drains */
+            drains?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -4443,6 +4744,140 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumeParseResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_parse_api_career_arc_parse_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_start_parse_api_career_arc_parse_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareerArcParseStart"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_parse_run_api_career_arc_parse__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareerArcParseRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_career_arc_api_career_arc_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareerArcDocument"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_career_arc_api_career_arc_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CareerArcDocument"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareerArcDocument"];
                 };
             };
             /** @description Validation Error */
