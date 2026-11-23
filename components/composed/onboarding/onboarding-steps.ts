@@ -9,6 +9,7 @@ export const STEP_IDS = [
   "links",
   "workPreference",
   "targetRole",
+  "careerArc",
   "summary",
 ] as const;
 
@@ -37,6 +38,7 @@ export const STEP_PHASE_INDEX: Record<StepId, number> = {
   links: 1,
   workPreference: 2,
   targetRole: 2,
+  careerArc: 3,
   summary: 3,
 };
 

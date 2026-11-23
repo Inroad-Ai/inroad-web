@@ -107,10 +107,8 @@ export function SettingsPanel() {
           </DashboardPanel>
         </section>
 
-        {/* There is no file to show: what gets kept is the parsed result, not
-          the document it came from. */}
         <DashboardPanel id="career-arc" title="Career arc document">
-          <CareerArcStatus isParsed={Boolean(profile.career_arc_parsed_json)} />
+          <CareerArcStatus careerArc={profile.career_arc} />
         </DashboardPanel>
       </div>
     </div>

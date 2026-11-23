@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PageNotice, SetupNotice } from "@/components/composed/dashboard/PageNotice";
 import {
@@ -10,7 +10,7 @@ import {
 import { Av, Bar, Views } from "@/components/composed/dashboard/v2/kit";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { plural } from "@/lib/format";
-import { CareerArcStatus } from "./CareerArcStatus";
+import { CareerArcManager } from "./CareerArcManager";
 import { CertificatesEditor } from "./CertificatesEditor";
 import { EducationEditor } from "./EducationEditor";
 import { LanguagesEditor } from "./LanguagesEditor";
@@ -42,6 +42,20 @@ const SECTIONS = {
 
 type Tab = "authority" | "story" | "projects" | "search" | "documents";
 
+const TAB_FOR_HASH: Record<string, Tab> = {
+  "profile-career-arc": "documents",
+  "profile-resume": "documents",
+  "profile-search": "search",
+  "profile-projects": "projects",
+  "profile-personal": "story",
+  "profile-online": "story",
+  "profile-story": "story",
+  "profile-experience": "story",
+  "profile-education": "story",
+  "profile-certificates": "story",
+  "profile-languages": "story",
+};
+
 const TABS: { id: Tab; label: string }[] = [
   { id: "authority", label: "Authority" },
   { id: "story", label: "Story and experience" },
@@ -54,6 +68,12 @@ export function ProfileForm() {
   const controller = useProfileForm();
   const { profile, form, validationErrors: errors, update } = controller;
   const [tab, setTab] = useState<Tab>("story");
+
+  // Links like /profile#profile-career-arc land on the tab that holds that section.
+  useEffect(() => {
+    const target = TAB_FOR_HASH[window.location.hash.replace("#", "")];
+    if (target) setTab(target);
+  }, []);
 
   if (controller.loading) {
     return (
@@ -215,7 +235,7 @@ export function ProfileForm() {
             </ProfileSection>
 
             <ProfileSection section={SECTIONS.careerArc} meta="Optional">
-              <CareerArcStatus isParsed={Boolean(profile.career_arc_parsed_json)} />
+              <CareerArcManager initial={profile.career_arc ?? null} />
             </ProfileSection>
           </>
         ) : null}
