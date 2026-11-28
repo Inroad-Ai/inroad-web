@@ -3,14 +3,17 @@
 import { useEffect, useState, type DragEvent } from "react";
 
 import type { Company } from "@/lib/types";
-import { STAGE_LABEL, StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
+import { Notice } from "@/components/ui/Notice";
+import type { PipelineStage } from "@/components/ui/StatusBadge";
 
-import { BoardLane } from "../BoardLane";
 import type { ColumnState } from "./board-state";
 import { PipelineCard } from "./PipelineCard";
 
 export function PipelineColumn({
   stage,
+  title,
+  dot,
+  emptyNote,
   column,
   movingIds,
   moveErrors,
@@ -24,6 +27,10 @@ export function PipelineColumn({
   onLoadMore,
 }: {
   stage: PipelineStage;
+  title: string;
+  /** Colour token name for the dot beside the title. */
+  dot: string;
+  emptyNote: string;
   column: ColumnState;
   movingIds: ReadonlySet<string>;
   moveErrors: Record<string, string>;
@@ -60,33 +67,72 @@ export function PipelineColumn({
     if (acceptsDrop) onDrop(stage);
   }
 
+  const remaining = column.total - column.items.length;
+
   return (
-    <BoardLane
-      label={`${STAGE_LABEL[stage]} companies`}
-      badge={<StatusBadge stage={stage} />}
-      lane={column}
-      isOver={over}
-      emptyText={acceptsDrop ? "Drop here to move it to this stage." : "Nothing at this stage."}
-      onLoadMore={onLoadMore}
+    <section
+      className={`stage-col ${over ? "over" : ""}`}
+      aria-label={
+        column.status === "loading" ? `${title} companies` : `${title} companies, ${column.total}`
+      }
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <ul className="flex flex-col gap-2.5">
-        {column.items.map((company) => (
-          <PipelineCard
-            key={company.id}
-            company={company}
-            moving={movingIds.has(company.id)}
-            dragging={draggingId === company.id}
-            errorMessage={moveErrors[company.id]}
-            onOpen={() => onOpen(company.id)}
-            onMove={(to) => onMove(company, to)}
-            onDragStart={() => onDragStart(company)}
-            onDragEnd={onDragEnd}
-          />
-        ))}
-      </ul>
-    </BoardLane>
+      <div className="row" style={{ marginBottom: 12, padding: "0 2px" }}>
+        <span
+          aria-hidden
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: `rgb(var(--color-${dot}))`,
+          }}
+        />
+        <h2 className="m sm">{title}</h2>
+        <span className="faint sm">{column.status === "loading" ? "" : column.total}</span>
+      </div>
+
+      {column.status === "loading" ? (
+        <p className="sm faint">Loading...</p>
+      ) : column.status === "error" ? (
+        <p className="sm rose">{column.errorMessage}</p>
+      ) : column.items.length === 0 ? (
+        <p className="sm faint" style={{ lineHeight: 1.6, padding: "6px 2px" }}>
+          {acceptsDrop ? "Drop here to move it to this stage." : emptyNote}
+        </p>
+      ) : (
+        <ul className="col" style={{ gap: 10, listStyle: "none" }}>
+          {column.items.map((company) => (
+            <PipelineCard
+              key={company.id}
+              company={company}
+              moving={movingIds.has(company.id)}
+              dragging={draggingId === company.id}
+              errorMessage={moveErrors[company.id]}
+              onOpen={() => onOpen(company.id)}
+              onMove={(to) => onMove(company, to)}
+              onDragStart={() => onDragStart(company)}
+              onDragEnd={onDragEnd}
+            />
+          ))}
+        </ul>
+      )}
+
+      {column.status === "ready" && column.errorMessage ? (
+        <Notice size="xs">{column.errorMessage}</Notice>
+      ) : null}
+      {column.status === "ready" && remaining > 0 ? (
+        <button
+          type="button"
+          className="xs faint"
+          style={{ padding: "10px 2px" }}
+          onClick={onLoadMore}
+          disabled={column.loadingMore}
+        >
+          {column.loadingMore ? "Loading..." : `${remaining} more`}
+        </button>
+      ) : null}
+    </section>
   );
 }

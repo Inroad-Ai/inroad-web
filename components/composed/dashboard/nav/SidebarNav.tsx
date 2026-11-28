@@ -28,7 +28,7 @@ export function SidebarNav({
           ) : (
             <p
               aria-hidden
-              className={`utility-label px-3 pb-2 text-ink-faint ${index === 0 ? "pt-1" : "pt-5"}`}
+              className={`px-3 pb-1.5 text-xs text-ink-faint ${index === 0 ? "pt-1" : "pt-5"}`}
             >
               {section.label}
             </p>

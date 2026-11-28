@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { fetchCompany } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
@@ -19,8 +19,21 @@ import { NotesSection } from "./NotesSection";
 import { OpenRolesSection } from "./OpenRolesSection";
 import { PeopleSection } from "./PeopleSection";
 import { ProductsSection } from "./ProductsSection";
+import { Ic } from "../v2/kit";
 import { WhoToContactSection } from "./WhoToContactSection";
 import { YouAndThemCard } from "./YouAndThemCard";
+
+function More({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="more">
+      <summary>
+        <Ic n="chev" size="s" />
+        <span className="m">{title}</span>
+      </summary>
+      <div className="more-body">{children}</div>
+    </details>
+  );
+}
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see this company.";
 
@@ -86,7 +99,7 @@ export function CompanyReport({ companyId }: { companyId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex max-w-4xl flex-col gap-8">
       <IdentityHeader
         detail={detail}
         brief={brief}
@@ -95,37 +108,40 @@ export function CompanyReport({ companyId }: { companyId: string }) {
         ratings={ratings}
       />
       <YouAndThemCard detail={detail} brief={brief} />
-
-      <div className="grid items-start gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+      <FittingRolesSection detail={detail} ratings={ratings} />
+      <WhoToContactSection
+        detail={detail}
+        companyName={brief.name}
+        accessToken={accessToken}
+        onDetailChange={replaceDetail}
+      />
+      <PeopleSection
+        key={peopleVersion}
+        detail={detail}
+        accessToken={accessToken}
+        onCompanyChange={mergeCompany}
+      />
+      <section>
+        <h2 className="sec-title" style={{ marginBottom: 6 }}>
+          More
+        </h2>
+        <More title="About">
           <AboutSection brief={brief} />
-          <FittingRolesSection detail={detail} ratings={ratings} />
+        </More>
+        <More title="Open roles">
           <OpenRolesSection brief={brief} />
+        </More>
+        <More title="Products">
           <ProductsSection brief={brief} />
+        </More>
+        <More title="Highlights">
           <HighlightsSection brief={brief} />
+        </More>
+        <More title="News">
           <NewsSection brief={brief} />
-        </div>
-
-        {/* Stays beside the brief while it scrolls: who to contact is the next step. */}
-        <aside
-          className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-20"
-          aria-label="Who to contact and notes"
-        >
-          <WhoToContactSection
-            detail={detail}
-            companyName={brief.name}
-            accessToken={accessToken}
-            onDetailChange={replaceDetail}
-          />
-          <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
-          <PeopleSection
-            key={peopleVersion}
-            detail={detail}
-            accessToken={accessToken}
-            onCompanyChange={mergeCompany}
-          />
-        </aside>
-      </div>
+        </More>
+      </section>
+      <NotesSection detail={detail} accessToken={accessToken} onSaved={mergeCompany} />
     </div>
   );
 }

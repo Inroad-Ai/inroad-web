@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { LayoutGroup, motion } from "framer-motion";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { fetchCompanies, updateCompanyStage } from "@/lib/api-client/client";
@@ -19,6 +20,7 @@ import {
   type ColumnState,
 } from "./pipeline/board-state";
 import { PipelineColumn } from "./pipeline/PipelineColumn";
+import { isQuiet } from "./v2/next-step";
 
 // Columns are never unbounded: some stages will hold hundreds of companies
 // after the historical import, so each pages on demand.
@@ -26,7 +28,22 @@ const COLUMN_PAGE_SIZE = 20;
 
 const SESSION_EXPIRED = "Your session expired. Sign in again to see your pipeline.";
 
-export function PipelineBoard() {
+// The five columns of the design. Rejected companies are counted under the board.
+const BOARD_COLUMNS: { stage: PipelineStage; title: string; dot: string }[] = [
+  { stage: "researched", title: "Researched", dot: "ink-faint" },
+  { stage: "contacted", title: "Contacted", dot: "signal-teal" },
+  { stage: "responded", title: "Replied", dot: "signal-amber" },
+  { stage: "interviewing", title: "Interviewing", dot: "success" },
+  { stage: "closed", title: "Offer", dot: "warning" },
+];
+
+function emptyNoteFor(stage: PipelineStage, interviews: number): string {
+  if (stage !== "closed") return "Nothing at this stage.";
+  if (interviews === 0) return "Your first offer lands here.";
+  return `Your first offer lands here. ${interviews} ${interviews === 1 ? "interview is" : "interviews are"} open.`;
+}
+
+export function PipelineBoard({ onQuietChange }: { onQuietChange?: (count: number) => void }) {
   const router = useRouter();
 
   const [board, setBoard] = useState<BoardState>(() => boardOf(EMPTY_COLUMN));
@@ -165,22 +182,29 @@ export function PipelineBoard() {
     }
   }
 
+  const quietCount = board.contacted.items.filter(isQuiet).length;
+  useEffect(() => {
+    onQuietChange?.(quietCount);
+  }, [quietCount, onQuietChange]);
+
   function dropOn(to: PipelineStage) {
     if (dragging) moveCompany(dragging, to);
     setDragging(null);
   }
 
+  const rejected = board.rejected;
+
   return (
-    <motion.div
-      layoutScroll
-      className="-mx-1 snap-x snap-proximity overflow-x-auto px-1 pb-32 pt-1"
-    >
+    <motion.div layoutScroll className="stage-scroll">
       <LayoutGroup>
-        <div className="flex min-w-max gap-4">
-          {PIPELINE_STAGES.map((stage) => (
+        <div className="stage-board">
+          {BOARD_COLUMNS.map(({ stage, title, dot }) => (
             <PipelineColumn
               key={stage}
               stage={stage}
+              title={title}
+              dot={dot}
+              emptyNote={emptyNoteFor(stage, board.interviewing.total)}
               column={board[stage]}
               movingIds={movingIds}
               moveErrors={moveErrors}
@@ -198,6 +222,14 @@ export function PipelineBoard() {
           ))}
         </div>
       </LayoutGroup>
+      {rejected.status === "ready" && rejected.total > 0 ? (
+        <p className="sm faint" style={{ marginTop: 22 }}>
+          {rejected.total} rejected.{" "}
+          <Link href="/companies" className="muted">
+            See them in Companies
+          </Link>
+        </p>
+      ) : null}
     </motion.div>
   );
 }

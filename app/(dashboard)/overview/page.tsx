@@ -1,10 +1,5 @@
-import { OverviewDashboard } from "@/components/composed/dashboard/OverviewDashboard";
-import { PageShell } from "@/components/composed/dashboard/PageShell";
+import { TodayPage } from "@/components/composed/dashboard/v2/pages/TodayPage";
 
-export default function OverviewPage() {
-  return (
-    <PageShell title="Overview" description="Where your search stands, at a glance.">
-      <OverviewDashboard />
-    </PageShell>
-  );
+export default function Page() {
+  return <TodayPage />;
 }

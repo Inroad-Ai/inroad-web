@@ -3,7 +3,11 @@ import { SettingsPanel } from "@/components/composed/dashboard/settings/Settings
 
 export default function SettingsPage() {
   return (
-    <PageShell title="Settings" description="Your account. Profile details live on Profile.">
+    <PageShell
+      title="Settings"
+      description="Calm by default. Your account and how Inroad follows up. Profile details live on Profile."
+      maxWidth={1000}
+    >
       <SettingsPanel />
     </PageShell>
   );

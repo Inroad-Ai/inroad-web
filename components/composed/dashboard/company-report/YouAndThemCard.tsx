@@ -1,12 +1,9 @@
-import type { ReactNode } from "react";
-
 import type { CompanyBrief } from "@/lib/company-brief";
 import { formatMonth } from "@/lib/format";
 import type { CompanyDetail, RoleTeam, SkillMatch } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
-import { Eyebrow } from "@/components/ui/Eyebrow";
 
+import { Section } from "../v2/kit";
 import { ExternalLink } from "./ExternalLink";
 
 /** What this company means for the person: the role and its team, how their
@@ -15,66 +12,40 @@ export function YouAndThemCard({ detail, brief }: { detail: CompanyDetail; brief
   const { why, hooks } = brief;
   const skills = detail.skill_match;
   const team = detail.role_team;
-  const columns = [why?.roleTitle, skills, hooks.length > 0 || why?.whyNow].filter(Boolean);
-  if (columns.length === 0) return null;
+  if (!why?.roleTitle && !skills && hooks.length === 0 && !why?.whyNow) return null;
 
   return (
-    <Card
-      as="section"
-      aria-label="You and this company"
-      className={`grid gap-8 ${columns.length >= 3 ? "lg:grid-cols-3" : columns.length === 2 ? "md:grid-cols-2" : ""}`}
-    >
-      {why?.roleTitle ? (
-        <Column title="The role for you" dot>
-          {why.roleTitle ? (
-            <p className="text-lg font-sans-semibold leading-snug text-ink">
+    <Section title="Why it fits you">
+      <div style={{ fontSize: 15.5, lineHeight: 1.8 }}>
+        {why?.roleTitle ? (
+          <p style={{ marginBottom: 10 }}>
+            The role for you is{" "}
+            <b>
               <ExternalLink href={why.roleUrl}>{why.roleTitle}</ExternalLink>
-            </p>
-          ) : null}
-          {why?.fitReason ? (
-            <p className="mt-1 text-sm text-ink-muted">Fits you: {why.fitReason}</p>
-          ) : null}
-          {team ? <TeamLine team={team} /> : null}
-        </Column>
-      ) : null}
-
-      {skills ? (
-        <Column title="Your skills">
-          <SkillSummary skills={skills} />
-        </Column>
-      ) : null}
-
-      {hooks.length > 0 || why?.whyNow ? (
-        <Column title="Things to mention">
-          <ul className="flex flex-col gap-3">
-            {why?.whyNow ? (
-              <li className="text-sm leading-relaxed text-ink">{why.whyNow}</li>
+            </b>
+            {why.fitReason ? `. Fits you: ${why.fitReason}` : ""}.
+            {team ? <TeamLine team={team} /> : null}
+          </p>
+        ) : null}
+        {skills ? (
+          <div style={{ marginBottom: 10 }}>
+            <SkillSummary skills={skills} />
+          </div>
+        ) : null}
+        {why?.whyNow ? <p style={{ marginBottom: 10 }}>{why.whyNow}</p> : null}
+        {hooks.map((hook) => (
+          <p key={hook.text} style={{ marginBottom: 10 }}>
+            {hook.text}
+            {hook.url ? (
+              <span className="tag" style={{ margin: "0 3px", verticalAlign: 1 }}>
+                <ExternalLink href={hook.url}>Source</ExternalLink>
+              </span>
             ) : null}
-            {hooks.map((hook) => (
-              <li key={hook.text} className="text-sm leading-relaxed text-ink">
-                {hook.url ? <ExternalLink href={hook.url}>{hook.text}</ExternalLink> : hook.text}
-                {hook.date ? (
-                  <span className="ml-2 utility-label text-ink-faint">
-                    {formatMonth(hook.date)}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </Column>
-      ) : null}
-    </Card>
-  );
-}
-
-function Column({ title, dot, children }: { title: string; dot?: boolean; children: ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <Eyebrow as="h2" dot={dot ? "static" : undefined}>
-        {title}
-      </Eyebrow>
-      <div className="mt-2">{children}</div>
-    </div>
+            {hook.date ? <span className="faint sm"> {formatMonth(hook.date)}</span> : null}
+          </p>
+        ))}
+      </div>
+    </Section>
   );
 }
 
@@ -86,7 +57,7 @@ function TeamLine({ team }: { team: RoleTeam }) {
       ? `${team.team_size} ${team.team_size === 1 ? "person" : "people"} in this function on their site`
       : null,
   ].filter(Boolean);
-  return parts.length > 0 ? <p className="mt-3 text-sm text-ink">{parts.join(" · ")}</p> : null;
+  return parts.length > 0 ? <span className="muted sm"> {parts.join(" · ")}</span> : null;
 }
 
 function SkillSummary({ skills }: { skills: SkillMatch }) {

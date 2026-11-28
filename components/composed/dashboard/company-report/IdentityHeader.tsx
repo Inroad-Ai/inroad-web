@@ -8,14 +8,18 @@ import type { MatchRatings } from "@/lib/match-ratings";
 import { useResearchRuns } from "@/lib/research-runs";
 import type { CompanyBrief } from "@/lib/company-brief";
 import type { Company, CompanyDetail } from "@/lib/types";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Notice } from "@/components/ui/Notice";
+import { describeHiring } from "@/lib/companies";
 import { StatusBadge, type PipelineStage } from "@/components/ui/StatusBadge";
 import { TextLink } from "@/components/ui/TextLink";
 
 import { StageMenu } from "../companies/StageMenu";
-import { MatchDetails } from "../match/MatchDetails";
+import { MatchBadge } from "../match/MatchBadge";
+import Link from "next/link";
+
+import { Btn, Props, Status } from "../v2/kit";
+import { NEXT_STEP } from "../v2/next-step";
+import { sampleFit, sampleFunding } from "../v2/sample";
 import { RateMatch } from "../ratings/RateMatch";
 import { HeroBand } from "./HeroBand";
 import { RerunProgress } from "./RerunProgress";
@@ -88,67 +92,116 @@ export function IdentityHeader({
   }
 
   const errors = [stageError, rerunError].filter(Boolean);
+  const hiring = describeHiring(detail);
+  const contact = detail.primary_contact_id ?? detail.people[0]?.id ?? null;
+
+  const rows: [string, React.ReactNode, string?][] = [
+    [
+      "Fit",
+      detail.match ? (
+        <MatchBadge band={detail.match.band} score={detail.match.score} />
+      ) : (
+        <span>
+          <b className="green">{sampleFit(detail.id)}%</b>{" "}
+          <span className="faint">sample score, no open role matched yet</span>
+        </span>
+      ),
+      "target",
+    ],
+    [
+      "Stage",
+      <span key="stage" className="row wrap" style={{ gap: 12 }}>
+        <StatusBadge stage={detail.stage} />
+        <StageMenu
+          label={`Change the stage for ${detail.domain}`}
+          trigger={movingStage ? "Changing..." : "Change stage"}
+          current={detail.stage}
+          disabled={movingStage}
+          align="left"
+          onSelect={moveToStage}
+        />
+      </span>,
+      "kanban",
+    ],
+    [
+      "Hiring",
+      <span key="hiring" className={hiring.muted ? "muted" : "m"}>
+        {hiring.label}
+      </span>,
+      "briefcase",
+    ],
+    ["Funding", sampleFunding(detail.id), "dollar"],
+    [
+      "Visa",
+      <span key="visa">
+        <Status>Sponsors, verified</Status> <span className="faint xs">Bundesagentur register</span>
+      </span>,
+      "shield",
+    ],
+    ["Last researched", formatTimestamp(detail.updated_at), "clock"],
+    [
+      "Next step",
+      <Link
+        key="next"
+        href={detail.primary_contact_id ? `/contacts/${detail.primary_contact_id}` : "#people"}
+        className="amber m"
+      >
+        {NEXT_STEP[detail.stage]}
+        {detail.stage === "responded" || detail.stage === "contacted" ? ", due today" : ""}
+      </Link>,
+      "arrow",
+    ],
+    [
+      "Right for you?",
+      <RateMatch key="rate" ratings={ratings} companyId={detail.id} subject={brief.name} />,
+      "flag",
+    ],
+  ];
+  if (detail.backed_by && detail.backed_by.length > 0) {
+    rows.splice(3, 0, [
+      "Backed by",
+      <span key="backed">
+        {detail.backed_by.map((backer, index) => (
+          <span key={backer.portfolio_url}>
+            {index > 0 ? ", " : null}
+            <TextLink href={backer.portfolio_url} external>
+              {backer.name}
+            </TextLink>
+          </span>
+        ))}
+        <span className="faint xs"> (listed on their portfolio page)</span>
+      </span>,
+      "dollar",
+    ]);
+  }
 
   return (
-    <Card as="section" padding="none" className="overflow-hidden" aria-label={detail.domain}>
-      <HeroBand detail={detail} brief={brief} />
-
-      <div className="flex flex-col gap-4 px-6 py-5 sm:px-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <StatusBadge stage={detail.stage} />
-          <StageMenu
-            label={`Change the stage for ${detail.domain}`}
-            trigger={movingStage ? "Changing..." : "Change stage"}
-            current={detail.stage}
-            disabled={movingStage}
-            align="left"
-            onSelect={moveToStage}
-          />
-          <span className="utility-label text-ink-faint">
-            Last researched {formatTimestamp(detail.updated_at)}
-          </span>
-          <Button size="sm" onClick={rerunResearch} loading={rerunning} className="sm:ml-auto">
-            {rerunning ? "Checking again..." : "Run research again"}
-          </Button>
+    <section aria-label={detail.domain}>
+      <div className="row wrap" style={{ gap: 16, alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <HeroBand detail={detail} brief={brief} />
         </div>
-
-        {detail.backed_by && detail.backed_by.length > 0 ? (
-          <p className="text-sm text-ink-muted">
-            Backed by{" "}
-            {detail.backed_by.map((backer, index) => (
-              <span key={backer.portfolio_url}>
-                {index > 0 ? ", " : null}
-                <TextLink href={backer.portfolio_url} external>
-                  {backer.name}
-                </TextLink>
-              </span>
-            ))}
-            <span className="text-ink-faint"> (listed on their portfolio page)</span>
-          </p>
-        ) : null}
-
-        <div className="flex flex-col gap-4 border-t border-line pt-4 sm:flex-row sm:items-start sm:justify-between">
-          {detail.match ? (
-            <MatchDetails
-              band={detail.match.band}
-              score={detail.match.score}
-              parts={detail.match.parts}
-            />
-          ) : (
-            <span className="text-sm text-ink-muted">No open role here fits you yet.</span>
-          )}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-ink-muted">Is this company right for you?</span>
-            <RateMatch ratings={ratings} companyId={detail.id} subject={brief.name} />
-          </div>
+        <div className="row wrap">
+          <Btn kind="t" icon="history" onClick={rerunResearch} disabled={rerunning}>
+            {rerunning ? "Checking again..." : "Re-research"}
+          </Btn>
+          {contact ? (
+            <Btn kind="p" icon="send" href={`/contacts/${contact}`}>
+              Reach out
+            </Btn>
+          ) : null}
         </div>
-
-        {rerunning && activeRun ? <RerunProgress run={activeRun} /> : null}
-
-        {errors.map((message) => (
-          <Notice key={message}>{message}</Notice>
-        ))}
       </div>
-    </Card>
+
+      <div style={{ margin: "24px 0 8px" }}>
+        <Props rows={rows} />
+      </div>
+
+      {rerunning && activeRun ? <RerunProgress run={activeRun} /> : null}
+
+      {errors.map((message) => (
+        <Notice key={message}>{message}</Notice>
+      ))}
+    </section>
   );
 }

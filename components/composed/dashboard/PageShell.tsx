@@ -2,38 +2,27 @@ import type { ReactNode } from "react";
 
 interface PageShellProps {
   title: string;
-  /** For a page whose content names itself (a company's own header): the
-   * title stays for screen readers and the tab, but isn't shown. */
-  hideTitle?: boolean;
   description?: string;
   action?: ReactNode;
+  /** Narrower reading width, for pages that are mostly one column of text. */
+  maxWidth?: number;
   children: ReactNode;
 }
 
-/** Same width, gutters and header for every dashboard page. The header owns
- * the gap below it, so a page's first block never sets its own top margin. */
-export function PageShell({
-  title,
-  hideTitle = false,
-  description,
-  action,
-  children,
-}: PageShellProps) {
+/** The page header every dashboard screen shares: a title, one line under it
+ * and the page's primary action opposite. The shell owns the gutters. */
+export function PageShell({ title, description, action, maxWidth, children }: PageShellProps) {
   return (
-    <div className="mx-auto w-full max-w-page px-page pb-16 pt-6 sm:pt-8">
-      <header
-        className={`flex flex-wrap items-end justify-between gap-x-6 gap-y-3 ${hideTitle ? "mb-4" : "mb-6"}`}
-      >
-        <div className={hideTitle ? "sr-only" : "min-w-0 max-w-3xl"}>
-          <h1 className="text-balance break-words font-display text-page-title font-sans-semibold tracking-heading text-ink">
-            {title}
-          </h1>
-          {description ? <p className="mt-2 text-sm text-ink-muted">{description}</p> : null}
+    <div style={maxWidth ? { maxWidth } : undefined}>
+      <div className="row head wrap">
+        <div style={{ minWidth: 0 }}>
+          <h1 className="t">{title}</h1>
+          {description ? <div className="sub">{description}</div> : null}
         </div>
-        {action ? <div className="flex flex-wrap gap-2">{action}</div> : null}
-      </header>
-
-      {children}
+        <span className="sp" />
+        {action ? <div className="row wrap">{action}</div> : null}
+      </div>
+      <div style={{ marginTop: 24 }}>{children}</div>
     </div>
   );
 }

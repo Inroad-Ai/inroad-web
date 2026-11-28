@@ -5,7 +5,8 @@ export default function NotificationsPage() {
   return (
     <PageShell
       title="Notifications"
-      description="Hiring posts that fit your target roles, and news from companies you saved."
+      description="What needs you comes first. Hiring posts that fit your target roles, and news from companies you saved."
+      maxWidth={820}
     >
       <NotificationsPanel />
     </PageShell>

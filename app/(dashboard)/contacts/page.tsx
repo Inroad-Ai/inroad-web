@@ -1,13 +1,5 @@
-import { ContactsBoard } from "@/components/composed/dashboard/ContactsBoard";
-import { PageShell } from "@/components/composed/dashboard/PageShell";
+import { PeoplePage } from "@/components/composed/dashboard/v2/pages/PeoplePage";
 
 export default function ContactsPage() {
-  return (
-    <PageShell
-      title="People"
-      description="People found across your researched companies, by outreach stage."
-    >
-      <ContactsBoard />
-    </PageShell>
-  );
+  return <PeoplePage />;
 }

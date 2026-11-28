@@ -18,8 +18,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Workspace",
     items: [
-      { href: DASHBOARD_HOME, label: "Overview", icon: GridIcon },
-      { href: "/research", label: "Research", icon: SearchIcon },
+      { href: DASHBOARD_HOME, label: "Today", icon: GridIcon },
+      { href: "/research", label: "Discover", icon: SearchIcon },
       { href: "/companies", label: "Companies", icon: BuildingIcon },
     ],
   },
@@ -43,9 +43,9 @@ export const NAV_SECTIONS: NavSection[] = [
 ];
 
 export const PAGE_TITLES: Record<string, string> = {
-  "/overview": "Overview",
+  "/overview": "Today",
   "/profile": "Profile",
-  "/research": "Research",
+  "/research": "Discover",
   "/companies/pipeline": "Pipeline",
   "/companies": "Companies",
   "/contacts": "People",

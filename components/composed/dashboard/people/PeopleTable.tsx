@@ -55,7 +55,12 @@ export function PeopleTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <Tabs items={FILTER_TABS} activeId={filter} onChange={(id) => setFilter(id as StageFilter)} />
+      <Tabs
+        variant="underline"
+        items={FILTER_TABS}
+        activeId={filter}
+        onChange={(id) => setFilter(id as StageFilter)}
+      />
 
       {errors.map((message) => (
         <Notice key={message}>{message}</Notice>

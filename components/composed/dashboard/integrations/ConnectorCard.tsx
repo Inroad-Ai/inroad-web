@@ -20,6 +20,7 @@ import { Eyebrow } from "@/components/ui/Eyebrow";
 import { Notice } from "@/components/ui/Notice";
 import { KeyIcon, LockIcon } from "@/components/ui/Icons";
 import { MONOGRAM_FACE, monogramFill } from "@/components/ui/monogram";
+import { Status } from "../v2/kit";
 import { ApiKeyModal } from "./ApiKeyModal";
 
 interface ConnectorCardProps {
@@ -39,7 +40,7 @@ interface ConnectorCardProps {
   onDisconnected: (provider: string) => void;
   /** The page an OAuth connect lands back on. */
   oauthReturnTo?: OAuthReturnTo;
-  /** Set when the card sits inside another card, as in onboarding. */
+  /** Onboarding: a boxed card inside another card. Otherwise a list row. */
   nested?: boolean;
 }
 
@@ -131,41 +132,135 @@ export function ConnectorCard({
     });
   }
 
-  return (
-    <Card as="article" variant={nested ? "nested" : "default"} className="flex flex-col gap-4">
-      <div className="flex items-start gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-nest bg-chalk shadow-nest">
-          {logoSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoSrc} alt="" className="h-full w-full object-contain p-2" />
-          ) : (
-            // No official logo bundled yet: fall back to the provider's
-            // initial on its monogram colour, same as a person avatar.
-            <span
-              aria-hidden
-              className={`${MONOGRAM_FACE} h-full w-full rounded-nest text-lg ${monogramFill(label)}`}
-            >
-              <span className="relative">{label.charAt(0).toUpperCase()}</span>
-            </span>
-          )}
+  const logo = (
+    <span
+      className={`flex shrink-0 items-center justify-center overflow-hidden bg-chalk shadow-nest ${
+        nested ? "h-12 w-12 rounded-nest" : "h-10 w-10 rounded-lg"
+      }`}
+    >
+      {logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoSrc} alt="" className="h-full w-full object-contain p-2" />
+      ) : (
+        // No official logo bundled yet: fall back to the provider's
+        // initial on its monogram colour, same as a person avatar.
+        <span
+          aria-hidden
+          className={`${MONOGRAM_FACE} h-full w-full text-lg ${monogramFill(label)}`}
+        >
+          <span className="relative">{label.charAt(0).toUpperCase()}</span>
         </span>
+      )}
+    </span>
+  );
+
+  const status = !nested ? (
+    <Status tone={connection?.status === "invalid" ? "rose" : connection ? "" : "amber"}>
+      {connection?.status === "invalid"
+        ? "Key rejected"
+        : connection
+          ? "Connected"
+          : "Not connected"}
+    </Status>
+  ) : connection?.status === "invalid" ? (
+    <Badge tone="rose" dot>
+      Key rejected
+    </Badge>
+  ) : connection ? (
+    <Badge tone="teal" dot>
+      Connected
+    </Badge>
+  ) : (
+    <Badge tone="neutral">Not connected</Badge>
+  );
+
+  const actions =
+    connection?.status === "invalid" ? (
+      <>
+        {/* Rejected key: offer a re-save (or reconnect) plus removal, so
+         * the user can fix it without first deleting the dead key. */}
+        <Button
+          size="sm"
+          type="button"
+          onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
+          loading={busy}
+        >
+          {authMode === "oauth" ? "Reconnect" : "Update key"}
+        </Button>
+        <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect}>
+          Remove
+        </Button>
+      </>
+    ) : connection ? (
+      <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} loading={busy}>
+        {busy ? "Disconnecting..." : "Disconnect"}
+      </Button>
+    ) : (
+      <Button
+        size="sm"
+        variant="primary"
+        type="button"
+        onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
+        loading={busy}
+      >
+        {busy ? "Connecting..." : "Connect"}
+      </Button>
+    );
+
+  const feedback =
+    error && !modalOpen ? (
+      <Notice boxed size="xs">
+        {error}
+      </Notice>
+    ) : savedNote ? (
+      <Notice tone="success" boxed size="xs">
+        {savedNote}
+      </Notice>
+    ) : null;
+
+  const modal =
+    authMode === "api_key" && modalOpen ? (
+      <ApiKeyModal
+        label={label}
+        note={keyNote}
+        busy={busy}
+        error={error}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleConnectApiKey}
+      />
+    ) : null;
+
+  if (!nested) {
+    return (
+      <li className="py-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          {logo}
+          <div className="min-w-0 flex-1 basis-56">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h3 className="text-sm font-sans-semibold text-ink">{label}</h3>
+              {status}
+            </div>
+            <p className="mt-0.5 text-sm leading-relaxed text-ink-muted">{description}</p>
+          </div>
+          <div className="flex shrink-0 gap-2">{actions}</div>
+        </div>
+        {feedback ? <div className="mt-3">{feedback}</div> : null}
+        {modal}
+      </li>
+    );
+  }
+
+  return (
+    <Card as="article" variant="nested" className="flex flex-col gap-4">
+      <div className="flex items-start gap-3">
+        {logo}
         <div className="min-w-0 flex-1">
           <Eyebrow>{eyebrow}</Eyebrow>
           <h3 className="mt-1 font-display text-xl font-sans-semibold tracking-heading text-ink">
             {label}
           </h3>
         </div>
-        {connection?.status === "invalid" ? (
-          <Badge tone="rose" dot>
-            Key rejected
-          </Badge>
-        ) : connection ? (
-          <Badge tone="teal" dot>
-            Connected
-          </Badge>
-        ) : (
-          <Badge tone="neutral">Not connected</Badge>
-        )}
+        {status}
       </div>
 
       <p className="text-sm leading-relaxed text-ink-muted">{description}</p>
@@ -175,59 +270,9 @@ export function ConnectorCard({
         {authMode === "oauth" ? "Secure OAuth connection" : "API key authentication"}
       </p>
 
-      <div className="mt-auto flex flex-wrap gap-2 pt-1">
-        {connection?.status === "invalid" ? (
-          <>
-            {/* Rejected key: offer a re-save (or reconnect) plus removal, so
-             * the user can fix it without first deleting the dead key. */}
-            <Button
-              size="sm"
-              type="button"
-              onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
-              loading={busy}
-            >
-              {authMode === "oauth" ? "Reconnect" : "Update key"}
-            </Button>
-            <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect}>
-              Remove
-            </Button>
-          </>
-        ) : connection ? (
-          <Button variant="quiet" size="sm" type="button" onClick={handleDisconnect} loading={busy}>
-            {busy ? "Disconnecting..." : "Disconnect"}
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            type="button"
-            onClick={authMode === "oauth" ? handleConnectOAuth : openModal}
-            loading={busy}
-          >
-            {busy ? "Connecting..." : "Connect"}
-          </Button>
-        )}
-      </div>
-
-      {error && !modalOpen ? (
-        <Notice boxed size="xs">
-          {error}
-        </Notice>
-      ) : savedNote ? (
-        <Notice tone="success" boxed size="xs">
-          {savedNote}
-        </Notice>
-      ) : null}
-
-      {authMode === "api_key" && modalOpen ? (
-        <ApiKeyModal
-          label={label}
-          note={keyNote}
-          busy={busy}
-          error={error}
-          onClose={() => setModalOpen(false)}
-          onSubmit={handleConnectApiKey}
-        />
-      ) : null}
+      <div className="mt-auto flex flex-wrap gap-2 pt-1">{actions}</div>
+      {feedback}
+      {modal}
     </Card>
   );
 }

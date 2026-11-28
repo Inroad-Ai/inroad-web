@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { Tabs } from "@/components/ui/Tabs";
@@ -17,12 +18,13 @@ const MODES = [
 /** Two ways in, one at a time: a company you already have in mind, or
  * companies your profile finds. */
 export function ResearchWorkspace() {
-  const [mode, setMode] = useState("company");
+  const requestedMode = useSearchParams().get("mode");
+  const [mode, setMode] = useState(requestedMode === "match" ? "match" : "company");
   const scans = useMatchScans();
 
   return (
     <div className="flex flex-col gap-6">
-      <Tabs items={MODES} activeId={mode} onChange={setMode} />
+      <Tabs variant="underline" items={MODES} activeId={mode} onChange={setMode} />
       {mode === "company" ? <CompanyResearchTab /> : <MatchScanTab scans={scans} />}
     </div>
   );

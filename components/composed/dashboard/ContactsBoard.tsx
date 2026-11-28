@@ -39,7 +39,12 @@ export function ContactsBoard() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs items={VIEW_TABS} activeId={view} onChange={(id) => setView(id as View)} />
+        <Tabs
+          variant="underline"
+          items={VIEW_TABS}
+          activeId={view}
+          onChange={(id) => setView(id as View)}
+        />
         {view === "board" ? (
           <p className="text-xs text-ink-muted">Drag a person to a new stage, or use Move.</p>
         ) : null}

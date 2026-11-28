@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Notice } from "@/components/ui/Notice";
@@ -10,6 +12,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useResearchRuns } from "@/lib/research-runs";
 
 import { DashboardPanel } from "../DashboardPanel";
+import { Views } from "../v2/kit";
 import { NotificationItem } from "./NotificationItem";
 
 const SKELETON_ROWS = 3;
@@ -19,6 +22,9 @@ export function NotificationsPanel() {
   const { settings } = useSettings();
   const { startResearch } = useResearchRuns();
   const alertsOff = settings !== null && !settings.opportunity_alerts_enabled;
+  const [tab, setTab] = useState<"unread" | "all">("unread");
+  const unread = items.filter((notification) => notification.unread);
+  const shown = tab === "unread" ? unread : items;
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -28,6 +34,18 @@ export function NotificationsPanel() {
           <TextLink href="/settings">Settings</TextLink>.
         </Notice>
       ) : null}
+
+      <Views
+        items={[
+          {
+            l: "Needs you",
+            n: unread.length,
+            on: tab === "unread",
+            onSelect: () => setTab("unread"),
+          },
+          { l: "All", n: items.length, on: tab === "all", onSelect: () => setTab("all") },
+        ]}
+      />
 
       <DashboardPanel
         title="Opportunities"
@@ -39,17 +57,19 @@ export function NotificationsPanel() {
               <Skeleton key={i} className="h-28 rounded-nest" />
             ))}
           </div>
-        ) : items.length === 0 ? (
+        ) : shown.length === 0 ? (
           error ? null : (
             <EmptyState className="py-8 text-center">
               {alertsOff
                 ? "Turn on opportunity alerts and matches will show up here."
-                : "Nothing yet. New matches show up here, usually within half an hour of a post."}
+                : tab === "unread" && items.length > 0
+                  ? "You are all caught up."
+                  : "Nothing yet. New matches show up here, usually within half an hour of a post."}
             </EmptyState>
           )
         ) : (
           <ul>
-            {items.map((notification) => (
+            {shown.map((notification) => (
               <NotificationItem
                 key={notification.id}
                 notification={notification}

@@ -58,6 +58,12 @@
   --color-warning: 214 170 82;
   --color-warning-subtle: 52 42 22;
 
+  /* blue and violet — category tags only (recruiter, founder) */
+  --color-blue: 122 162 224;
+  --color-blue-subtle: 30 40 58;
+  --color-violet: 176 150 235;
+  --color-violet-subtle: 42 36 64;
+
   /* text and glyphs sitting on an amber fill. Fixed in both themes: ink flips
      light at night and would leave light-on-amber. */
   --color-on-amber: 43 33 29;
@@ -288,6 +294,11 @@
 
   --color-warning: 126 87 16;
   --color-warning-subtle: 244 234 214;
+
+  --color-blue: 40 82 150;
+  --color-blue-subtle: 229 236 247;
+  --color-violet: 92 66 168;
+  --color-violet-subtle: 237 232 247;
 
   --color-scrim: 106 96 91;
 

@@ -1,6 +1,7 @@
 /* All --color-*, --text-*, --size-*, --radius-* etc. custom properties are
    owned by styles/tokens.css, imported first per CSS's @import ordering rule. */
 @import "../styles/tokens.css";
+@import "../styles/dashboard-v2.css";
 
 @tailwind base;
 @tailwind components;

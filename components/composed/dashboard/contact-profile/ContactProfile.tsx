@@ -6,6 +6,7 @@ import { PageNotice } from "../PageNotice";
 import { ContactHeaderCard } from "./ContactHeaderCard";
 import { EngagementHistory } from "./EngagementHistory";
 import { OutreachComposer } from "./OutreachComposer";
+import { OutreachSequence } from "./OutreachSequence";
 import { useContactPerson } from "./useContactPerson";
 
 const LAYOUT = "grid items-start gap-6 lg:grid-cols-3";
@@ -33,8 +34,22 @@ export function ContactProfile({ personId }: { personId: string }) {
   }
 
   return (
-    <div className={LAYOUT}>
-      <div className="flex min-w-0 flex-col gap-6">
+    <div className="split" style={{ display: "flex", gap: 46 }}>
+      <div style={{ flex: 1, maxWidth: 760, minWidth: 0 }}>
+        <OutreachComposer detail={detail} outreach={outreach} />
+      </div>
+
+      <div
+        className="aside"
+        style={{
+          width: 320,
+          flex: "none",
+          paddingLeft: 34,
+          borderLeft: "1px solid rgb(var(--color-line))",
+          marginTop: 6,
+        }}
+      >
+        <OutreachSequence detail={detail} drafts={outreach.drafts} />
         <ContactHeaderCard
           detail={detail}
           moving={contact.moving}
@@ -44,11 +59,9 @@ export function ContactProfile({ personId }: { personId: string }) {
           onMoveStage={contact.moveStage}
           onEnrich={contact.enrichContact}
         />
-        <EngagementHistory detail={detail} drafts={outreach.drafts} />
-      </div>
-
-      <div className="min-w-0 lg:col-span-2">
-        <OutreachComposer detail={detail} outreach={outreach} />
+        <div style={{ marginTop: 28 }}>
+          <EngagementHistory detail={detail} drafts={outreach.drafts} />
+        </div>
       </div>
     </div>
   );
