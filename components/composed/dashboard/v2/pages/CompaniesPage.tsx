@@ -49,6 +49,12 @@ interface SavedView {
   search: string;
 }
 
+/** A reply waiting on you is the loudest; a closed company asks nothing. */
+function nextStepWeight(stage: PipelineStage): string {
+  if (stage === "closed" || stage === "rejected") return "done";
+  return stage === "responded" ? "urgent" : "";
+}
+
 interface Result {
   items: Company[];
   total: number;
@@ -563,8 +569,7 @@ export function CompaniesPage() {
                       <td>
                         <Link
                           href={nextStepHref(company)}
-                          className={`row ${company.stage === "responded" ? "amber m" : "muted"}`}
-                          style={{ gap: 6 }}
+                          className={`next-step ${nextStepWeight(company.stage)}`}
                           title={nextStepHint(company)}
                         >
                           {NEXT_STEP[company.stage]}
