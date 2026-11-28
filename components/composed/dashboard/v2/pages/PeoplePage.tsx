@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { formatRelativeDays, plural } from "@/lib/format";
@@ -23,14 +23,6 @@ interface CustomList {
   id: string;
   name: string;
   stage: StageFilter;
-}
-
-interface DraftPerson {
-  id: string;
-  name: string;
-  company: string;
-  title: string;
-  email: string;
 }
 
 const STAGE_TONE: Record<PersonStage, "faint" | "teal" | "amber" | "ochre"> = {
@@ -95,8 +87,6 @@ export function PeoplePage() {
   const [customLists, setCustomLists] = useState<CustomList[]>([]);
   const [namingList, setNamingList] = useState(false);
   const [listName, setListName] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [drafts, setDrafts] = useState<DraftPerson[]>([]);
   // A ref, not state: re-rendering every lane on dragstart would interrupt the drag.
   const dragging = useRef<PersonListItem | null>(null);
 
@@ -145,25 +135,6 @@ export function PeoplePage() {
     setNamingList(false);
   }
 
-  function addPerson(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    if (!name) return;
-    setDrafts((current) => [
-      {
-        id: `draft-${Date.now()}`,
-        name,
-        company: String(data.get("company") ?? "").trim(),
-        title: String(data.get("title") ?? "").trim(),
-        email: String(data.get("email") ?? "").trim(),
-      },
-      ...current,
-    ]);
-    event.currentTarget.reset();
-    setAdding(false);
-  }
-
   const counts: Record<string, number> = {
     managers: everyone.filter((p) => inList(p, "managers")).length,
     founders: everyone.filter((p) => inList(p, "founders")).length,
@@ -183,52 +154,7 @@ export function PeoplePage() {
         <Btn icon="search" href="/research">
           Find more people
         </Btn>
-        <Btn kind="p" icon="plus" onClick={() => setAdding((open) => !open)}>
-          Add person
-        </Btn>
       </div>
-
-      {adding ? (
-        <form
-          onSubmit={addPerson}
-          className="row wrap"
-          style={{
-            gap: 10,
-            marginTop: 16,
-            padding: 14,
-            borderRadius: 12,
-            background: "rgb(var(--color-surface))",
-          }}
-        >
-          {(
-            [
-              ["name", "Name", 180],
-              ["company", "Company", 160],
-              ["title", "Title", 160],
-              ["email", "Email", 200],
-            ] as const
-          ).map(([field, label, width]) => (
-            <input
-              key={field}
-              name={field}
-              required={field === "name"}
-              placeholder={label}
-              aria-label={label}
-              className="field"
-              style={{ height: 34, width, maxWidth: "100%" }}
-            />
-          ))}
-          <button type="submit" className="btn sm p">
-            Add
-          </button>
-          <button type="button" className="btn sm t" onClick={() => setAdding(false)}>
-            Cancel
-          </button>
-          <span className="xs faint">
-            Added to this list only. It is not saved to your account yet.
-          </span>
-        </form>
-      ) : null}
 
       <div className="row wrap" style={{ marginTop: 22, gap: 0 }}>
         <Views
@@ -343,7 +269,7 @@ export function PeoplePage() {
         <span className="sm muted">
           {view === "board"
             ? "Drag a person to a new stage, or use Move."
-            : plural(rows.length + drafts.length, "person", "people")}
+            : plural(rows.length, "person", "people")}
         </span>
         <span className="sp" />
         <span className="sm">
@@ -396,42 +322,6 @@ export function PeoplePage() {
                 </tr>
               </thead>
               <tbody>
-                {drafts.map((draft) => (
-                  <tr key={draft.id}>
-                    <td>
-                      <div className="row">
-                        <Av i={initialsOf(draft.name)} c={(draft.name.length % 6) + 1} size="xs" />
-                        <div>
-                          <span className="m">{draft.name}</span>{" "}
-                          {draft.title ? <span className="faint xs">{draft.title}</span> : null}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="muted">{draft.company || "-"}</td>
-                    <td>
-                      <Tag>Added by you</Tag>
-                    </td>
-                    <td>
-                      <Warmth w={1} />
-                    </td>
-                    <td className="muted">No shared path</td>
-                    <td>
-                      <Status tone="faint">Not saved</Status>
-                    </td>
-                    <td>{draft.email || <span className="faint">Not found</span>}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="muted"
-                        onClick={() =>
-                          setDrafts((current) => current.filter((d) => d.id !== draft.id))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
                 {rows.map((person) => {
                   const warmth = sampleWarmth(person.id);
                   return (
@@ -500,7 +390,7 @@ export function PeoplePage() {
               </tbody>
             </table>
           </div>
-          {!loading && rows.length === 0 && drafts.length === 0 && errors.length === 0 ? (
+          {!loading && rows.length === 0 && errors.length === 0 ? (
             <EmptyState className="px-6 py-12 text-center">
               {list === "everyone" ? "Nobody at this stage." : "Nobody on this list yet."}
             </EmptyState>

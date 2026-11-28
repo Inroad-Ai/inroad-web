@@ -295,8 +295,8 @@ export function CompaniesPage() {
         <Btn icon="up" onClick={() => fileInput.current?.click()}>
           Import
         </Btn>
-        <Btn kind="p" icon="plus" href="/research">
-          New company
+        <Btn kind="p" icon="search" href="/research">
+          Research a company
         </Btn>
       </div>
 

@@ -14,7 +14,7 @@ import { STAGE_LABEL } from "@/components/ui/StatusBadge";
 import { PipelineBoard } from "../../PipelineBoard";
 import { deriveOverviewMetrics } from "../../overview/overview-metrics";
 import { useOverviewData } from "../../overview/useOverviewData";
-import { Btn, Ic, Status, Views } from "../kit";
+import { Ic, Status, Views } from "../kit";
 import { NEXT_STEP, nextStepHint, nextStepHref } from "../next-step";
 import { sampleFit } from "../sample";
 
@@ -87,10 +87,6 @@ export function StagesPage() {
           <h1 className="t">Stages</h1>
           <div className="sub">Drag a card to move it. Each card shows what to do next.</div>
         </div>
-        <span className="sp" />
-        <Btn kind="p" icon="plus" href="/research">
-          Add company
-        </Btn>
       </div>
 
       {metrics && metrics.outreachBase > 0 ? (
