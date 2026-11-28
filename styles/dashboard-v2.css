@@ -959,3 +959,26 @@
   font-weight: 500;
   padding: 0;
 }
+.v2 .coach-answer {
+  height: auto;
+  min-height: 60px;
+  padding: 16px;
+  white-space: normal;
+  align-items: flex-start;
+  gap: 12px;
+}
+.v2 .coach-answer textarea {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  outline: 0;
+  resize: vertical;
+  color: rgb(var(--color-ink));
+  font: inherit;
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+.v2 .coach-answer:focus-within {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--color-signal-teal));
+}

@@ -72,6 +72,7 @@ const NAV: { group: string | null; items: NavEntry[] }[] = [
         icon: "spark",
         label: "Coach",
         href: "/coach",
+        badge: "dot",
         match: (p) => p.startsWith("/coach"),
       },
     ],
