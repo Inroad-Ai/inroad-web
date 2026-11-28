@@ -39,7 +39,13 @@ const SHOWN_ROLES = 8;
 
 /** Owns its own save: the arc goes to PUT /api/career-arc, so it never
  * dirties the profile form or waits for its save bar. */
-export function CareerArcManager({ initial }: { initial: CareerArcDocument | null }) {
+export function CareerArcManager({
+  initial,
+  onSaved,
+}: {
+  initial: CareerArcDocument | null;
+  onSaved?: (document: CareerArcDocument | null) => void;
+}) {
   const [saved, setSaved] = useState<CareerArcDocument | null>(initial);
   const [mode, setMode] = useState<Mode>("view");
   const [draft, setDraft] = useState<CareerArcDocument | null>(null);
@@ -83,7 +89,9 @@ export function CareerArcManager({ initial }: { initial: CareerArcDocument | nul
     setSaving(true);
     setError(null);
     try {
-      setSaved(await saveCareerArc(document, await requireAccessToken()));
+      const stored = await saveCareerArc(document, await requireAccessToken());
+      setSaved(stored);
+      onSaved?.(stored);
       close();
       setConfirmingRemove(false);
     } catch (caught) {

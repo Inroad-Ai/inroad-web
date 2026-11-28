@@ -9,6 +9,7 @@ import {
 } from "@/components/composed/dashboard/v2/pages/ProfilePage";
 import { Av, Bar, Btn, Views } from "@/components/composed/dashboard/v2/kit";
 import { Skeleton } from "@/components/ui/Skeleton";
+import type { CareerArcDocument } from "@/lib/api-client/client";
 import { plural } from "@/lib/format";
 import { CareerArcManager } from "./CareerArcManager";
 import { CertificatesEditor } from "./CertificatesEditor";
@@ -18,7 +19,7 @@ import { OnlinePresenceFields } from "./OnlinePresenceFields";
 import { PersonalDetailsFields } from "./PersonalDetailsFields";
 import { ProfessionalStoryFields } from "./ProfessionalStoryFields";
 import { ProfileSaveBar } from "./ProfileSaveBar";
-import { RecruiterView, summaryText } from "./RecruiterView";
+import { ProfilePreview, type EditTarget } from "./ProfilePreview";
 import { ProfileSection } from "./ProfileSection";
 import { ProjectsEditor } from "./ProjectsEditor";
 import { ResumeManager } from "./ResumeManager";
@@ -69,8 +70,10 @@ export function ProfileForm() {
   const controller = useProfileForm();
   const { profile, form, validationErrors: errors, update } = controller;
   const [tab, setTab] = useState<Tab>("story");
-  const [recruiter, setRecruiter] = useState(false);
-  const [shared, setShared] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  // The career arc saves on its own, so keep what it saved: switching tabs
+  // would otherwise bring back the copy loaded with the page.
+  const [savedArc, setSavedArc] = useState<CareerArcDocument | null | undefined>(undefined);
 
   // Links like /profile#profile-career-arc land on the tab that holds that section.
   useEffect(() => {
@@ -104,17 +107,12 @@ export function ProfileForm() {
     .toUpperCase();
   const subtitle = [form.targetRoles.join(", "), form.location].filter(Boolean).join(" · ");
   const completion = completionPercent(form);
-  const editing = tab !== "authority" && !recruiter;
+  const careerArc = savedArc === undefined ? (profile.career_arc ?? null) : savedArc;
+  const editing = tab !== "authority" && !previewing;
 
-  async function shareSummary() {
-    if (!form) return;
-    try {
-      await navigator.clipboard.writeText(summaryText(form));
-      setShared(true);
-      setTimeout(() => setShared(false), 1800);
-    } catch {
-      // Clipboard access can be refused; there is nothing else to fall back to.
-    }
+  function editFromPreview(target: EditTarget) {
+    setTab(target);
+    setPreviewing(false);
   }
 
   return (
@@ -132,11 +130,8 @@ export function ProfileForm() {
           ) : null}
         </div>
         <span className="sp" />
-        <Btn icon="eye" onClick={() => setRecruiter((on) => !on)}>
-          {recruiter ? "Back to editing" : "View as a recruiter"}
-        </Btn>
-        <Btn kind="p" icon="link" onClick={shareSummary}>
-          {shared ? "Copied" : "Share"}
+        <Btn icon="eye" onClick={() => setPreviewing((on) => !on)}>
+          {previewing ? "Back to editing" : "Preview profile"}
         </Btn>
         <div style={{ width: 200 }}>
           <div className="xs faint" style={{ marginBottom: 6, textAlign: "right" }}>
@@ -146,9 +141,14 @@ export function ProfileForm() {
         </div>
       </div>
 
-      {recruiter ? (
+      {previewing ? (
         <div style={{ marginTop: 24 }}>
-          <RecruiterView form={form} />
+          <ProfilePreview
+            form={form}
+            careerArc={careerArc}
+            unsaved={controller.isDirty}
+            onEdit={editFromPreview}
+          />
         </div>
       ) : (
         <>
@@ -261,7 +261,7 @@ export function ProfileForm() {
                 </ProfileSection>
 
                 <ProfileSection section={SECTIONS.careerArc} meta="Optional">
-                  <CareerArcManager initial={profile.career_arc ?? null} />
+                  <CareerArcManager initial={careerArc} onSaved={setSavedArc} />
                 </ProfileSection>
               </>
             ) : null}
