@@ -7,6 +7,7 @@ import { companyDisplayName } from "@/lib/company-brief";
 import { formatRelativeDays } from "@/lib/format";
 import { USUAL_SCAN_RANGE } from "@/lib/match-scan";
 import { useResearchRuns } from "@/lib/research-runs";
+import { useProfile } from "@/hooks/useProfile";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { Notice } from "@/components/ui/Notice";
 
@@ -16,6 +17,7 @@ import { ScanTimer } from "../../research/ScanTimer";
 import { isMatchInFlight, useMatchScans } from "../../research/useMatchScans";
 import { useRecentCompanies } from "../../research/useRecentCompanies";
 import { Btn, Ic, Section } from "../kit";
+import { DiscoverSuggestions } from "./DiscoverSuggestions";
 
 type Action = "focus" | "match" | "link" | "soon";
 
@@ -98,6 +100,7 @@ const GROUPS: { title: string; items: Item[] }[] = [
 export function DiscoverPage() {
   const [domain, setDomain] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const { profile } = useProfile();
   const { runs, startResearch } = useResearchRuns();
   const scans = useMatchScans();
   const { matchBusy, matchRuns, runMatch, retryMatchPoll } = scans;
@@ -192,6 +195,13 @@ export function DiscoverPage() {
           </div>
         )}
       </div>
+
+      <DiscoverSuggestions
+        profile={profile}
+        recent={recent}
+        matchBusy={matchBusy}
+        onFindMatches={runMatch}
+      />
 
       <div className="row split" style={{ gap: 56, alignItems: "flex-start", marginTop: 44 }}>
         {GROUPS.map((group) => (

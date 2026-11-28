@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { fetchCompanies } from "@/lib/api-client/client";
 import { ensureValidAccessToken } from "@/lib/auth-native/browser";
 import { companyDisplayName } from "@/lib/company-brief";
-import { formatRelativeDays, plural } from "@/lib/format";
+import { formatRelativeDays } from "@/lib/format";
 import type { Company } from "@/lib/types";
 import { CompanyLogo } from "@/components/ui/CompanyLogo";
 import { STAGE_LABEL } from "@/components/ui/StatusBadge";
@@ -75,10 +75,10 @@ function useAllCompanies(enabled: boolean) {
 
 export function StagesPage() {
   const [mode, setMode] = useState<Mode>("board");
-  const { stats, followUps } = useOverviewData();
+  const { stats } = useOverviewData();
+  const [quiet, setQuiet] = useState(0);
   const { items, error } = useAllCompanies(mode !== "board");
   const metrics = stats ? deriveOverviewMetrics(stats) : null;
-  const quiet = followUps.length;
 
   return (
     <>
@@ -95,14 +95,15 @@ export function StagesPage() {
 
       {metrics && metrics.outreachBase > 0 ? (
         <div className="sm" style={{ marginTop: 18, color: "rgb(var(--color-ink-muted))" }}>
-          <b className="green">{metrics.responseRate}% reply rate</b>
+          <b className="green">{metrics.responseRate}% reply rate</b> and{" "}
+          <span title="Sample value">3.1 days to reply</span>.{" "}
           {quiet > 0 ? (
             <>
-              {" "}
               <span className="rose">
-                {plural(quiet, "company is", "companies are")} waiting on a follow-up.
+                {quiet === 1 ? "1 conversation has" : `${quiet} conversations have`} been quiet for
+                over 7 days.
               </span>{" "}
-              <Link href="/companies" className="amber m">
+              <Link href="/contacts" className="amber m">
                 Nudge them
               </Link>
             </>
@@ -125,7 +126,7 @@ export function StagesPage() {
         />
       </div>
 
-      {mode === "board" ? <PipelineBoard /> : null}
+      {mode === "board" ? <PipelineBoard onQuietChange={setQuiet} /> : null}
 
       {mode !== "board" && error ? <p className="sm rose">{error}</p> : null}
       {mode !== "board" && !error && items === null ? (
